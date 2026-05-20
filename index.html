@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Song Finder + Gig Mode</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<style>
+
+body{
+    margin:0;
+    background:#0f172a;
+    color:#e2e8f0;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+}
+
+.header{
+    padding:20px;
+    position:sticky;
+    top:0;
+    background:#0f172a;
+    z-index:10;
+}
+
+#search{
+    width:100%;
+    box-sizing:border-box;
+    padding:16px;
+    font-size:24px;
+    border:none;
+    border-radius:14px;
+    outline:none;
+}
+
+#topBar{
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    flex-wrap:wrap;
+}
+
+#fontControls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+}
+
+button{
+    padding:8px 12px;
+    font-size:16px;
+    border-radius:10px;
+    border:none;
+    background:#1e293b;
+    color:#e2e8f0;
+}
+
+#gigBtn{
+    font-weight:600;
+}
+
+#clock{
+    font-size:26px;
+    font-weight:800;
+    color:#38bdf8;
+    min-width:140px;
+    text-align:right;
+}
+
+#info{
+    margin-top:10px;
+    color:#94a3b8;
+    font-size:14px;
+}
+
+#filters{
+    margin-top:14px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    font-size:14px;
+}
+
+#results{
+    padding:20px;
+    display:grid;
+    gap:12px;
+    grid-template-columns: repeat(1, 1fr);
+}
+
+@media(min-width:600px){
+    #results{grid-template-columns:repeat(2,1fr);}
+}
+
+@media(min-width:1000px){
+    #results{grid-template-columns:repeat(3,1fr);}
+}
+
+.result{
+    background:#1e293b;
+    border-radius:16px;
+    padding:14px;
+    font-size:var(--font,15px);
+    display:flex;
+    flex-direction:column;
+}
+
+.title{
+    font-size:calc(var(--font,15px) + 4px);
+    font-weight:700;
+}
+
+.meta{
+    margin-top:6px;
+    color:#94a3b8;
+    font-size:calc(var(--font,15px) - 2px);
+}
+
+a{
+    color:#38bdf8;
+    font-weight:600;
+    text-decoration:none;
+}
+
+#gig{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:#0f172a;
+    z-index:9999;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    text-align:center;
+    padding:40px;
+}
+
+#gigTitle{font-size:52px;font-weight:800;}
+#gigArtist{font-size:30px;color:#94a3b8;margin-top:10px;}
+#gigMeta{margin-top:20px;color:#64748b;}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+<input id="search" placeholder="Search songs, artist, year...">
+
+<div id="topBar">
+
+    <div id="fontControls">
+        <button id="minus">−</button>
+        <button id="plus">+</button>
+        <span style="color:#94a3b8;font-size:13px;">Text</span>
+    </div>
+
+    <button id="gigBtn">🎤 Gig Mode</button>
+
+    <div id="clock">00:00:00</div>
+
+</div>
+
+<div id="info">Loading...</div>
+
+<div id="filters">
+<label><input type="checkbox" class="tag" value="Upbeat"> Upbeat</label>
+<label><input type="checkbox" class="tag" value="Favourites"> Favourites</label>
+<label><input type="checkbox" class="tag" value="Dancefloor"> Dancefloor</label>
+<label><input type="checkbox" class="tag" value="Sing-a-Long"> Sing-a-Long</label>
+<label><input type="checkbox" class="tag" value="Happy"> Happy</label>
+<label><input type="checkbox" class="tag" value="Easy To Sing"> Easy To Sing</label>
+<label><input type="checkbox" class="tag" value="Romantic"> Romantic</label>
+<label><input type="checkbox" class="tag" value="Showcase"> Showcase</label>
+</div>
+
+</div>
+
+<div id="results"></div>
+
+<div id="gig">
+    <div id="gigTitle"></div>
+    <div id="gigArtist"></div>
+    <div id="gigMeta"></div>
+    <div style="margin-top:30px;color:#64748b;font-size:14px;">
+        Tap left/right • center to exit
+    </div>
+</div>
+
+<script>
+
+let songs=[];
+let font=15;
+let gigList=[];
+let gigIndex=0;
+
+/* CLOCK */
+function updateClock(){
+    const now=new Date();
+    const h=String(now.getHours()).padStart(2,'0');
+    const m=String(now.getMinutes()).padStart(2,'0');
+    const s=String(now.getSeconds()).padStart(2,'0');
+    document.getElementById('clock').innerText=`${h}:${m}:${s}`;
+}
+setInterval(updateClock,1000);
+updateClock();
+
+function apply(){
+    document.documentElement.style.setProperty('--font',font+'px');
+}
+
+function norm(v){return (v??'').toString().toLowerCase();}
+
+function match(song,q){
+    q=norm(q).trim();
+    if(!q)return true;
+    const t=norm(Object.values(song).join(' '));
+    if(/^\d+$/.test(q))return new RegExp('\\b'+q+'\\b').test(t);
+    if(q.includes(' '))return q.split(/\s+/).every(w=>t.includes(w));
+    return t.includes(q);
+}
+
+function filters(song){
+    const f=[...document.querySelectorAll('.tag:checked')].map(x=>x.value);
+    if(!f.length)return true;
+    return f.every(x=>{
+        const v=song[x];
+        return v===true||v==="true"||v===1||v==="1"||v==="yes";
+    });
+}
+
+function render(list){
+    const r=document.getElementById('results');
+    r.innerHTML='';
+    list.forEach(s=>{
+        const link=s.Link||s.link||s.LINK;
+        const div=document.createElement('div');
+        div.className='result';
+        div.innerHTML=`
+            <div class="title">${s["SONG NAME"]||""}</div>
+            <div>${s["ARTIST"]||""}</div>
+            <div class="meta">${s.Year||""} ${s.Genre||""}</div>
+            <div style="margin-top:10px;">
+                ${link?`<a href="${link}" target="_blank">Open</a>`:""}
+            </div>`;
+        r.appendChild(div);
+    });
+}
+
+function update(){
+    const q=document.getElementById('search').value;
+    const out=songs.filter(s=>match(s,q)&&filters(s));
+    render(out);
+}
+
+function gig(){
+    gigList=songs.filter(s=>match(s,document.getElementById('search').value)&&filters(s));
+    if(!gigList.length)return;
+    gigIndex=0;
+    showGig();
+    document.getElementById('gig').style.display='flex';
+}
+
+function showGig(){
+    const s=gigList[gigIndex];
+    if(!s)return;
+    document.getElementById('gigTitle').innerText=s["SONG NAME"]||"";
+    document.getElementById('gigArtist').innerText=s["ARTIST"]||"";
+    document.getElementById('gigMeta').innerText=`${s.Year||""} ${s.Genre||""}`;
+}
+
+function next(){if(gigIndex<gigList.length-1){gigIndex++;showGig();}}
+function prev(){if(gigIndex>0){gigIndex--;showGig();}}
+
+window.addEventListener('click',e=>{
+    const x=e.clientX/window.innerWidth;
+    if(document.getElementById('gig').style.display==='flex'){
+        if(x<0.4)prev();
+        else if(x>0.6)next();
+        else document.getElementById('gig').style.display='none';
+    }
+});
+
+document.getElementById('plus').onclick=()=>{font=Math.min(font+2,28);apply();};
+document.getElementById('minus').onclick=()=>{font=Math.max(font-2,10);apply();};
+document.getElementById('gigBtn').onclick=gig;
+
+document.getElementById('search').oninput=update;
+document.querySelectorAll('.tag').forEach(c=>c.onchange=update);
+
+async function load(){
+    const r=await fetch('songs.json');
+    songs=await r.json();
+    document.getElementById('info').innerText=songs.length+' songs';
+    update();
+}
+
+apply();load();
+
+</script>
+
+</body>
+</html>
