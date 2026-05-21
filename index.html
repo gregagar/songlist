@@ -242,31 +242,35 @@ function passesFilters(song){
 function sortSongs(arr){
     if(!sortKey) return arr;
 
-    const copy = [...arr]; // IMPORTANT: avoid mutating original
+    return [...arr].sort((a,b)=>{
 
-    return copy.sort((a,b)=>{
+        const get = (v) =>
+            (v === null || v === undefined)
+                ? ""
+                : v.toString().toLowerCase();
 
-        let x, y;
+        let x = "", y = "";
 
-        if(sortKey==="artist"){
-            x = (a["ARTIST"] ?? "").toString().toLowerCase();
-            y = (b["ARTIST"] ?? "").toString().toLowerCase();
+        if(sortKey === "artist"){
+            x = get(a["ARTIST"]);
+            y = get(b["ARTIST"]);
         }
 
-        else if(sortKey==="title"){
-            x = (a["SONG NAME"] ?? "").toString().toLowerCase();
-            y = (b["SONG NAME"] ?? "").toString().toLowerCase();
+        else if(sortKey === "title"){
+            x = get(a["SONG NAME"]);
+            y = get(b["SONG NAME"]);
         }
 
-        else if(sortKey==="bpm"){
+        else if(sortKey === "bpm"){
             x = Number(a["Tempo"] ?? 0);
             y = Number(b["Tempo"] ?? 0);
         }
 
-        return x > y ? 1 : x < y ? -1 : 0;
+        if (x > y) return 1;
+        if (x < y) return -1;
+        return 0;
     });
 }
-
 function buildChips(){
     const c=document.getElementById("chipContainer");
     c.innerHTML="";
