@@ -250,7 +250,7 @@ function sortSongs(arr){
     if(!sortKey) return arr;
 
     return arr.sort((a,b)=>{
-        let x,y;
+        let x="", y="";
 
         if(sortKey==="artist"){
             x=(a["ARTIST"]||"").toLowerCase();
@@ -258,8 +258,8 @@ function sortSongs(arr){
         }
 
         if(sortKey==="title"){
-            x=(a["SONG NAME"]||"").toLowerCase();
-            y=(b["SONG NAME"]||"").toLowerCase();
+            x=(a["SONG NAME"]||a["Title"]||"").toLowerCase();
+            y=(b["SONG NAME"]||b["Title"]||"").toLowerCase();
         }
 
         if(sortKey==="bpm"){
