@@ -9,10 +9,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
 <style>
-
-:root{
-    --scale:1;
-}
+:root{ --scale:1; }
 
 html, body{
     margin:0;
@@ -31,9 +28,7 @@ html, body{
     z-index:10;
 }
 
-#searchWrap{
-    position:relative;
-}
+#searchWrap{ position:relative; }
 
 #search{
     width:100%;
@@ -68,6 +63,7 @@ html, body{
     display:flex;
     gap:8px;
     align-items:center;
+    flex-wrap:wrap;
 }
 
 #fontLabel{
@@ -82,7 +78,6 @@ html, body{
     min-width:140px;
     text-align:right;
     letter-spacing:1px;
-
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
 }
@@ -134,15 +129,9 @@ button{
     grid-template-columns:repeat(2,1fr);
 }
 
-@media(max-width:600px){
-    #results{grid-template-columns:repeat(2,1fr);}
-}
-@media(min-width:700px){
-    #results{grid-template-columns:repeat(3,1fr);}
-}
-@media(min-width:1100px){
-    #results{grid-template-columns:repeat(4,1fr);}
-}
+@media(max-width:600px){ #results{grid-template-columns:repeat(2,1fr);} }
+@media(min-width:700px){ #results{grid-template-columns:repeat(3,1fr);} }
+@media(min-width:1100px){ #results{grid-template-columns:repeat(4,1fr);} }
 
 .card{
     background:#1e293b;
@@ -171,7 +160,6 @@ a{
     font-weight:600;
     font-size:calc(15px * var(--scale));
 }
-
 </style>
 </head>
 
@@ -189,17 +177,20 @@ a{
     <div id="controls">
         <button id="fontMinus">−</button>
         <button id="fontPlus">+</button>
+
+        <!-- NEW SORT BUTTONS -->
+        <button id="sortArtist">Artist</button>
+        <button id="sortTitle">Title</button>
+        <button id="sortBpm">BPM</button>
+
         <span id="fontLabel">Text size</span>
     </div>
 
     <div id="songCount"></div>
-
     <div id="clockBox"></div>
-
 </div>
 
 <div id="chipContainer"></div>
-
 </div>
 
 <div id="results"></div>
@@ -209,6 +200,9 @@ a{
 let songs=[];
 let currentQuery="";
 let scale=1;
+
+// NEW SORT STATE
+let sortKey=null;
 
 const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
 const activeFilters=new Set();
@@ -251,6 +245,34 @@ function passesFilters(song){
     });
 }
 
+// NEW SORT FUNCTION
+function sortSongs(arr){
+    if(!sortKey) return arr;
+
+    return arr.sort((a,b)=>{
+        let x,y;
+
+        if(sortKey==="artist"){
+            x=(a["ARTIST"]||"").toLowerCase();
+            y=(b["ARTIST"]||"").toLowerCase();
+        }
+
+        if(sortKey==="title"){
+            x=(a["SONG NAME"]||"").toLowerCase();
+            y=(b["SONG NAME"]||"").toLowerCase();
+        }
+
+        if(sortKey==="bpm"){
+            x=parseFloat(a["Tempo"]||0);
+            y=parseFloat(b["Tempo"]||0);
+        }
+
+        if(x<y) return -1;
+        if(x>y) return 1;
+        return 0;
+    });
+}
+
 function buildChips(){
     const c=document.getElementById("chipContainer");
     c.innerHTML="";
@@ -277,11 +299,7 @@ function buildChips(){
 
     clear.onclick=()=>{
         activeFilters.clear();
-
-        document.querySelectorAll(".chip").forEach(chip=>{
-            chip.classList.remove("active");
-        });
-
+        document.querySelectorAll(".chip").forEach(chip=>chip.classList.remove("active"));
         render();
     };
 
@@ -334,7 +352,10 @@ function render(){
     const r=document.getElementById("results");
     r.innerHTML="";
 
-    const filtered=songs.filter(s=>songMatches(s,currentQuery)&&passesFilters(s));
+    let filtered=songs.filter(s=>songMatches(s,currentQuery)&&passesFilters(s));
+
+    // APPLY SORT
+    filtered=sortSongs(filtered);
 
     filtered.forEach(song=>{
         const div=document.createElement("div");
@@ -353,13 +374,11 @@ function render(){
             : "<span></span>";
 
         const meta=[];
-
         if(song.Year) meta.push(song.Year);
         if(song.Genre) meta.push(song.Genre);
         if(song.Tempo) meta.push(`${song.Tempo} bpm`);
 
         const flag=getFlag(song["Country of Origin"]);
-
         if(flag) meta.push(flag);
 
         div.innerHTML=`
@@ -380,7 +399,6 @@ function render(){
 }
 
 // EVENTS
-
 document.getElementById("search").oninput=e=>{
     currentQuery=e.target.value;
     render();
@@ -402,6 +420,11 @@ document.getElementById("fontMinus").onclick=()=>{
     applyScale();
 };
 
+// SORT BUTTON EVENTS
+document.getElementById("sortArtist").onclick=()=>{ sortKey="artist"; render(); };
+document.getElementById("sortTitle").onclick=()=>{ sortKey="title"; render(); };
+document.getElementById("sortBpm").onclick=()=>{ sortKey="bpm"; render(); };
+
 async function load(){
     try{
         songs=await (await fetch("songs.json")).json();
@@ -418,7 +441,6 @@ setInterval(updateClock,1000);
 load();
 applyScale();
 updateClock();
-
 </script>
 
 <button id="backToTop">↑</button>
@@ -458,10 +480,7 @@ window.addEventListener("scroll",()=>{
 });
 
 backToTopBtn.addEventListener("click",()=>{
-    window.scrollTo({
-        top:0,
-        behavior:"smooth"
-    });
+    window.scrollTo({ top:0, behavior:"smooth" });
 });
 </script>
 
