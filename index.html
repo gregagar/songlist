@@ -175,19 +175,25 @@ a{
 <div id="topRow">
 
     <div id="controls">
+        <span id="fontLabel">Text size</span>
+        <button id="fontMinus">−</button>
+        <button id="fontPlus">+</button>
 
-    <span id="fontLabel">Text size</span>
-    <button id="fontMinus">−</button>
-    <button id="fontPlus">+</button>
+        <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
 
-    <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
+        <button id="sortArtist">Artist</button>
+        <button id="sortTitle">Title</button>
+        <button id="sortBpm">BPM</button>
+    </div>
 
-    <button id="sortArtist">Artist</button>
-    <button id="sortTitle">Title</button>
-    <button id="sortBpm">BPM</button>
+    <div id="chipContainer"></div>
 
-</div>
-<div id="chipContainer"></div>
+    <!-- ✅ ADD THIS -->
+    <div id="statusRight">
+        <div id="songCount"></div>
+        <div id="clockBox"></div>
+    </div>
+
 </div>
 
 <div id="results"></div>
