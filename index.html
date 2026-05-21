@@ -176,17 +176,20 @@ a{
 
     <div id="controls">
 
-    <span id="fontLabel">Text size</span>
-    <button id="fontMinus">−</button>
-    <button id="fontPlus">+</button>
+        <span id="fontLabel">Text size</span>
+        <button id="fontMinus">−</button>
+        <button id="fontPlus">+</button>
 
-    <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
+        <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
 
-    <button id="sortArtist">Artist</button>
-    <button id="sortTitle">Title</button>
-    <button id="sortBpm">BPM</button>
+        <button id="sortArtist">Artist</button>
+        <button id="sortTitle">Title</button>
+        <button id="sortBpm">BPM</button>
 
-</div>
+        <!-- NEW TOGGLE -->
+        <button id="sortDir">A–Z</button>
+
+    </div>
 
     <div id="songCount"></div>
     <div id="clockBox"></div>
@@ -203,8 +206,8 @@ let songs=[];
 let currentQuery="";
 let scale=1;
 
-// NEW SORT STATE
 let sortKey=null;
+let sortDirection="asc"; // NEW
 
 const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
 const activeFilters=new Set();
@@ -247,7 +250,6 @@ function passesFilters(song){
     });
 }
 
-// NEW SORT FUNCTION
 function sortSongs(arr){
     if(!sortKey) return arr;
 
@@ -258,102 +260,27 @@ function sortSongs(arr){
                 ? ""
                 : v.toString().toLowerCase();
 
-        let x = "", y = "";
+        let x="", y="";
 
-        if(sortKey === "artist"){
-            x = get(a["ARTIST"]);
-            y = get(b["ARTIST"]);
+        if(sortKey==="artist"){
+            x=get(a["ARTIST"]);
+            y=get(b["ARTIST"]);
+        }
+        else if(sortKey==="title"){
+            x=get(a["SONG NAME"]);
+            y=get(b["SONG NAME"]);
+        }
+        else if(sortKey==="bpm"){
+            x=Number(a["Tempo"]??0);
+            y=Number(b["Tempo"]??0);
         }
 
-        else if(sortKey === "title"){
-            x = get(a["SONG NAME"]);
-            y = get(b["SONG NAME"]);
-        }
+        let res=0;
+        if(x>y) res=1;
+        else if(x<y) res=-1;
 
-        else if(sortKey === "bpm"){
-            x = Number(a["Tempo"] ?? 0);
-            y = Number(b["Tempo"] ?? 0);
-        }
-
-        if (x > y) return 1;
-        if (x < y) return -1;
-        return 0;
+        return sortDirection==="asc" ? res : -res;
     });
-}
-
-function buildChips(){
-    const c=document.getElementById("chipContainer");
-    c.innerHTML="";
-
-    filters.forEach(f=>{
-        const d=document.createElement("div");
-        d.className="chip";
-        d.innerText=f;
-
-        d.onclick=()=>{
-            if(activeFilters.has(f)) activeFilters.delete(f);
-            else activeFilters.add(f);
-
-            d.classList.toggle("active");
-            render();
-        };
-
-        c.appendChild(d);
-    });
-
-    const clear=document.createElement("div");
-    clear.className="chip";
-    clear.innerText="✕";
-
-    clear.onclick=()=>{
-        activeFilters.clear();
-        document.querySelectorAll(".chip").forEach(chip=>chip.classList.remove("active"));
-        render();
-    };
-
-    c.appendChild(clear);
-}
-
-function getDecadeColor(decade){
-    const d=(decade||"").toString().toLowerCase().trim();
-
-    if(d.includes("1920") || d.includes("20s")) return "#262f38";
-    if(d.includes("1930") || d.includes("30s")) return "#312f29";
-    if(d.includes("1940") || d.includes("40s")) return "#2d2a33";
-    if(d.includes("1950") || d.includes("50s")) return "#28302b";
-    if(d.includes("1960") || d.includes("60s")) return "#2b3130";
-    if(d.includes("1970") || d.includes("70s")) return "#3a3526";
-    if(d.includes("1980") || d.includes("80s")) return "#322829";
-    if(d.includes("1990") || d.includes("90s")) return "#29302b";
-    if(d.includes("2000") || d.includes("00s")) return "#313028";
-    if(d.includes("2010") || d.includes("10s")) return "#273544";
-    if(d.includes("2020")) return "#262f38";
-
-    return "#1e293b";
-}
-
-function getFlag(country){
-    if(!country) return "";
-
-    const flags={
-        "united kingdom":"🇬🇧",
-        "uk":"🇬🇧",
-        "england":"🇬🇧",
-        "usa":"🇺🇸",
-        "united states":"🇺🇸",
-        "canada":"🇨🇦",
-        "france":"🇫🇷",
-        "germany":"🇩🇪",
-        "italy":"🇮🇹",
-        "spain":"🇪🇸",
-        "ireland":"🇮🇪",
-        "sweden":"🇸🇪",
-        "australia":"🇦🇺",
-        "new zealand":"🇳🇿",
-        "japan":"🇯🇵"
-    };
-
-    return flags[country.toString().toLowerCase()] || "";
 }
 
 function render(){
@@ -361,42 +288,15 @@ function render(){
     r.innerHTML="";
 
     let filtered=songs.filter(s=>songMatches(s,currentQuery)&&passesFilters(s));
-
-    // APPLY SORT
     filtered=sortSongs(filtered);
 
     filtered.forEach(song=>{
         const div=document.createElement("div");
         div.className="card";
-        div.style.background=getDecadeColor(song.Decade);
-
-        const link=song.Link||song.link||"";
-        const wiki=song.Wiki||song.wiki||"";
-
-        const openHTML=link.trim()
-            ? `<a href="${link}" target="_blank">Open</a>`
-            : "<span></span>";
-
-        const wikiHTML=wiki.trim()
-            ? `<a href="${wiki}" target="_blank">Wiki</a>`
-            : "<span></span>";
-
-        const meta=[];
-        if(song.Year) meta.push(song.Year);
-        if(song.Genre) meta.push(song.Genre);
-        if(song.Tempo) meta.push(`${song.Tempo} bpm`);
-
-        const flag=getFlag(song["Country of Origin"]);
-        if(flag) meta.push(flag);
 
         div.innerHTML=`
             <div class="title">${song["SONG NAME"]||""}</div>
             <div>${song["ARTIST"]||""}</div>
-            <div class="meta">${meta.join(" • ")}</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                ${openHTML}
-                ${wikiHTML}
-            </div>
         `;
 
         r.appendChild(div);
@@ -428,68 +328,27 @@ document.getElementById("fontMinus").onclick=()=>{
     applyScale();
 };
 
-// SORT BUTTON EVENTS
+// SORT KEYS
 document.getElementById("sortArtist").onclick=()=>{ sortKey="artist"; render(); };
 document.getElementById("sortTitle").onclick=()=>{ sortKey="title"; render(); };
 document.getElementById("sortBpm").onclick=()=>{ sortKey="bpm"; render(); };
 
-async function load(){
-    try{
-        songs=await (await fetch("songs.json")).json();
-    }catch(e){
-        songs=JSON.parse(localStorage.getItem("cache")||"[]");
-    }
+// TOGGLE DIRECTION
+const dirBtn=document.getElementById("sortDir");
 
-    buildChips();
+dirBtn.onclick=()=>{
+    sortDirection = (sortDirection==="asc") ? "desc" : "asc";
+    dirBtn.innerText = sortDirection==="asc" ? "A–Z" : "Z–A";
     render();
-}
+};
+
+dirBtn.innerText="A–Z";
 
 setInterval(updateClock,1000);
 
-load();
 applyScale();
-updateClock();
-</script>
+render();
 
-<button id="backToTop">↑</button>
-
-<style>
-#backToTop{
-    position:fixed;
-    right:18px;
-    bottom:18px;
-    width:46px;
-    height:46px;
-    border:none;
-    border-radius:50%;
-    background:#1e293b;
-    color:#e2e8f0;
-    font-size:22px;
-    display:none;
-    align-items:center;
-    justify-content:center;
-    z-index:9999;
-    box-shadow:0 4px 12px rgba(0,0,0,0.35);
-    opacity:0.92;
-}
-</style>
-
-<script>
-const backToTopBtn=document.getElementById("backToTop");
-
-window.addEventListener("scroll",()=>{
-    const header=document.querySelector(".header");
-
-    if(window.scrollY > header.offsetHeight){
-        backToTopBtn.style.display="flex";
-    }else{
-        backToTopBtn.style.display="none";
-    }
-});
-
-backToTopBtn.addEventListener("click",()=>{
-    window.scrollTo({ top:0, behavior:"smooth" });
-});
 </script>
 
 </body>
