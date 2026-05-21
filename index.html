@@ -186,7 +186,6 @@ a{
         <button id="sortTitle">Title</button>
         <button id="sortBpm">BPM</button>
 
-        <!-- NEW TOGGLE -->
         <button id="sortDir">A–Z</button>
 
     </div>
@@ -207,7 +206,7 @@ let currentQuery="";
 let scale=1;
 
 let sortKey=null;
-let sortDirection="asc"; // NEW
+let sortDirection="asc";
 
 const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
 const activeFilters=new Set();
@@ -255,10 +254,8 @@ function sortSongs(arr){
 
     return [...arr].sort((a,b)=>{
 
-        const get = (v) =>
-            (v === null || v === undefined)
-                ? ""
-                : v.toString().toLowerCase();
+        const get = (v)=>
+            (v===null || v===undefined) ? "" : v.toString().toLowerCase();
 
         let x="", y="";
 
@@ -328,12 +325,23 @@ document.getElementById("fontMinus").onclick=()=>{
     applyScale();
 };
 
-// SORT KEYS
-document.getElementById("sortArtist").onclick=()=>{ sortKey="artist"; render(); };
-document.getElementById("sortTitle").onclick=()=>{ sortKey="title"; render(); };
-document.getElementById("sortBpm").onclick=()=>{ sortKey="bpm"; render(); };
+// SORT BUTTONS
+document.getElementById("sortArtist").onclick=()=>{
+    sortKey="artist";
+    render();
+};
 
-// TOGGLE DIRECTION
+document.getElementById("sortTitle").onclick=()=>{
+    sortKey="title";
+    render();
+};
+
+document.getElementById("sortBpm").onclick=()=>{
+    sortKey="bpm";
+    render();
+};
+
+// SORT DIRECTION TOGGLE
 const dirBtn=document.getElementById("sortDir");
 
 dirBtn.onclick=()=>{
@@ -344,10 +352,21 @@ dirBtn.onclick=()=>{
 
 dirBtn.innerText="A–Z";
 
+async function load(){
+    try{
+        songs = await (await fetch("songs.json")).json();
+    }catch(e){
+        songs = JSON.parse(localStorage.getItem("cache") || "[]");
+    }
+
+    render();
+}
+
 setInterval(updateClock,1000);
 
 applyScale();
-render();
+load();
+updateClock();
 
 </script>
 
