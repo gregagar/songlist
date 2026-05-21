@@ -248,26 +248,32 @@ function passesFilters(song){
 function sortSongs(arr){
     if(!sortKey) return arr;
 
-    return arr.sort((a,b)=>{
-        let x="", y="";
+    return [...arr].sort((a,b)=>{
 
-        if(sortKey==="artist"){
-            x=(a["ARTIST"]||"").toLowerCase();
-            y=(b["ARTIST"]||"").toLowerCase();
+        const get = (v) =>
+            (v === null || v === undefined)
+                ? ""
+                : v.toString().toLowerCase();
+
+        let x = "", y = "";
+
+        if(sortKey === "artist"){
+            x = get(a["ARTIST"]);
+            y = get(b["ARTIST"]);
         }
 
-        if(sortKey==="title"){
-            x=(a["SONG NAME"]||a["Title"]||"").toLowerCase();
-            y=(b["SONG NAME"]||b["Title"]||"").toLowerCase();
+        else if(sortKey === "title"){
+            x = get(a["SONG NAME"]);
+            y = get(b["SONG NAME"]);
         }
 
-        if(sortKey==="bpm"){
-            x=parseFloat(a["Tempo"]||0);
-            y=parseFloat(b["Tempo"]||0);
+        else if(sortKey === "bpm"){
+            x = Number(a["Tempo"] ?? 0);
+            y = Number(b["Tempo"] ?? 0);
         }
 
-        if(x<y) return -1;
-        if(x>y) return 1;
+        if (x > y) return 1;
+        if (x < y) return -1;
         return 0;
     });
 }
