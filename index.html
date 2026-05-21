@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Song Finder</title>
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+
+<style>
+
+:root{
+    --scale:1;
+}
+
+html, body{
+    margin:0;
+    background:#0f172a;
+    color:#e2e8f0;
+    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+    touch-action:manipulation;
+    overflow-x:hidden;
+}
+
+.header{
+    padding:20px;
+    position:sticky;
+    top:0;
+    background:#0f172a;
+    z-index:10;
+}
+
+#searchWrap{
+    position:relative;
+}
+
+#search{
+    width:100%;
+    box-sizing:border-box;
+    padding:18px;
+    font-size:24px;
+    border:none;
+    border-radius:14px;
+    outline:none;
+}
+
+#clearSearch{
+    position:absolute;
+    right:12px;
+    top:50%;
+    transform:translateY(-50%);
+    cursor:pointer;
+    color:#94a3b8;
+    font-size:18px;
+    user-select:none;
+}
+
+#topRow{
+    margin-top:10px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+}
+
+#controls{
+    display:flex;
+    gap:8px;
+    align-items:center;
+}
+
+#fontLabel{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+#clockBox{
+    font-size:34px;
+    font-weight:800;
+    color:#e2e8f0;
+    min-width:140px;
+    text-align:right;
+    letter-spacing:1px;
+}
+
+#songCount{
+    color:#94a3b8;
+    font-size:16px;
+    font-weight:600;
+    min-width:120px;
+    text-align:center;
+}
+
+button{
+    padding:6px 10px;
+    border:none;
+    border-radius:8px;
+    background:#1e293b;
+    color:#e2e8f0;
+    font-size:16px;
+    cursor:pointer;
+}
+
+#chipContainer{
+    margin-top:10px;
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.chip{
+    padding:6px 10px;
+    border-radius:999px;
+    background:#1e293b;
+    cursor:pointer;
+    user-select:none;
+    font-size:13px;
+}
+
+.chip.active{
+    background:#38bdf8;
+    color:black;
+    font-weight:600;
+}
+
+#results{
+    padding:20px;
+    display:grid;
+    gap:12px;
+    grid-template-columns:repeat(2,1fr);
+}
+
+@media(max-width:600px){
+    #results{grid-template-columns:repeat(2,1fr);}
+}
+@media(min-width:700px){
+    #results{grid-template-columns:repeat(3,1fr);}
+}
+@media(min-width:1100px){
+    #results{grid-template-columns:repeat(4,1fr);}
+}
+
+.card{
+    background:#1e293b;
+    border-radius:16px;
+    padding:calc(14px * var(--scale));
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    font-size:calc(16px * var(--scale));
+    user-select:none;
+}
+
+.title{
+    font-size:calc(18px * var(--scale));
+    font-weight:700;
+}
+
+.meta{
+    font-size:calc(13px * var(--scale));
+    color:#94a3b8;
+}
+
+a{
+    color:#38bdf8;
+    text-decoration:none;
+    font-weight:600;
+    font-size:calc(15px * var(--scale));
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">
+
+<div id="searchWrap">
+    <input id="search" placeholder="Search songs, artist, year, genre...">
+    <span id="clearSearch">✕</span>
+</div>
+
+<div id="topRow" style="display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;">
+
+    <div id="controls" style="display:flex;align-items:center;gap:8px;">
+        <button id="fontMinus">−</button>
+        <button id="fontPlus">+</button>
+        <span id="fontLabel">Text size</span>
+    </div>
+
+    <div id="tapTempoInline" style="display:flex;align-items:center;gap:8px;">
+        <button id="tapTempoBtn" style="padding:10px 14px;font-size:16px;font-weight:700;border-radius:12px;background:#334155;color:#fff;">TAP</button>
+        <div id="tapTempoDisplay" style="min-width:90px;font-size:18px;font-weight:700;color:#38bdf8;">-- bpm</div>
+    </div>
+
+    <div id="songCount"></div>
+    <div id="clockBox"></div>
+
+</div>
+
+<div id="chipContainer"></div>
+
+</div>
+
+<div id="topRow">
+    <div id="controls">
+        <button id="fontMinus">−</button>
+        <button id="fontPlus">+</button>
+        <span id="fontLabel">Text size</span>
+    </div>
+
+    
+    </div>
+
+    <div id="songCount"></div>
+    <div id="clockBox"></div>
+</div>
+
+    <div id="songCount"></div>
+
+    <div id="clockBox"></div>
+
+</div>
+
+
+</div>
+
+<div id="chipContainer"></div>
+
+</div>
+
+<div id="results"></div>
+
+<script>
+
+let songs=[];
+let currentQuery="";
+let scale=1;
+let tapTimes=[];
+let tapResetTimer=null;
+
+// TAP TEMPO (clean rebuild)
+const tapBtn=document.getElementById("tapTempoBtn");
+const tapDisplay=document.getElementById("tapTempoDisplay");
+
+tapBtn.addEventListener("click",()=>{
+    const now=Date.now();
+
+    tapTimes.push(now);
+    if(tapTimes.length>8) tapTimes.shift();
+
+    if(tapTimes.length>=2){
+        let intervals=[];
+        for(let i=1;i<tapTimes.length;i++){
+            intervals.push(tapTimes[i]-tapTimes[i-1]);
+        }
+
+        const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;
+        const bpm=Math.round(60000/avg);
+
+        tapDisplay.innerText=`${bpm} bpm`;
+    }
+
+    clearTimeout(tapResetTimer);
+    tapResetTimer=setTimeout(()=>{
+        tapTimes=[];
+        tapDisplay.innerText="-- bpm";
+    },10000);
+});
+const tapDisplay=document.getElementById("tapTempoDisplay");
+
+tapBtn.addEventListener("click",()=>{
+
+    const now=Date.now();
+
+    tapTimes.push(now);
+
+    if(tapTimes.length > 8){
+        tapTimes.shift();
+    }
+
+    if(tapTimes.length >= 2){
+
+        let intervals=[];
+
+        for(let i=1;i<tapTimes.length;i++){
+            intervals.push(tapTimes[i]-tapTimes[i-1]);
+        }
+
+        const avg=intervals.reduce((a,b)=>a+b,0)/intervals.length;
+
+        const bpm=Math.round(60000/avg);
+
+        tapDisplay.innerText=`${bpm} bpm`;
+    }
+
+    clearTimeout(tapResetTimer);
+
+    tapResetTimer=setTimeout(()=>{
+        tapTimes=[];
+        tapDisplay.innerText="-- bpm";
+    },10000);
+});
+});
+</script>
+
+</body>
+</html>
