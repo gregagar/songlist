@@ -191,6 +191,7 @@ a{
         <button id="sortArtist">Artist</button>
         <button id="sortTitle">Title</button>
         <button id="sortBpm">BPM</button>
+        <button id="sortOrder">A-Z</button>
     </div>
 
     <div id="chipContainer"></div>
@@ -212,7 +213,8 @@ let currentQuery="";
 let scale=1;
 
 // NEW SORT STATE
-let sortKey=null;
+let sortKey = null;
+let sortDirection = 1; // 1 = A-Z, -1 = Z-A
 
 const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
 const activeFilters=new Set();
@@ -283,8 +285,8 @@ function sortSongs(arr){
             y = Number(b["Tempo"] ?? 0);
         }
 
-        if (x > y) return 1;
-        if (x < y) return -1;
+        if (x > y) return sortDirection;
+        if (x < y) return -sortDirection;
         return 0;
     });
 }
@@ -440,6 +442,13 @@ document.getElementById("fontMinus").onclick=()=>{
 document.getElementById("sortArtist").onclick=()=>{ sortKey="artist"; render(); };
 document.getElementById("sortTitle").onclick=()=>{ sortKey="title"; render(); };
 document.getElementById("sortBpm").onclick=()=>{ sortKey="bpm"; render(); };
+document.getElementById("sortOrder").onclick = () => { sortDirection *= -1;
+
+    const btn = document.getElementById("sortOrder");
+    btn.innerText = sortDirection === 1 ? "A-Z" : "Z-A";
+
+    render();
+};
 
 async function load(){
     try{
