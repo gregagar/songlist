@@ -484,19 +484,21 @@ document.getElementById("sortBpm").onclick = () => {
     sortKey = "bpm";
     render();
 };
-document.getElementById("sortOrder").onclick = () => { sortDirection *= -1;
-document.getElementById("sortRandom").onclick = () => {
+document.getElementById("sortOrder").onclick = () => {
 
-    randomMode = true;
+    sortDirection *= -1;
 
-    // disables normal sorting
-    sortKey = null;
+    const btn = document.getElementById("sortOrder");
+
+    btn.innerText =
+        sortDirection === 1 ? "A-Z" : "Z-A";
 
     render();
 };
 
-    const btn = document.getElementById("sortOrder");
-    btn.innerText = sortDirection === 1 ? "A-Z" : "Z-A";
+document.getElementById("sortRandom").onclick = () => {
+
+    randomMode = true;
 
     render();
 };
