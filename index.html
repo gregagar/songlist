@@ -202,6 +202,7 @@ a{
             <button id="sortTitle">Title</button>
             <button id="sortBpm">BPM</button>
             <button id="sortOrder">A-Z</button>
+            <button id="sortRandom">Random</button>
         </div>
 
     </div>
@@ -224,6 +225,7 @@ let scale=1;
 // NEW SORT STATE
 let sortKey = "artist";
 let sortDirection = 1; // A-Z default // 1 = A-Z, -1 = Z-A
+let randomMode = false;
 
 const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
 const activeFilters=new Set();
@@ -268,6 +270,9 @@ function passesFilters(song){
 
 // NEW SORT FUNCTION
 function sortSongs(arr){
+    if(randomMode){
+    return [...arr].sort(() => Math.random() - 0.5);
+}
     if(!sortKey) return arr;
 
     return [...arr].sort((a,b)=>{
@@ -448,10 +453,26 @@ document.getElementById("fontMinus").onclick=()=>{
 };
 
 // SORT BUTTON EVENTS
-document.getElementById("sortArtist").onclick=()=>{ sortKey="artist"; render(); };
-document.getElementById("sortTitle").onclick=()=>{ sortKey="title"; render(); };
-document.getElementById("sortBpm").onclick=()=>{ sortKey="bpm"; render(); };
+document.getElementById("sortArtist").onclick = () => {
+    randomMode = false;
+    sortKey = "artist";
+    render();
+};
+
+document.getElementById("sortTitle").onclick = () => {
+    randomMode = false;
+    sortKey = "title";
+    render();
+};
+
+document.getElementById("sortBpm").onclick = () => {
+    randomMode = false;
+    sortKey = "bpm";
+    render();
+};
 document.getElementById("sortOrder").onclick = () => { sortDirection *= -1;
+document.getElementById("sortRandom").onclick = () => {randomMode = true; render();
+};
 
     const btn = document.getElementById("sortOrder");
     btn.innerText = sortDirection === 1 ? "A-Z" : "Z-A";
