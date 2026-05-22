@@ -226,6 +226,7 @@ let scale=1;
 let sortKey = "artist";
 let sortDirection = 1; // A-Z default // 1 = A-Z, -1 = Z-A
 let randomMode = false;
+let shuffledSongs = [];
 
 const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
 const activeFilters=new Set();
@@ -270,19 +271,24 @@ function passesFilters(song){
 
 // NEW SORT FUNCTION
 function sortSongs(arr){
+
+    // RANDOM MODE
     if(randomMode){
 
-    const shuffled = [...arr];
+        // fresh copy
+        shuffledSongs = [...arr];
 
-    for(let i = shuffled.length - 1; i > 0; i--){
-        const j = Math.floor(Math.random() * (i + 1));
-        [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+        // Fisher-Yates shuffle
+        for(let i = shuffledSongs.length - 1; i > 0; i--){
+            const j = Math.floor(Math.random() * (i + 1));
+            [shuffledSongs[i], shuffledSongs[j]] =
+            [shuffledSongs[j], shuffledSongs[i]];
+        }
+
+        return shuffledSongs;
     }
 
-    return shuffled;
-}
-    if(!sortKey) return arr;
-
+    // NORMAL SORTING
     return [...arr].sort((a,b)=>{
 
         const get = (v) =>
@@ -479,7 +485,14 @@ document.getElementById("sortBpm").onclick = () => {
     render();
 };
 document.getElementById("sortOrder").onclick = () => { sortDirection *= -1;
-document.getElementById("sortRandom").onclick = () => {randomMode = true; render();
+document.getElementById("sortRandom").onclick = () => {
+
+    randomMode = true;
+
+    // disables normal sorting
+    sortKey = null;
+
+    render();
 };
 
     const btn = document.getElementById("sortOrder");
