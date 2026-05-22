@@ -28,9 +28,6 @@ html, body{
     z-index:10;
 }
 
-    #topRow{
-    margin-top:10px;
-}
 
 #leftPanel{
     display:flex;
@@ -71,7 +68,7 @@ html, body{
     margin-top:10px;
     display:flex;
     justify-content:space-between;
-    align-items:center;
+    align-items:flex-start;
     gap:10px;
 }
 
@@ -188,7 +185,9 @@ a{
     <span id="clearSearch">✕</span>
 </div>
 
-<div id="leftPanel">
+<div id="topRow">
+
+    <div id="leftPanel">
 
         <div id="chipContainer"></div>
 
@@ -207,8 +206,6 @@ a{
 
     </div>
 
-
-    <!-- ✅ ADD THIS -->
     <div id="statusRight">
         <div id="songCount"></div>
         <div id="clockBox"></div>
