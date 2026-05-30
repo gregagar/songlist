@@ -243,8 +243,29 @@ let sortDirection = 1; // A-Z default // 1 = A-Z, -1 = Z-A
 let randomMode = false;
 let shuffledSongs = [];
 
-const filters=["Favourites","Upbeat","Dancefloor","Sing-a-Long","Happy","Easy To Sing","Romantic","Showcase"];
+const filters=[
+    "Favourites",
+    "Upbeat",
+    "Dancefloor",
+    "Sing-a-Long",
+    "Happy",
+    "Easy To Sing",
+    "Romantic",
+    "Showcase"
+];
+
+const decadeFilters=[
+    "60s",
+    "70s",
+    "80s",
+    "90s",
+    "00s",
+    "10s",
+    "Newer"
+];
+
 const activeFilters=new Set();
+const activeDecades=new Set();
 
 function pad(n){return n.toString().padStart(2,'0');}
 
@@ -274,14 +295,40 @@ function songMatches(song,q){
 }
 
 function passesFilters(song){
-    if(activeFilters.size===0) return true;
+
     const map={};
-    Object.keys(song).forEach(k=>map[k.trim().toLowerCase()]=song[k]);
-    return [...activeFilters].every(f=>{
-        const v=map[f.toLowerCase()];
-        const s=(v||"").toString().toLowerCase();
-        return v===true||s=="true"||s=="1"||s=="yes";
-    });
+    Object.keys(song).forEach(
+        k=>map[k.trim().toLowerCase()]=song[k]
+    );
+
+    const normalFiltersPass =
+        [...activeFilters].every(f=>{
+            const v=map[f.toLowerCase()];
+            const s=(v||"").toString().toLowerCase();
+
+            return (
+                v===true ||
+                s==="true" ||
+                s==="1" ||
+                s==="yes"
+            );
+        });
+
+    if(!normalFiltersPass) return false;
+
+    if(activeDecades.size===0) return true;
+
+    const decade=(song.Decade||"").toString().trim();
+    const year=parseInt(song.Year,10);
+
+    return (
+        activeDecades.has(decade) ||
+        (
+            activeDecades.has("Newer") &&
+            year>=2020 &&
+            year<=2026
+        )
+    );
 }
 
 // NEW SORT FUNCTION
@@ -335,32 +382,69 @@ function sortSongs(arr){
 }
 
 function buildChips(){
+
     const c=document.getElementById("chipContainer");
     c.innerHTML="";
 
+    // Existing filters
     filters.forEach(f=>{
+
         const d=document.createElement("div");
         d.className="chip";
         d.innerText=f;
 
         d.onclick=()=>{
-            if(activeFilters.has(f)) activeFilters.delete(f);
-            else activeFilters.add(f);
+
+            if(activeFilters.has(f))
+                activeFilters.delete(f);
+            else
+                activeFilters.add(f);
 
             d.classList.toggle("active");
+
             render();
         };
 
         c.appendChild(d);
     });
 
+    // Decade filters
+    decadeFilters.forEach(decade=>{
+
+        const d=document.createElement("div");
+        d.className="chip";
+        d.innerText=decade;
+
+        d.onclick=()=>{
+
+            if(activeDecades.has(decade)){
+                activeDecades.delete(decade);
+                d.classList.remove("active");
+            }else{
+                activeDecades.add(decade);
+                d.classList.add("active");
+            }
+
+            render();
+        };
+
+        c.appendChild(d);
+    });
+
+    // Clear button
     const clear=document.createElement("div");
     clear.className="chip";
     clear.innerText="✕";
 
     clear.onclick=()=>{
+
         activeFilters.clear();
-        document.querySelectorAll(".chip").forEach(chip=>chip.classList.remove("active"));
+        activeDecades.clear();
+
+        document
+            .querySelectorAll(".chip")
+            .forEach(chip=>chip.classList.remove("active"));
+
         render();
     };
 
