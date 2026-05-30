@@ -191,7 +191,7 @@ a{
     #alphaNav{
     position:fixed;
     left:4px;
-    top:120px;
+    top:220px;
     bottom:20px;
 
     display:none;
@@ -408,7 +408,25 @@ function sortSongs(arr){
         return 0;
     });
 }
+function positionAlphabet(){
 
+    const nav = document.getElementById("alphaNav");
+
+    if(window.scrollY < 150){
+
+        const firstCard =
+            document.querySelector(".card");
+
+        if(firstCard){
+            nav.style.top =
+                `${firstCard.getBoundingClientRect().top}px`;
+        }
+
+    }else{
+
+        nav.style.top = "20px";
+    }
+}
 function buildChips(){
 
     const c=document.getElementById("chipContainer");
@@ -549,10 +567,15 @@ function buildAlphabet(filtered){
                 .find(card=>card.dataset.letter===letter);
 
             if(target){
-                target.scrollIntoView({
-                    behavior:"smooth",
-                    block:"start"
-                });
+                const y =
+    target.getBoundingClientRect().top +
+    window.scrollY -
+    10;
+
+window.scrollTo({
+    top:y,
+    behavior:"smooth"
+});
             }
         };
 
@@ -626,7 +649,8 @@ if(firstLetter.match(/[A-Z]/)){
     });
 
     updateClock();
-    updateCount(filtered.length);
+updateCount(filtered.length);
+positionAlphabet();
 }
 
 // EVENTS
@@ -714,42 +738,17 @@ window.addEventListener("scroll",()=>{
         return;
     }
 
-    const cards=[...document.querySelectorAll(".card")];
-
-    let currentLetter="A";
-
-    for(const card of cards){
-
-        const rect=card.getBoundingClientRect();
-
-        if(rect.top<=150){
-            currentLetter=card.dataset.letter||currentLetter;
-        }else{
-            break;
-        }
-    }
-
-    document
-        .querySelectorAll(".alphaLetter")
-        .forEach(el=>{
-
-            el.classList.toggle(
-                "active",
-                el.innerText===currentLetter
-            );
-        });
+    ...
 });
 
+window.addEventListener("scroll", positionAlphabet);
+
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 load();
 applyScale();
 updateClock();
-setInterval(updateClock,1000);
-document.getElementById("clearSearch").style.display = "none";
-load();
-applyScale();
-updateClock();
+
 </script>
 
 <button id="backToTop">↑</button>
