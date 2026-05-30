@@ -593,6 +593,7 @@ function render(){
         s=>songMatches(s,currentQuery)&&passesFilters(s)
     );
     // APPLY SORT
+    console.log(filtered.slice(0,10));
     filtered=sortSongs(filtered);
     buildAlphabet(filtered);
 
