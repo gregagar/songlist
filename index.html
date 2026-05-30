@@ -564,8 +564,10 @@ function buildAlphabet(filtered){
         d.onclick=()=>{
 
             const target=[...document.querySelectorAll(".card")]
-                .find(card=>card.dataset.letter===letter);
-
+    .find(card =>
+        card.dataset.letter === letter &&
+        card.offsetParent !== null
+    );
             if(target){
                 const y =
     target.getBoundingClientRect().top +
@@ -615,7 +617,10 @@ function render(){
         const firstLetter = (anchorText.charAt(0) || "").toUpperCase();
 
         // FIX: always assign dataset.letter
-        div.dataset.letter = /[A-Z]/.test(firstLetter) ? firstLetter : "#";
+        const rawLetter = firstLetter || "";
+const cleanLetter = rawLetter.replace(/^[^a-zA-Z]+/, "").charAt(0).toUpperCase();
+
+div.dataset.letter = /[A-Z]/.test(cleanLetter) ? cleanLetter : "#";
 
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
