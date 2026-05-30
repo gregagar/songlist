@@ -592,31 +592,31 @@ function render(){
     let filtered=songs.filter(
         s=>songMatches(s,currentQuery)&&passesFilters(s)
     );
+
     // APPLY SORT
     filtered=sortSongs(filtered);
     buildAlphabet(filtered);
-const seenLetters = new Set();
+
+    const seenLetters = new Set();
+
     filtered.forEach((song,index)=>{
+
         const div=document.createElement("div");
+
         let anchorText="";
 
-if(sortKey==="artist"){
-    anchorText=(song["ARTIST"]||"").trim();
-}
-else if(sortKey==="title"){
-    anchorText=(song["SONG NAME"]||"").trim();
-}
+        if(sortKey==="artist"){
+            anchorText=(song["ARTIST"]||"").trim();
+        }
+        else if(sortKey==="title"){
+            anchorText=(song["SONG NAME"]||"").trim();
+        }
 
-const firstLetter =
-    anchorText.charAt(0).toUpperCase();
+        const firstLetter = (anchorText.charAt(0) || "").toUpperCase();
 
-if(
-    /[A-Z]/.test(firstLetter) &&
-    !seenLetters.has(firstLetter)
-){
-    div.dataset.letter = firstLetter;
-    seenLetters.add(firstLetter);
-}
+        // FIX: always assign dataset.letter
+        div.dataset.letter = /[A-Z]/.test(firstLetter) ? firstLetter : "#";
+
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
 
@@ -653,8 +653,8 @@ if(
     });
 
     updateClock();
-updateCount(filtered.length);
-positionAlphabet();
+    updateCount(filtered.length);
+    positionAlphabet();
 }
 
 // EVENTS
