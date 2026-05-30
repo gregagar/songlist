@@ -188,6 +188,33 @@ a{
     font-weight:600;
     font-size:calc(15px * var(--scale));
 }
+    #alphaNav{
+    position:fixed;
+    left:4px;
+    top:120px;
+    bottom:20px;
+
+    display:none;
+    flex-direction:column;
+    justify-content:space-between;
+
+    z-index:999;
+    user-select:none;
+}
+
+.alphaLetter{
+    font-size:11px;
+    color:#94a3b8;
+    cursor:pointer;
+    padding:1px 3px;
+    border-radius:4px;
+}
+
+.alphaLetter.active{
+    font-size:16px;
+    font-weight:700;
+    color:#38bdf8;
+}
 </style>
 </head>
 
@@ -229,6 +256,7 @@ a{
 
 </div>
 
+<div id="alphaNav"></div>
 <div id="results"></div>
 
 <script>
@@ -492,7 +520,45 @@ function getFlag(country){
 
     return flags[country.toString().toLowerCase()] || "";
 }
+function buildAlphabet(filtered){
 
+    const nav=document.getElementById("alphaNav");
+
+    if(
+        sortKey!=="artist" &&
+        sortKey!=="title"
+    ){
+        nav.style.display="none";
+        return;
+    }
+
+    nav.style.display="flex";
+    nav.innerHTML="";
+
+    const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+    letters.forEach(letter=>{
+
+        const d=document.createElement("div");
+        d.className="alphaLetter";
+        d.innerText=letter;
+
+        d.onclick=()=>{
+
+            const target=[...document.querySelectorAll(".card")]
+                .find(card=>card.dataset.letter===letter);
+
+            if(target){
+                target.scrollIntoView({
+                    behavior:"smooth",
+                    block:"start"
+                });
+            }
+        };
+
+        nav.appendChild(d);
+    });
+}
 function render(){
     const r=document.getElementById("results");
     r.innerHTML="";
@@ -505,9 +571,25 @@ function render(){
     );
     // APPLY SORT
     filtered=sortSongs(filtered);
+    buildAlphabet(filtered);
 
-    filtered.forEach(song=>{
+    filtered.forEach((song,index)=>{
         const div=document.createElement("div");
+        let anchorText="";
+
+if(sortKey==="artist"){
+    anchorText=(song["ARTIST"]||"").trim();
+}
+else if(sortKey==="title"){
+    anchorText=(song["SONG NAME"]||"").trim();
+}
+
+const firstLetter=
+    anchorText.charAt(0).toUpperCase();
+
+if(firstLetter.match(/[A-Z]/)){
+    div.dataset.letter=firstLetter;
+}
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
 
@@ -623,7 +705,46 @@ async function load(){
     buildChips();
     render();
 }
+window.addEventListener("scroll",()=>{
 
+    if(
+        sortKey!=="artist" &&
+        sortKey!=="title"
+    ){
+        return;
+    }
+
+    const cards=[...document.querySelectorAll(".card")];
+
+    let currentLetter="A";
+
+    for(const card of cards){
+
+        const rect=card.getBoundingClientRect();
+
+        if(rect.top<=150){
+            currentLetter=card.dataset.letter||currentLetter;
+        }else{
+            break;
+        }
+    }
+
+    document
+        .querySelectorAll(".alphaLetter")
+        .forEach(el=>{
+
+            el.classList.toggle(
+                "active",
+                el.innerText===currentLetter
+            );
+        });
+});
+
+setInterval(updateClock,1000);
+document.getElementById("clearSearch").style.display = "none";
+load();
+applyScale();
+updateClock();
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 load();
