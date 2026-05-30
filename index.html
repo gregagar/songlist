@@ -131,17 +131,9 @@ button{
 #chipContainer{
     margin-top:10px;
     display:flex;
-    flex-direction:column;
-    gap:8px;
-}
-
-#mainFilters,
-#decadeFilters{
-    display:flex;
     flex-wrap:wrap;
     gap:8px;
 }
-
 .chip{
     padding:6px 10px;
     border-radius:999px;
@@ -238,10 +230,7 @@ a{
 
     <div id="leftPanel">
 
-        <div id="chipContainer">
-    <div id="mainFilters"></div>
-    <div id="decadeFilters"></div>
-</div>
+        <div id="chipContainer"></div>
         <div id="controls">
             <span id="fontLabel">Text size</span>
             <button id="fontMinus">−</button>
@@ -366,7 +355,7 @@ function passesFilters(song){
             year<=2026
         )
     );
-}
+
 
 // NEW SORT FUNCTION
 function sortSongs(arr){
@@ -438,11 +427,8 @@ function positionAlphabet(){
 }
 function buildChips(){
 
-    const main = document.getElementById("mainFilters");
-    const decade = document.getElementById("decadeFilters");
-
-    main.innerHTML = "";
-    decade.innerHTML = "";
+    const c=document.getElementById("chipContainer");
+    c.innerHTML="";
     // Existing filters
     filters.forEach(f=>{
 
@@ -464,7 +450,10 @@ function buildChips(){
 
         main.appendChild(d);
     });
-}
+    const spacer = document.createElement("div");
+spacer.style.flexBasis = "100%";
+c.appendChild(spacer);
+
     // Decade filters
     decadeFilters.forEach(decade=>{
 
