@@ -593,10 +593,9 @@ function render(){
         s=>songMatches(s,currentQuery)&&passesFilters(s)
     );
     // APPLY SORT
-    console.log(filtered.slice(0,10));
     filtered=sortSongs(filtered);
     buildAlphabet(filtered);
-
+const seenLetters = new Set();
     filtered.forEach((song,index)=>{
         const div=document.createElement("div");
         let anchorText="";
@@ -608,11 +607,15 @@ else if(sortKey==="title"){
     anchorText=(song["SONG NAME"]||"").trim();
 }
 
-const firstLetter=
+const firstLetter =
     anchorText.charAt(0).toUpperCase();
 
-if(firstLetter.match(/[A-Z]/)){
-    div.dataset.letter=firstLetter;
+if(
+    /[A-Z]/.test(firstLetter) &&
+    !seenLetters.has(firstLetter)
+){
+    div.dataset.letter = firstLetter;
+    seenLetters.add(firstLetter);
 }
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
