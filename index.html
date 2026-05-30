@@ -738,7 +738,30 @@ window.addEventListener("scroll",()=>{
         return;
     }
 
-    ...
+    const cards=[...document.querySelectorAll(".card")];
+
+    let currentLetter="A";
+
+    for(const card of cards){
+
+        const rect=card.getBoundingClientRect();
+
+        if(rect.top<=150){
+            currentLetter=card.dataset.letter||currentLetter;
+        }else{
+            break;
+        }
+    }
+
+    document
+        .querySelectorAll(".alphaLetter")
+        .forEach(el=>{
+
+            el.classList.toggle(
+                "active",
+                el.innerText===currentLetter
+            );
+        });
 });
 
 window.addEventListener("scroll", positionAlphabet);
