@@ -131,6 +131,13 @@ button{
 #chipContainer{
     margin-top:10px;
     display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+#mainFilters,
+#decadeFilters{
+    display:flex;
     flex-wrap:wrap;
     gap:8px;
 }
@@ -231,8 +238,10 @@ a{
 
     <div id="leftPanel">
 
-        <div id="chipContainer"></div>
-
+        <div id="chipContainer">
+    <div id="mainFilters"></div>
+    <div id="decadeFilters"></div>
+</div>
         <div id="controls">
             <span id="fontLabel">Text size</span>
             <button id="fontMinus">−</button>
@@ -429,9 +438,13 @@ function positionAlphabet(){
 }
 function buildChips(){
 
-    const c=document.getElementById("chipContainer");
-    c.innerHTML="";
+    function buildChips(){
 
+    const main = document.getElementById("mainFilters");
+    const decade = document.getElementById("decadeFilters");
+
+    main.innerHTML = "";
+    decade.innerHTML = "";
     // Existing filters
     filters.forEach(f=>{
 
@@ -451,7 +464,7 @@ function buildChips(){
             render();
         };
 
-        c.appendChild(d);
+        main.appendChild(d);
     });
 
     // Decade filters
@@ -474,7 +487,7 @@ function buildChips(){
             render();
         };
 
-        c.appendChild(d);
+        decade.appendChild(d);
     });
 
     // Clear button
@@ -494,7 +507,7 @@ function buildChips(){
         render();
     };
 
-    c.appendChild(clear);
+    decade.appendChild(clear);
 }
 
 function getDecadeColor(decade){
