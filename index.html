@@ -360,57 +360,47 @@ function passesFilters(song){
 // NEW SORT FUNCTION
 function sortSongs(arr){
 
-    // RANDOM MODE
     if(randomMode){
 
-        // fresh copy
-        shuffledSongs = [...arr];
+        const shuffled = [...arr];
 
-        // Fisher-Yates shuffle
-        for(let i = shuffledSongs.length - 1; i > 0; i--){
+        for(let i = shuffled.length - 1; i > 0; i--){
             const j = Math.floor(Math.random() * (i + 1));
-            [shuffledSongs[i], shuffledSongs[j]] =
-            [shuffledSongs[j], shuffledSongs[i]];
+            [shuffled[i], shuffled[j]] =
+            [shuffled[j], shuffled[i]];
         }
 
-        return shuffledSongs;
+        return shuffled;
     }
 
-    // NORMAL SORTING
     return [...arr].sort((a,b)=>{
 
-        const get = (v) =>
-            (v === null || v === undefined)
-                ? ""
-                : v.toString().toLowerCase();
+        let x = "";
+        let y = "";
 
-        let x = "", y = "";
+        switch(sortKey){
 
-        if(sortKey === "artist"){
-            x = get(a["ARTIST"]);
-            y = get(b["ARTIST"]);
+            case "artist":
+                x = String(a["ARTIST"] || "").toLowerCase();
+                y = String(b["ARTIST"] || "").toLowerCase();
+                break;
+
+            case "title":
+                x = String(a["SONG NAME"] || "").toLowerCase();
+                y = String(b["SONG NAME"] || "").toLowerCase();
+                break;
+
+            case "bpm":
+                x = Number(a["Tempo"] || 0);
+                y = Number(b["Tempo"] || 0);
+                break;
         }
 
-        else if(sortKey === "title"){
-
-    x = String(a["SONG NAME"] || "");
-    y = String(b["SONG NAME"] || "");
-
-    x = x.toLowerCase();
-    y = y.toLowerCase();
-}
-
-        else if(sortKey === "bpm"){
-            x = Number(a["Tempo"] ?? 0);
-            y = Number(b["Tempo"] ?? 0);
-        }
-
-        if (x > y) return sortDirection;
-        if (x < y) return -sortDirection;
+        if(x > y) return sortDirection;
+        if(x < y) return -sortDirection;
         return 0;
     });
 }
-
 function positionAlphabet(){
 
     const nav = document.getElementById("alphaNav");
@@ -721,13 +711,11 @@ document.getElementById("sortArtist").onclick = () => {
 };
 
 document.getElementById("sortTitle").onclick = () => {
-
     randomMode = false;
     sortKey = "title";
-
+    sortDirection = 1;
     render();
 };
-
 document.getElementById("sortBpm").onclick = () => {
     randomMode = false;
     sortKey = "bpm";
