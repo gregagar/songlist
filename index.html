@@ -624,7 +624,7 @@ buildAlphabet(filtered);
             anchorText=(song["SONG NAME"]||"").trim();
         }
 
-        const firstLetter = (anchorText.charAt(0) || "").toUpperCase();
+
 
 const firstLetter =
     (anchorText.charAt(0) || "").toUpperCase();
@@ -632,7 +632,7 @@ const firstLetter =
 const rawLetter = firstLetter || "";
 
 const cleanLetter =
-    rawLetter
+    anchorText
         .replace(/^[^A-Z0-9]+/i, "")
         .charAt(0)
         .toUpperCase();
