@@ -392,8 +392,8 @@ function sortSongs(arr){
         }
 
         else if(sortKey === "title"){
-    x = get(a["SONG NAME"]).replace(/^[^a-z0-9]+/i, "");
-    y = get(b["SONG NAME"]).replace(/^[^a-z0-9]+/i, "");
+    x = (a["SONG NAME"] || "").toString().toLowerCase();
+    y = (b["SONG NAME"] || "").toString().toLowerCase();
 }
 
         else if(sortKey === "bpm"){
