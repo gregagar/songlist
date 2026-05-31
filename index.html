@@ -360,51 +360,39 @@ function passesFilters(song){
 // NEW SORT FUNCTION
 function sortSongs(arr){
 
-    // RANDOM MODE
     if(randomMode){
+        const shuffled = [...arr];
 
-        // fresh copy
-        shuffledSongs = [...arr];
-
-        // Fisher-Yates shuffle
-        for(let i = shuffledSongs.length - 1; i > 0; i--){
+        for(let i = shuffled.length - 1; i > 0; i--){
             const j = Math.floor(Math.random() * (i + 1));
-            [shuffledSongs[i], shuffledSongs[j]] =
-            [shuffledSongs[j], shuffledSongs[i]];
+            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
         }
 
-        return shuffledSongs;
+        return shuffled;
     }
 
-    // NORMAL SORTING
-    return [...arr].sort((a,b)=>{
+    if(sortKey === "title"){
+        return [...arr].sort((a,b)=>
+            (a["SONG NAME"] || "")
+                .localeCompare(b["SONG NAME"] || "")
+        );
+    }
 
-        const get = (v) =>
-            (v === null || v === undefined)
-                ? ""
-                : v.toString().toLowerCase();
+    if(sortKey === "artist"){
+        return [...arr].sort((a,b)=>
+            (a["ARTIST"] || "")
+                .localeCompare(b["ARTIST"] || "")
+        );
+    }
 
-        let x = "", y = "";
+    if(sortKey === "bpm"){
+        return [...arr].sort((a,b)=>
+            Number(a["Tempo"] || 0) -
+            Number(b["Tempo"] || 0)
+        );
+    }
 
-        if(sortKey === "artist"){
-            x = get(a["ARTIST"]);
-            y = get(b["ARTIST"]);
-        }
-
-        else if(sortKey === "title"){
-    x = (a["SONG NAME"] || "").toString().toLowerCase();
-    y = (b["SONG NAME"] || "").toString().toLowerCase();
-}
-
-        else if(sortKey === "bpm"){
-            x = Number(a["Tempo"] ?? 0);
-            y = Number(b["Tempo"] ?? 0);
-        }
-
-        if (x > y) return sortDirection;
-        if (x < y) return -sortDirection;
-        return 0;
-    });
+    return [...arr];
 }
 function positionAlphabet(){
 
