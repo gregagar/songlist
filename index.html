@@ -553,7 +553,10 @@ function buildAlphabet(filtered){
     nav.style.display="flex";
     nav.innerHTML="";
 
-    const letters="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+    const letters = [
+    "#",
+    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+];
 
     letters.forEach(letter=>{
 
