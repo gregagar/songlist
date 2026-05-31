@@ -635,6 +635,16 @@ buildAlphabet(filtered);
 if(/[A-Z]/.test(firstLetter)){
     div.dataset.letter = firstLetter;
 }else{
+    const rawLetter = firstLetter || "";
+
+const cleanLetter =
+    rawLetter.replace(/^[^A-Z0-9]+/i, "")
+             .charAt(0)
+             .toUpperCase();
+
+if(/[A-Z]/.test(cleanLetter)){
+    div.dataset.letter = cleanLetter;
+}else{
     div.dataset.letter = "#";
 }
 
