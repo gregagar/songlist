@@ -627,8 +627,11 @@ function render(){
 
         const firstLetter = (anchorText.charAt(0) || "").toUpperCase();
 
-        // FIX: always assign dataset.letter
-       div.dataset.letter = "#";
+if(/[A-Z]/.test(firstLetter)){
+    div.dataset.letter = firstLetter;
+}else{
+    div.dataset.letter = "#";
+}
 
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
@@ -707,10 +710,15 @@ document.getElementById("sortArtist").onclick = () => {
 };
 
 document.getElementById("sortTitle").onclick = () => {
+
     randomMode = false;
     sortKey = "title";
 
-    alert("Title sort clicked");
+    console.log(
+        songs.slice(0,5).map(
+            s => s["SONG NAME"]
+        )
+    );
 
     render();
 };
