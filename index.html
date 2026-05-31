@@ -392,9 +392,9 @@ function sortSongs(arr){
         }
 
         else if(sortKey === "title"){
-            x = get(a["SONG NAME"]);
-            y = get(b["SONG NAME"]);
-        }
+    x = get(a["SONG NAME"]).replace(/^[^a-z0-9]+/i, "");
+    y = get(b["SONG NAME"]).replace(/^[^a-z0-9]+/i, "");
+}
 
         else if(sortKey === "bpm"){
             x = Number(a["Tempo"] ?? 0);
@@ -600,7 +600,7 @@ function render(){
 
     // APPLY SORT
     filtered=sortSongs(filtered);
-    // buildAlphabet(filtered);
+     buildAlphabet(filtered);
 
     const seenLetters = new Set();
 
