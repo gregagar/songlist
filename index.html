@@ -392,8 +392,12 @@ function sortSongs(arr){
         }
 
         else if(sortKey === "title"){
-    x = (a["SONG NAME"] || "").toString().toLowerCase();
-    y = (b["SONG NAME"] || "").toString().toLowerCase();
+
+    x = String(a["SONG NAME"] || "");
+    y = String(b["SONG NAME"] || "");
+
+    x = x.toLowerCase();
+    y = y.toLowerCase();
 }
 
         else if(sortKey === "bpm"){
@@ -601,7 +605,10 @@ function render(){
 
     // APPLY SORT
     filtered=sortSongs(filtered);
-     buildAlphabet(filtered);
+    // buildAlphabet(filtered);
+    function buildAlphabet(filtered){
+    return;
+}
 
     const seenLetters = new Set();
 
