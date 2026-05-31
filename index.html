@@ -604,11 +604,16 @@ function render(){
     );
 
     // APPLY SORT
-    filtered=sortSongs(filtered);
-    // buildAlphabet(filtered);
-    function buildAlphabet(filtered){
-    return;
-}
+    filtered = sortSongs(filtered);
+
+alert(
+    filtered
+        .slice(0,10)
+        .map(s => s["SONG NAME"])
+        .join("\n")
+);
+
+buildAlphabet(filtered);
 
     const seenLetters = new Set();
 
