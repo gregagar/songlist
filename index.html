@@ -606,12 +606,6 @@ function render(){
     // APPLY SORT
     filtered = sortSongs(filtered);
 
-alert(
-    filtered
-        .slice(0,10)
-        .map(s => s["SONG NAME"])
-        .join("\n")
-);
 
 buildAlphabet(filtered);
 
@@ -632,15 +626,16 @@ buildAlphabet(filtered);
 
         const firstLetter = (anchorText.charAt(0) || "").toUpperCase();
 
-if(/[A-Z]/.test(firstLetter)){
-    div.dataset.letter = firstLetter;
-}else{
-    const rawLetter = firstLetter || "";
+const firstLetter =
+    (anchorText.charAt(0) || "").toUpperCase();
+
+const rawLetter = firstLetter || "";
 
 const cleanLetter =
-    rawLetter.replace(/^[^A-Z0-9]+/i, "")
-             .charAt(0)
-             .toUpperCase();
+    rawLetter
+        .replace(/^[^A-Z0-9]+/i, "")
+        .charAt(0)
+        .toUpperCase();
 
 if(/[A-Z]/.test(cleanLetter)){
     div.dataset.letter = cleanLetter;
@@ -728,12 +723,6 @@ document.getElementById("sortTitle").onclick = () => {
 
     randomMode = false;
     sortKey = "title";
-
-    console.log(
-        songs.slice(0,5).map(
-            s => s["SONG NAME"]
-        )
-    );
 
     render();
 };
