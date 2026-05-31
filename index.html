@@ -620,10 +620,7 @@ function render(){
         const firstLetter = (anchorText.charAt(0) || "").toUpperCase();
 
         // FIX: always assign dataset.letter
-        const rawLetter = firstLetter || "";
-const cleanLetter = rawLetter.replace(/^[^a-zA-Z]+/, "").charAt(0).toUpperCase();
-
-div.dataset.letter = /[A-Z]/.test(cleanLetter) ? cleanLetter : "#";
+       div.dataset.letter = "#";
 
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
