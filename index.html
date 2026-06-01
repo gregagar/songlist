@@ -267,7 +267,6 @@ let scale=1;
 let sortKey = "artist";
 let sortDirection = 1; // A-Z default // 1 = A-Z, -1 = Z-A
 let randomMode = false;
-let shuffledSongs = [];
 
 const filters=[
     "Favourites",
@@ -593,20 +592,13 @@ function render(){
     s=>songMatches(s,currentQuery)&&passesFilters(s)
 );
 
-console.log("Filtered:", filtered.length);
-
 // APPLY SORT
 filtered = sortSongs(filtered);
 
-console.log("Sorted:", filtered.length);
-
 buildAlphabet(filtered);
-
-const seenLetters = new Set();
 
 filtered.forEach((song,index)=>{
 
-console.log(index, song["SONG NAME"]);
         const div=document.createElement("div");
 
         let anchorText="";
@@ -676,10 +668,6 @@ if(/[A-Z]/.test(cleanLetter)){
 updateCount(filtered.length);
 positionAlphabet();
 
-console.log(
-    "Cards rendered:",
-    document.querySelectorAll(".card").length
-);
 }
 
 // EVENTS
