@@ -148,6 +148,10 @@ button{
     color:black;
     font-weight:600;
 }
+    .chip.decade-active{
+    color:#fff;
+    font-weight:600;
+}
 
 #results{
     padding:20px;
@@ -458,12 +462,19 @@ c.appendChild(spacer);
         d.onclick=()=>{
 
             if(activeDecades.has(decade)){
-                activeDecades.delete(decade);
-                d.classList.remove("active");
-            }else{
-                activeDecades.add(decade);
-                d.classList.add("active");
-            }
+
+    activeDecades.delete(decade);
+
+    d.classList.remove("decade-active");
+    d.style.background = "";
+
+}else{
+
+    activeDecades.add(decade);
+
+    d.classList.add("decade-active");
+    d.style.background = getDecadeChipColor(decade);
+}
 
             render();
         };
@@ -482,8 +493,12 @@ c.appendChild(spacer);
         activeDecades.clear();
 
         document
-            .querySelectorAll(".chip")
-            .forEach(chip=>chip.classList.remove("active"));
+    .querySelectorAll(".chip")
+    .forEach(chip=>{
+        chip.classList.remove("active");
+        chip.classList.remove("decade-active");
+        chip.style.background = "";
+    });
 
         render();
     };
@@ -491,7 +506,9 @@ c.appendChild(spacer);
    c.appendChild(clear);
 }
 
-function getDecadeColor(decade){
+function getDecadeChipColor(decade){
+    return getDecadeColor(decade);
+}
     const d=(decade||"").toString().toLowerCase().trim();
 
     if(d.includes("1920") || d.includes("20s")) return "#262f38";
