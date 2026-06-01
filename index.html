@@ -473,7 +473,7 @@ c.appendChild(spacer);
     activeDecades.add(decade);
 
     d.classList.add("decade-active");
-    d.style.background = getDecadeChipColor(decade);
+    d.style.background = getDecadeColor(decade);
 }
 
             render();
@@ -506,9 +506,7 @@ c.appendChild(spacer);
    c.appendChild(clear);
 }
 
-function getDecadeChipColor(decade){
-    return getDecadeColor(decade);
-}
+function getDecadeColor(decade){
     const d=(decade||"").toString().toLowerCase().trim();
 
     if(d.includes("1920") || d.includes("20s")) return "#262f38";
