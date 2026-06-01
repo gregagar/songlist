@@ -589,19 +589,22 @@ function render(){
     document.getElementById("clearSearch").style.display =
         currentQuery ? "flex" : "none";
 
-    let filtered=songs.filter(
-        s=>songMatches(s,currentQuery)&&passesFilters(s)
-    );
+  let filtered=songs.filter(
+    s=>songMatches(s,currentQuery)&&passesFilters(s)
+);
 
-    // APPLY SORT
-    filtered = sortSongs(filtered);
+console.log("Filtered:", filtered.length);
 
+// APPLY SORT
+filtered = sortSongs(filtered);
+
+console.log("Sorted:", filtered.length);
 
 buildAlphabet(filtered);
 
-    const seenLetters = new Set();
+const seenLetters = new Set();
 
-    filtered.forEach((song,index)=>{
+filtered.forEach((song,index)=>{
 
 console.log(index, song["SONG NAME"]);
         const div=document.createElement("div");
@@ -670,8 +673,13 @@ if(/[A-Z]/.test(cleanLetter)){
     });
 
     updateClock();
-    updateCount(filtered.length);
-    positionAlphabet();
+updateCount(filtered.length);
+positionAlphabet();
+
+console.log(
+    "Cards rendered:",
+    document.querySelectorAll(".card").length
+);
 }
 
 // EVENTS
