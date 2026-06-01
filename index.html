@@ -612,11 +612,20 @@ console.log(index, song["SONG NAME"]);
         let anchorText="";
 
         if(sortKey==="artist"){
-            anchorText=(song["ARTIST"]||"").trim();
-        }
-        else if(sortKey==="title"){
-            anchorText=(song["SONG NAME"]||"").trim();
-        }
+    anchorText = String(song["ARTIST"] || "").trim();
+}
+else if(sortKey==="title"){
+
+    if(typeof song["SONG NAME"] !== "string"){
+        console.log(
+            "BAD TITLE:",
+            song["SONG NAME"],
+            song
+        );
+    }
+
+    anchorText = String(song["SONG NAME"] || "").trim();
+}
 
 
 
