@@ -261,6 +261,20 @@ a{
     z-index:999;
     user-select:none;
 }
+    .setlistItem{
+
+    background:#1e293b;
+
+    padding:12px;
+
+    border-radius:10px;
+
+    margin-bottom:8px;
+}
+
+.setlistItem.dragging{
+    opacity:.4;
+}
 
 .alphaLetter{
     font-size:11px;
@@ -369,7 +383,7 @@ const decadeFilters=[
 const activeFilters=new Set();
 const activeDecades=new Set();
 const playedSongs = new Set();
-
+let draggedSongId = null;
 let setlist =
 JSON.parse(
     localStorage.getItem("setlist") || "[]"
@@ -681,6 +695,31 @@ window.scrollTo({
         nav.appendChild(d);
     });
 }
+    function moveSetlistItem(
+    draggedId,
+    targetId
+){
+
+    const from =
+        setlist.indexOf(draggedId);
+
+    const to =
+        setlist.indexOf(targetId);
+
+    if(
+        from === -1 ||
+        to === -1
+    ) return;
+
+    const item =
+        setlist.splice(from,1)[0];
+
+    setlist.splice(to,0,item);
+
+    saveSetlist();
+
+    renderSetlist();
+}
     function renderSetlist(){
 
     const container =
@@ -711,6 +750,8 @@ if(count){
 
         const div =
             document.createElement("div");
+        div.draggable = true;
+div.dataset.songid = songId;
 
         div.style.background="#1e293b";
         div.style.padding="10px";
@@ -755,7 +796,36 @@ removeBtn.onclick=()=>{
     render();
     renderSetlist();
 };
+div.addEventListener("dragstart",()=>{
 
+    div.classList.add("dragging");
+
+    draggedSongId = songId;
+});
+
+div.addEventListener("dragend",()=>{
+
+    div.classList.remove("dragging");
+});
+        div.addEventListener(
+    "dragover",
+    e=>{
+        e.preventDefault();
+    }
+);
+
+div.addEventListener(
+    "drop",
+    e=>{
+
+        e.preventDefault();
+
+        moveSetlistItem(
+            draggedSongId,
+            songId
+        );
+    }
+);
         container.appendChild(div);
     });
 }
