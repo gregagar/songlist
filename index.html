@@ -13,7 +13,7 @@
 
 html, body{
     margin:0;
-    background:#0f172a;
+    background:#000000;
     color:#e2e8f0;
     font-family:-apple-system,BlinkMacSystemFont,sans-serif;
     touch-action:manipulation;
@@ -24,7 +24,7 @@ html, body{
     padding:20px;
     position:sticky;
     top:0;
-    background:#0f172a;
+    background:#000000;
     z-index:10;
 }
 
@@ -608,17 +608,17 @@ c.appendChild(spacer);
 function getDecadeColor(decade){
     const d=(decade||"").toString().toLowerCase().trim();
 
-    if(d.includes("1920") || d.includes("20s")) return "#262f38";
-    if(d.includes("1930") || d.includes("30s")) return "#312f29";
-    if(d.includes("1940") || d.includes("40s")) return "#2d2a33";
-    if(d.includes("1950") || d.includes("50s")) return "#28302b";
-    if(d.includes("1960") || d.includes("60s")) return "#2b3130";
-    if(d.includes("1970") || d.includes("70s")) return "#584328";
-    if(d.includes("1980") || d.includes("80s")) return "#322829";
-    if(d.includes("1990") || d.includes("90s")) return "#29302b";
-    if(d.includes("2000") || d.includes("00s")) return "#313028";
-    if(d.includes("2010") || d.includes("10s")) return "#273544";
-    if(d.includes("2020")) return "#262f38";
+    if(d.includes("1920") || d.includes("20s")) return "#212121";
+    if(d.includes("1930") || d.includes("30s")) return "#331f1e";
+    if(d.includes("1940") || d.includes("40s")) return "#3e5347";
+    if(d.includes("1950") || d.includes("50s")) return "#543424";
+    if(d.includes("1960") || d.includes("60s")) return "#695b30";
+    if(d.includes("1970") || d.includes("70s")) return "#332d1c";
+    if(d.includes("1980") || d.includes("80s")) return "#2a0e02";
+    if(d.includes("1990") || d.includes("90s")) return "#29331e";
+    if(d.includes("2000") || d.includes("00s")) return "#405674";
+    if(d.includes("2010") || d.includes("10s")) return "#1e2533";
+    if(d.includes("2020")) return "#1c0f1a";
 
     return "#1e293b";
 }
