@@ -215,6 +215,19 @@ button{
     user-select:none;
     
 }
+    .plusBtn{
+
+    font-size:24px;
+    font-weight:700;
+
+    color:#38bdf8;
+
+    cursor:pointer;
+
+    padding-left:10px;
+
+    user-select:none;
+}
 .card.played{
     background:#475569 !important;
     opacity:0.45;
@@ -723,6 +736,8 @@ filtered.forEach((song,index)=>{
     (song["SONG NAME"] || "") +
     "|" +
     (song["ARTIST"] || "");
+    const inSetlist =
+    setlist.includes(songId);
 
         const div=document.createElement("div");
 
@@ -791,15 +806,71 @@ if(/[A-Z]/.test(cleanLetter)){
         if(flag) meta.push(flag);
 
         div.innerHTML=`
-            <div class="title">${song["SONG NAME"]||""}</div>
-            <div>${song["ARTIST"]||""}</div>
-            <div class="meta">${meta.join(" • ")}</div>
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                ${openHTML}
-                ${wikiHTML}
-            </div>
-        `;
 
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:flex-start;
+">
+
+    <div style="flex:1;">
+
+        <div class="title">
+            ${song["SONG NAME"]||""}
+        </div>
+
+        <div>
+            ${song["ARTIST"]||""}
+        </div>
+
+    </div>
+
+    <div
+        class="plusBtn"
+        data-songid="${songId}"
+    >
+        ${inSetlist ? "✓" : "+"}
+    </div>
+
+</div>
+
+<div class="meta">
+    ${meta.join(" • ")}
+</div>
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+">
+    ${openHTML}
+    ${wikiHTML}
+</div>
+`;
+const plusBtn =
+    div.querySelector(".plusBtn");
+
+plusBtn.onclick=(e)=>{
+
+    e.stopPropagation();
+
+    if(setlist.includes(songId)){
+
+        setlist =
+            setlist.filter(
+                id => id !== songId
+            );
+
+    }else{
+
+        setlist.push(songId);
+    }
+
+    saveSetlist();
+
+    render();
+    renderSetlist();
+};
         r.appendChild(div);
     });
 
