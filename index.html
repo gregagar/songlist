@@ -757,18 +757,43 @@ div.dataset.songid = songId;
         div.style.padding="10px";
         div.style.borderRadius="10px";
 
-        div.innerHTML=`
+        const link = song.Link || song.link || "";
+const wiki = song.Wiki || song.wiki || "";
+
+div.innerHTML=`
 
 <div style="
 display:flex;
 justify-content:space-between;
-align-items:center;
+align-items:flex-start;
 ">
 
-    <div>
+    <div style="flex:1;">
+
         <strong>${song["SONG NAME"]}</strong>
         <br>
         ${song["ARTIST"]}
+
+        <div style="
+            margin-top:8px;
+            display:flex;
+            gap:12px;
+        ">
+
+            ${
+                link
+                ? `<a href="${link}" target="_blank">Open</a>`
+                : ""
+            }
+
+            ${
+                wiki
+                ? `<a href="${wiki}" target="_blank">Wiki</a>`
+                : ""
+            }
+
+        </div>
+
     </div>
 
     <button
