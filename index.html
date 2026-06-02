@@ -152,7 +152,47 @@ button{
     color:#fff;
     font-weight:600;
 }
+#setlistPanel{
 
+    position:fixed;
+
+    top:0;
+    right:-100%;
+
+    width:90%;
+    max-width:500px;
+
+    height:100%;
+
+    background:#0f172a;
+
+    z-index:99999;
+
+    transition:right .25s ease;
+
+    padding:20px;
+
+    box-sizing:border-box;
+
+    overflow-y:auto;
+}
+
+#setlistPanel.open{
+    right:0;
+}
+
+#setlistHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:20px;
+}
+
+#setlistSongs{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
 #results{
     padding:20px;
     display:grid;
@@ -267,6 +307,16 @@ a{
 
 <div id="alphaNav"></div>
 <div id="results"></div>
+    <div id="setlistPanel">
+
+    <div id="setlistHeader">
+        <span>Set List</span>
+        <button id="closeSetlist">✕</button>
+    </div>
+
+    <div id="setlistSongs"></div>
+
+</div>
 
 <script>
 
@@ -834,7 +884,24 @@ window.addEventListener("scroll", positionAlphabet);
 
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
-load();
+document
+.getElementById("openSetlist")
+.onclick=()=>{
+
+    document
+        .getElementById("setlistPanel")
+        .classList.add("open");
+};
+
+document
+.getElementById("closeSetlist")
+.onclick=()=>{
+
+    document
+        .getElementById("setlistPanel")
+        .classList.remove("open");
+};
+    load();
 applyScale();
 updateClock();
 
