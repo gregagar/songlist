@@ -354,6 +354,17 @@ const activeFilters=new Set();
 const activeDecades=new Set();
 const playedSongs = new Set();
 
+let setlist =
+JSON.parse(
+    localStorage.getItem("setlist") || "[]"
+);
+function saveSetlist(){
+
+    localStorage.setItem(
+        "setlist",
+        JSON.stringify(setlist)
+    );
+}
 function pad(n){return n.toString().padStart(2,'0');}
 
 function updateClock(){
@@ -654,6 +665,43 @@ window.scrollTo({
         nav.appendChild(d);
     });
 }
+    function renderSetlist(){
+
+    const container =
+        document.getElementById("setlistSongs");
+
+    if(!container) return;
+
+    container.innerHTML="";
+
+    setlist.forEach(songId=>{
+
+        const song = songs.find(s=>
+
+            (s["SONG NAME"]||"") +
+            "|" +
+            (s["ARTIST"]||"")
+            === songId
+        );
+
+        if(!song) return;
+
+        const div =
+            document.createElement("div");
+
+        div.style.background="#1e293b";
+        div.style.padding="10px";
+        div.style.borderRadius="10px";
+
+        div.innerHTML=`
+            <strong>${song["SONG NAME"]}</strong>
+            <br>
+            ${song["ARTIST"]}
+        `;
+
+        container.appendChild(div);
+    });
+}
 function render(){
     const r=document.getElementById("results");
     r.innerHTML="";
@@ -887,6 +935,8 @@ document.getElementById("clearSearch").style.display = "none";
 document
 .getElementById("openSetlist")
 .onclick=()=>{
+
+    renderSetlist();
 
     document
         .getElementById("setlistPanel")
