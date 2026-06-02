@@ -323,7 +323,10 @@ a{
     <div id="setlistPanel">
 
     <div id="setlistHeader">
-        <span>Set List</span>
+        <span>
+    Set List
+    (<span id="setlistCount">0</span>)
+</span>
         <button id="closeSetlist">✕</button>
     </div>
 
@@ -686,6 +689,13 @@ window.scrollTo({
     if(!container) return;
 
     container.innerHTML="";
+        const count =
+    document.getElementById("setlistCount");
+
+if(count){
+    count.innerText =
+        setlist.length;
+}
 
     setlist.forEach(songId=>{
 
@@ -707,10 +717,44 @@ window.scrollTo({
         div.style.borderRadius="10px";
 
         div.innerHTML=`
-            <strong>${song["SONG NAME"]}</strong>
-            <br>
-            ${song["ARTIST"]}
-        `;
+
+<div style="
+display:flex;
+justify-content:space-between;
+align-items:center;
+">
+
+    <div>
+        <strong>${song["SONG NAME"]}</strong>
+        <br>
+        ${song["ARTIST"]}
+    </div>
+
+    <button
+        class="removeSetSong"
+        data-id="${songId}"
+    >
+        ✕
+    </button>
+
+</div>
+
+`;
+        const removeBtn =
+    div.querySelector(".removeSetSong");
+
+removeBtn.onclick=()=>{
+
+    setlist =
+        setlist.filter(
+            id => id !== songId
+        );
+
+    saveSetlist();
+
+    render();
+    renderSetlist();
+};
 
         container.appendChild(div);
     });
