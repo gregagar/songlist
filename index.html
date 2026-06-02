@@ -328,6 +328,7 @@ a{
 
     <button id="openSetlist">+ Set List</button>
 <button id="exportBackup">Export Backup</button>
+<button id="importBackup">Import Backup</button>
 <button id="resetPlayed">Reset</button>
 </div>
 
@@ -1230,6 +1231,64 @@ document
 
     URL.revokeObjectURL(a.href);
 };
+    document
+.getElementById("importBackup")
+.onclick = () => {
+
+    document
+        .getElementById("importFile")
+        .click();
+};
+
+document
+.getElementById("importFile")
+.addEventListener(
+    "change",
+    async e => {
+
+        const file =
+            e.target.files[0];
+
+        if(!file) return;
+
+        try{
+
+            const text =
+                await file.text();
+
+            const imported =
+                JSON.parse(text);
+
+            if(!Array.isArray(imported)){
+
+                alert(
+                    "Invalid backup file."
+                );
+
+                return;
+            }
+
+            localStorage.setItem(
+                "songsData",
+                JSON.stringify(imported)
+            );
+
+            songs = imported;
+
+            render();
+
+            alert(
+                "Backup imported successfully."
+            );
+
+        }catch(err){
+
+            alert(
+                "Could not import file."
+            );
+        }
+    }
+);
     load();
 applyScale();
 updateClock();
@@ -1286,6 +1345,11 @@ backToTopBtn.addEventListener("click", () => {
     });
 });
 </script>
-
+<input
+    type="file"
+    id="importFile"
+    accept=".json"
+    style="display:none;"
+>
 </body>
 </html>
