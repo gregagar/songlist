@@ -173,8 +173,12 @@ button{
     gap:6px;
     font-size:calc(16px * var(--scale));
     user-select:none;
+    
 }
-
+.card.played{
+    background:#475569 !important;
+    opacity:0.45;
+}
 .title{
     font-size:calc(18px * var(--scale));
     font-weight:700;
@@ -252,9 +256,10 @@ a{
     </div>
 
     <div id="statusRight">
-        <div id="songCount"></div>
-        <div id="clockBox"></div>
-    </div>
+    <div id="songCount"></div>
+    <div id="clockBox"></div>
+    <button id="resetPlayed">Reset</button>
+</div>
 
 </div>
 
@@ -295,6 +300,7 @@ const decadeFilters=[
 
 const activeFilters=new Set();
 const activeDecades=new Set();
+const playedSongs = new Set();
 
 function pad(n){return n.toString().padStart(2,'0');}
 
@@ -613,6 +619,10 @@ filtered = sortSongs(filtered);
 buildAlphabet(filtered);
 
 filtered.forEach((song,index)=>{
+    const songId =
+    (song["SONG NAME"] || "") +
+    "|" +
+    (song["ARTIST"] || "");
 
         const div=document.createElement("div");
 
@@ -646,6 +656,20 @@ if(/[A-Z]/.test(cleanLetter)){
 
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
+    if(playedSongs.has(songId)){
+    div.classList.add("played");
+}
+    div.addEventListener("dblclick",()=>{
+
+    if(playedSongs.has(songId)){
+        playedSongs.delete(songId);
+        div.classList.remove("played");
+    }else{
+        playedSongs.add(songId);
+        div.classList.add("played");
+    }
+
+});
 
         const link=song.Link||song.link||"";
         const wiki=song.Wiki||song.wiki||"";
@@ -749,6 +773,14 @@ document.getElementById("sortRandom").onclick = () => {
     randomMode = true;
 
     render();
+};
+    document.getElementById("resetPlayed").onclick=()=>{
+
+    playedSongs.clear();
+
+    document
+        .querySelectorAll(".card")
+        .forEach(card=>card.classList.remove("played"));
 };
 
 async function load(){
