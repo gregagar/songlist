@@ -1190,8 +1190,13 @@ document
 .getElementById("exportBackup")
 .onclick = () => {
 
-    const data =
-        localStorage.getItem("songsData");
+    const data = JSON.stringify(
+    JSON.parse(
+        localStorage.getItem("songsData")
+    ),
+    null,
+    2
+);
 
     if(!data){
         alert("No song data found.");
