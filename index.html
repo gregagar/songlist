@@ -1094,10 +1094,34 @@ document.getElementById("sortRandom").onclick = () => {
 };
 
 async function load(){
-    try{
-        songs=await (await fetch("songs.json")).json();
-    }catch(e){
-        songs=JSON.parse(localStorage.getItem("cache")||"[]");
+
+    const localSongs =
+        localStorage.getItem("songsData");
+
+    if(localSongs){
+
+        songs = JSON.parse(localSongs);
+
+    }else{
+
+        try{
+
+            songs =
+                await (
+                    await fetch("songs.json")
+                ).json();
+
+            localStorage.setItem(
+                "songsData",
+                JSON.stringify(songs)
+            );
+
+        }catch(e){
+
+            songs = JSON.parse(
+                localStorage.getItem("cache") || "[]"
+            );
+        }
     }
 
     buildChips();
