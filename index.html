@@ -949,16 +949,7 @@ div.addEventListener("pointercancel", () => {
 }
     let pressTimer;
 
-div.addEventListener("touchstart", () => {
 
-   
-div.addEventListener("touchend", () => {
-    clearTimeout(pressTimer);
-});
-
-div.addEventListener("touchmove", () => {
-    clearTimeout(pressTimer);
-});
     div.addEventListener("dblclick",()=>{
 
     if(playedSongs.has(songId)){
