@@ -330,6 +330,12 @@ a{
 <button id="exportBackup">Export Backup</button>
 <button id="importBackup">Import Backup</button>
 <button id="resetPlayed">Reset</button>
+        <input
+    type="file"
+    id="importFile"
+    accept=".json"
+    style="display:none;"
+>
 </div>
 
 </div>
@@ -1345,11 +1351,6 @@ backToTopBtn.addEventListener("click", () => {
     });
 });
 </script>
-<input
-    type="file"
-    id="importFile"
-    accept=".json"
-    style="display:none;"
->
+
 </body>
 </html>
