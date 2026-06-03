@@ -951,17 +951,7 @@ div.addEventListener("pointercancel", () => {
 
 div.addEventListener("touchstart", () => {
 
-    pressTimer = setTimeout(() => {
-
-        alert(
-            "Edit: " +
-            (song["SONG NAME"] || "")
-        );
-
-    }, 700);
-
-});
-
+   
 div.addEventListener("touchend", () => {
     clearTimeout(pressTimer);
 });
