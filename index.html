@@ -921,6 +921,28 @@ if(/[A-Z]/.test(cleanLetter)){
     if(playedSongs.has(songId)){
     div.classList.add("played");
 }
+    let pressTimer;
+
+div.addEventListener("touchstart", () => {
+
+    pressTimer = setTimeout(() => {
+
+        alert(
+            "Edit: " +
+            (song["SONG NAME"] || "")
+        );
+
+    }, 700);
+
+});
+
+div.addEventListener("touchend", () => {
+    clearTimeout(pressTimer);
+});
+
+div.addEventListener("touchmove", () => {
+    clearTimeout(pressTimer);
+});
     div.addEventListener("dblclick",()=>{
 
     if(playedSongs.has(songId)){
