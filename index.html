@@ -146,7 +146,8 @@ html, body{
     color:#94a3b8;
 }
 
-#editForm input{
+#editForm input,
+#editForm select{
     width:100%;
     padding:10px;
     border:none;
@@ -426,6 +427,55 @@ let scale=1;
 
     let editingSong = null;
 let editingSongIndex = -1;
+    const decadeOptions = [
+    "30s",
+    "40s",
+    "50s",
+    "60s",
+    "70s",
+    "80s",
+    "90s",
+    "00s",
+    "10s",
+    "20s"
+];
+
+const genreOptions = [
+    "Rock",
+    "Pop",
+    "Country",
+    "Reggae",
+    "Soul",
+    "Jazz",
+    "Folk",
+    "Dance",
+    "Disco",
+    "R&B"
+];
+
+const countryOptions = [
+    "UK",
+    "USA",
+    "Canada",
+    "Australia",
+    "Ireland",
+    "Sweden",
+    "Germany",
+    "France",
+    "Italy",
+    "Spain"
+];
+
+const booleanFields = [
+    "Upbeat",
+    "Favourites",
+    "Dancefloor",
+    "Sing-a-Long",
+    "Happy",
+    "Easy to Sing",
+    "Romantic",
+    "Showcase"
+];
 
 // NEW SORT STATE
 let sortKey = "artist";
@@ -1199,22 +1249,90 @@ function openEditPanel(song){
     const form =
         document.getElementById("editForm");
 
-    form.innerHTML = "";
+    form.innerHTML = `
+        <datalist id="genreList">
+            ${genreOptions.map(g =>
+                `<option value="${g}">`
+            ).join("")}
+        </datalist>
+
+        <datalist id="countryList">
+            ${countryOptions.map(c =>
+                `<option value="${c}">`
+            ).join("")}
+        </datalist>
+    `;
 
     Object.keys(song).forEach(key=>{
 
         const value = song[key];
 
         const row =
-        document.createElement("div");
+            document.createElement("div");
 
-        row.innerHTML = `
-            <label>${key}</label>
-            <input
-                data-field="${key}"
-                value="${value ?? ""}"
-            >
-        `;
+        let html =
+            `<label>${key}</label>`;
+
+        if(booleanFields.includes(key)){
+
+            html += `
+                <input
+                    type="checkbox"
+                    data-field="${key}"
+                    ${value ? "checked" : ""}
+                >
+            `;
+        }
+
+        else if(key === "Decade"){
+
+            html += `
+                <select data-field="${key}">
+                    ${decadeOptions.map(opt => `
+                        <option
+                            value="${opt}"
+                            ${opt === value ? "selected" : ""}
+                        >
+                            ${opt}
+                        </option>
+                    `).join("")}
+                </select>
+            `;
+        }
+
+        else if(key === "Genre"){
+
+            html += `
+                <input
+                    list="genreList"
+                    data-field="${key}"
+                    value="${value || ""}"
+                >
+            `;
+        }
+
+        else if(key === "Country of Origin"){
+
+            html += `
+                <input
+                    list="countryList"
+                    data-field="${key}"
+                    value="${value || ""}"
+                >
+            `;
+        }
+
+        else{
+
+            html += `
+                <input
+                    data-field="${key}"
+                    value="${value ?? ""}"
+                >
+            `;
+        }
+
+        row.innerHTML = html;
 
         form.appendChild(row);
     });
@@ -1432,21 +1550,16 @@ document
         const field =
             input.dataset.field;
 
-        let value =
-            input.value;
+        let value;
 
-        if(value === "true")
-            value = true;
+if(input.type === "checkbox"){
 
-        if(value === "false")
-            value = false;
+    value = input.checked;
 
-        if(
-            field === "Year" ||
-            field === "Tempo"
-        ){
-            value = Number(value);
-        }
+}else{
+
+    value = input.value;
+}
 
         editingSong[field] = value;
     });
