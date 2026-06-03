@@ -918,6 +918,32 @@ if(/[A-Z]/.test(cleanLetter)){
 
         div.className="card";
         div.style.background=getDecadeColor(song.Decade);
+    let pressTimer;
+
+div.addEventListener("pointerdown", () => {
+
+    pressTimer = setTimeout(() => {
+
+        alert(
+            "Edit: " +
+            (song["SONG NAME"] || "")
+        );
+
+    }, 700);
+
+});
+
+div.addEventListener("pointerup", () => {
+    clearTimeout(pressTimer);
+});
+
+div.addEventListener("pointerleave", () => {
+    clearTimeout(pressTimer);
+});
+
+div.addEventListener("pointercancel", () => {
+    clearTimeout(pressTimer);
+});
     if(playedSongs.has(songId)){
     div.classList.add("played");
 }
