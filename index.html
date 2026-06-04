@@ -771,18 +771,26 @@ c.appendChild(spacer);
 
     clear.onclick=()=>{
 
-        activeFilters.clear();
-        activeDecades.clear();
+    activeFilters.clear();
+    activeDecades.clear();
 
-        document
-    .querySelectorAll(".chip")
-    .forEach(chip=>{
-        chip.classList.remove("active");
-        chip.classList.remove("decade-active");
-        chip.style.background = "";
-    });
+    artistFilter = "";
+    genreFilter = "";
+    countryFilter = "";
+    bpmFilter = null;
 
-        render();
+    currentQuery = "";
+    document.getElementById("search").value = "";
+
+    document
+        .querySelectorAll(".chip")
+        .forEach(chip=>{
+            chip.classList.remove("active");
+            chip.classList.remove("decade-active");
+            chip.style.background = "";
+        });
+
+    render();
     };
 
    c.appendChild(clear);
@@ -1257,10 +1265,6 @@ if(artistLink){
         artistFilter =
             artistLink.dataset.artist;
 
-        genreFilter = "";
-        countryFilter = "";
-        bpmFilter = null;
-
         render();
     };
 }
@@ -1277,10 +1281,6 @@ if(genreLink){
         genreFilter =
             genreLink.dataset.genre;
 
-        artistFilter = "";
-        countryFilter = "";
-        bpmFilter = null;
-
         render();
     };
 }
@@ -1296,10 +1296,6 @@ if(countryLink){
 
         countryFilter =
             countryLink.dataset.country;
-
-        artistFilter = "";
-        genreFilter = "";
-        bpmFilter = null;
 
         render();
     };
@@ -1319,12 +1315,9 @@ if(tempoLink){
                 tempoLink.dataset.tempo
             );
 
-        artistFilter = "";
-        genreFilter = "";
-        countryFilter = "";
-
         render();
     };
+}
 }
 plusBtn.onclick=(e)=>{
 
@@ -1367,19 +1360,12 @@ document.getElementById("clearSearch").onclick = () => {
     const search = document.getElementById("search");
 
     search.value = "";
-
     currentQuery = "";
-
-    artistFilter = "";
-    genreFilter = "";
-    countryFilter = "";
-    bpmFilter = null;
 
     search.blur();
 
     render();
 };
-
 document.getElementById("fontPlus").onclick=()=>{
     scale=Math.min(2,scale+0.1);
     applyScale();
