@@ -1367,14 +1367,14 @@ document.getElementById("clearSearch").onclick = () => {
     const search = document.getElementById("search");
 
     search.value = "";
-   currentQuery = "";
 
-artistFilter = "";
-genreFilter = "";
-countryFilter = "";
-bpmFilter = null;
+    currentQuery = "";
 
-    // closes mobile keyboard
+    artistFilter = "";
+    genreFilter = "";
+    countryFilter = "";
+    bpmFilter = null;
+
     search.blur();
 
     render();
