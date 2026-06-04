@@ -423,6 +423,10 @@ a{
 
 let songs=[];
 let currentQuery="";
+let artistFilter = "";
+let genreFilter = "";
+let countryFilter = "";
+let bpmFilter = null;
 let scale=1;
 
     let editingSong = null;
@@ -537,12 +541,68 @@ function updateCount(count){
 function normalize(t){return (t||"").toLowerCase();}
 
 function songMatches(song,q){
-    q=normalize(q.trim());
-    if(!q) return true;
-    const text=normalize(Object.values(song).join(" "));
-    if(/^\d+$/.test(q)) return new RegExp(`\\b${q}\\b`).test(text);
-    if(q.includes(" ")) return q.split(/\s+/).every(w=>text.includes(w));
-    return text.includes(q);
+
+    q = normalize(q.trim());
+
+    if(q){
+
+        const text =
+            normalize(
+                Object.values(song).join(" ")
+            );
+
+        if(/^\d+$/.test(q)){
+            if(!new RegExp(`\\b${q}\\b`).test(text)){
+                return false;
+            }
+        }
+        else if(q.includes(" ")){
+            if(
+                !q.split(/\s+/)
+                .every(w=>text.includes(w))
+            ){
+                return false;
+            }
+        }
+        else{
+            if(!text.includes(q)){
+                return false;
+            }
+        }
+    }
+
+    if(
+        artistFilter &&
+        song["ARTIST"] !== artistFilter
+    ){
+        return false;
+    }
+
+    if(
+        genreFilter &&
+        song.Genre !== genreFilter
+    ){
+        return false;
+    }
+
+    if(
+        countryFilter &&
+        song["Country of Origin"] !== countryFilter
+    ){
+        return false;
+    }
+
+    if(
+        bpmFilter !== null &&
+        Math.abs(
+            Number(song.Tempo || 0) -
+            bpmFilter
+        ) > 10
+    ){
+        return false;
+    }
+
+    return true;
 }
 
 function passesFilters(song){
@@ -1093,7 +1153,7 @@ div.addEventListener("pointercancel", () => {
         const flag=getFlag(song["Country of Origin"]);
         if(flag) meta.push(flag);
 
-        div.innerHTML=`
+       div.innerHTML=`
 
 <div style="
 display:flex;
@@ -1104,11 +1164,18 @@ align-items:flex-start;
     <div style="flex:1;">
 
         <div class="title">
-            ${song["SONG NAME"]||""}
+            ${song["SONG NAME"] || ""}
         </div>
 
-        <div>
-            ${song["ARTIST"]||""}
+        <div
+            class="artistLink"
+            data-artist="${song["ARTIST"] || ""}"
+            style="
+                color:#38bdf8;
+                cursor:pointer;
+            "
+        >
+            ${song["ARTIST"] || ""}
         </div>
 
     </div>
@@ -1123,7 +1190,48 @@ align-items:flex-start;
 </div>
 
 <div class="meta">
-    ${meta.join(" • ")}
+
+    ${song.Year || ""}
+
+    ${
+        song.Genre
+        ? ` •
+        <span
+            class="genreLink"
+            data-genre="${song.Genre}"
+            style="cursor:pointer;color:#38bdf8;"
+        >
+            ${song.Genre}
+        </span>`
+        : ""
+    }
+
+    ${
+        song.Tempo
+        ? ` •
+        <span
+            class="tempoLink"
+            data-tempo="${song.Tempo}"
+            style="cursor:pointer;color:#38bdf8;"
+        >
+            ${song.Tempo} bpm
+        </span>`
+        : ""
+    }
+
+    ${
+        song["Country of Origin"]
+        ? ` •
+        <span
+            class="countryLink"
+            data-country="${song["Country of Origin"]}"
+            style="cursor:pointer;color:#38bdf8;"
+        >
+            ${song["Country of Origin"]}
+        </span>`
+        : ""
+    }
+
 </div>
 
 <div style="
@@ -1137,7 +1245,87 @@ align-items:center;
 `;
 const plusBtn =
     div.querySelector(".plusBtn");
+const artistLink =
+    div.querySelector(".artistLink");
 
+if(artistLink){
+
+    artistLink.onclick = e => {
+
+        e.stopPropagation();
+
+        artistFilter =
+            artistLink.dataset.artist;
+
+        genreFilter = "";
+        countryFilter = "";
+        bpmFilter = null;
+
+        render();
+    };
+}
+
+const genreLink =
+    div.querySelector(".genreLink");
+
+if(genreLink){
+
+    genreLink.onclick = e => {
+
+        e.stopPropagation();
+
+        genreFilter =
+            genreLink.dataset.genre;
+
+        artistFilter = "";
+        countryFilter = "";
+        bpmFilter = null;
+
+        render();
+    };
+}
+
+const countryLink =
+    div.querySelector(".countryLink");
+
+if(countryLink){
+
+    countryLink.onclick = e => {
+
+        e.stopPropagation();
+
+        countryFilter =
+            countryLink.dataset.country;
+
+        artistFilter = "";
+        genreFilter = "";
+        bpmFilter = null;
+
+        render();
+    };
+}
+
+const tempoLink =
+    div.querySelector(".tempoLink");
+
+if(tempoLink){
+
+    tempoLink.onclick = e => {
+
+        e.stopPropagation();
+
+        bpmFilter =
+            Number(
+                tempoLink.dataset.tempo
+            );
+
+        artistFilter = "";
+        genreFilter = "";
+        countryFilter = "";
+
+        render();
+    };
+}
 plusBtn.onclick=(e)=>{
 
     e.stopPropagation();
@@ -1179,7 +1367,12 @@ document.getElementById("clearSearch").onclick = () => {
     const search = document.getElementById("search");
 
     search.value = "";
-    currentQuery = "";
+   currentQuery = "";
+
+artistFilter = "";
+genreFilter = "";
+countryFilter = "";
+bpmFilter = null;
 
     // closes mobile keyboard
     search.blur();
