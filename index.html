@@ -427,6 +427,7 @@ let artistFilter = "";
 let genreFilter = "";
 let countryFilter = "";
 let bpmFilter = null;
+let yearFilter = "";
 let scale=1;
 
     let editingSong = null;
@@ -591,7 +592,12 @@ function songMatches(song,q){
     ){
         return false;
     }
-
+if(
+    yearFilter &&
+    String(song.Year) !== yearFilter
+){
+    return false;
+}
     if(
         bpmFilter !== null &&
         Math.abs(
@@ -777,6 +783,7 @@ c.appendChild(spacer);
     artistFilter = "";
     genreFilter = "";
     countryFilter = "";
+    yearFilter = "";
     bpmFilter = null;
 
     currentQuery = "";
@@ -1199,7 +1206,17 @@ align-items:flex-start;
 
 <div class="meta">
 
-    ${song.Year || ""}
+   ${
+    song.Year
+    ? `<span
+        class="yearLink"
+        data-year="${song.Year}"
+        style="cursor:pointer;color:#38bdf8;"
+      >
+        ${song.Year}
+      </span>`
+    : ""
+}
 
     ${
         song.Genre
@@ -1306,7 +1323,23 @@ if(countryLink){
         render();
     };
 }
+const yearLink =
+    div.querySelector(".yearLink");
 
+if(yearLink){
+
+    yearLink.onclick = e => {
+
+        e.stopPropagation();
+
+        yearFilter =
+            yearFilter === yearLink.dataset.year
+            ? ""
+            : yearLink.dataset.year;
+
+        render();
+    };
+}
 const tempoLink =
     div.querySelector(".tempoLink");
 
