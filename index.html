@@ -1263,7 +1263,9 @@ if(artistLink){
         e.stopPropagation();
 
         artistFilter =
-            artistLink.dataset.artist;
+            artistFilter === artistLink.dataset.artist
+            ? ""
+            : artistLink.dataset.artist;
 
         render();
     };
@@ -1279,7 +1281,9 @@ if(genreLink){
         e.stopPropagation();
 
         genreFilter =
-            genreLink.dataset.genre;
+            genreFilter === genreLink.dataset.genre
+            ? ""
+            : genreLink.dataset.genre;
 
         render();
     };
@@ -1295,7 +1299,9 @@ if(countryLink){
         e.stopPropagation();
 
         countryFilter =
-            countryLink.dataset.country;
+            countryFilter === countryLink.dataset.country
+            ? ""
+            : countryLink.dataset.country;
 
         render();
     };
@@ -1310,10 +1316,13 @@ if(tempoLink){
 
         e.stopPropagation();
 
+        const tempo =
+            Number(tempoLink.dataset.tempo);
+
         bpmFilter =
-            Number(
-                tempoLink.dataset.tempo
-            );
+            bpmFilter === tempo
+            ? null
+            : tempo;
 
         render();
     };
