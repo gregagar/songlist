@@ -1186,7 +1186,7 @@ align-items:flex-start;
             class="artistLink"
             data-artist="${song["ARTIST"] || ""}"
             style="
-                color:#38bdf8;
+                color:#e2e8f0;
                 cursor:pointer;
             "
         >
@@ -1211,7 +1211,7 @@ align-items:flex-start;
     ? `<span
         class="yearLink"
         data-year="${song.Year}"
-        style="cursor:pointer;color:#38bdf8;"
+        style="cursor:pointer;color:#e2e8f0;"
       >
         ${song.Year}
       </span>`
@@ -1224,7 +1224,7 @@ align-items:flex-start;
         <span
             class="genreLink"
             data-genre="${song.Genre}"
-            style="cursor:pointer;color:#38bdf8;"
+            style="cursor:pointer;color:#e2e8f0;"
         >
             ${song.Genre}
         </span>`
@@ -1237,7 +1237,7 @@ align-items:flex-start;
         <span
             class="tempoLink"
             data-tempo="${song.Tempo}"
-            style="cursor:pointer;color:#38bdf8;"
+            style="cursor:pointer;color:#e2e8f0;"
         >
             ${song.Tempo} bpm
         </span>`
@@ -1245,17 +1245,18 @@ align-items:flex-start;
     }
 
     ${
-        song["Country of Origin"]
-        ? ` •
-        <span
-            class="countryLink"
-            data-country="${song["Country of Origin"]}"
-            style="cursor:pointer;color:#38bdf8;"
-        >
-            ${song["Country of Origin"]}
-        </span>`
-        : ""
-    }
+    song["Country of Origin"]
+    ? ` •
+    <span
+        class="countryLink"
+        data-country="${song["Country of Origin"]}"
+        style="cursor:pointer;color:#e2e8f0;"
+    >
+        ${getFlag(song["Country of Origin"])}
+        ${song["Country of Origin"]}
+    </span>`
+    : ""
+}
 
 </div>
 
