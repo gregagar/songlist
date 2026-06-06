@@ -109,6 +109,26 @@ html, body{
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
 }
+    #setlistOverlay{
+
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.4);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .25s ease;
+
+    z-index:99998;
+}
+
+#setlistOverlay.open{
+
+    opacity:1;
+    pointer-events:auto;
+}
     #editPanel{
     position:fixed;
     top:0;
@@ -467,6 +487,7 @@ a{
 
 <div id="alphaNav"></div>
 <div id="results"></div>
+    <div id="setlistOverlay"></div>
     <div id="setlistPanel">
 
     <div id="setlistHeader">
@@ -1125,6 +1146,16 @@ div.addEventListener(
         container.appendChild(div);
     });
 }
+    function closeSetlist(){
+
+    document
+        .getElementById("setlistPanel")
+        .classList.remove("open");
+
+    document
+        .getElementById("setlistOverlay")
+        .classList.remove("open");
+}
 function render(){
     const r=document.getElementById("results");
     r.innerHTML="";
@@ -1709,6 +1740,7 @@ window.addEventListener("scroll", positionAlphabet);
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 document
+document
 .getElementById("openSetlist")
 .onclick=()=>{
 
@@ -1717,16 +1749,18 @@ document
     document
         .getElementById("setlistPanel")
         .classList.add("open");
-};
-
-document
-.getElementById("closeSetlist")
-.onclick=()=>{
 
     document
-        .getElementById("setlistPanel")
-        .classList.remove("open");
+        .getElementById("setlistOverlay")
+        .classList.add("open");
 };
+    
+document
+.getElementById("closeSetlist")
+.onclick=closeSetlist;
+    document
+.getElementById("setlistOverlay")
+.onclick = closeSetlist;
     document
 .getElementById("exportBackup")
 .onclick = () => {
