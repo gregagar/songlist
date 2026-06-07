@@ -923,28 +923,27 @@ function getDecadeColor(decade){
 function getFlag(country){
     if(!country) return "";
 
-    const flags={
-        "united kingdom":"🇬🇧",
-        "uk":"🇬🇧",
-        "england":"🇬🇧",
-        "usa":"🇺🇸",
-        "united states":"🇺🇸",
-        "canada":"🇨🇦",
-        "france":"🇫🇷",
-        "germany":"🇩🇪",
-        "italy":"🇮🇹",
-        "spain":"🇪🇸",
-        "ireland":"🇮🇪",
-        "sweden":"🇸🇪",
-        "australia":"🇦🇺",
-        "new zealand":"🇳🇿",
-        "japan":"🇯🇵"
-        "jamaica":"🇯🇲"
-        "scotland":🏴󠁧󠁢󠁳󠁣󠁴󠁿"
-        "wales":🏴󠁧󠁢󠁷󠁬󠁳󠁿"
-        "mexico":🇲🇽"
-        "new zealand":🇳🇿"
-    };
+const flags = {
+    "united kingdom":"🇬🇧",
+    "uk":"🇬🇧",
+    "england":"🇬🇧",
+    "usa":"🇺🇸",
+    "united states":"🇺🇸",
+    "canada":"🇨🇦",
+    "france":"🇫🇷",
+    "germany":"🇩🇪",
+    "italy":"🇮🇹",
+    "spain":"🇪🇸",
+    "ireland":"🇮🇪",
+    "sweden":"🇸🇪",
+    "australia":"🇦🇺",
+    "new zealand":"🇳🇿",
+    "japan":"🇯🇵",
+    "jamaica":"🇯🇲",
+    "scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
+    "wales":"🏴󠁧󠁢󠁷󠁬󠁳󠁿",
+    "mexico":"🇲🇽"
+};
 
     return flags[country.toString().toLowerCase()] || "";
 }
