@@ -209,6 +209,19 @@ button{
     font-size:16px;
     cursor:pointer;
 }
+    .autoScrollBtn{
+    background:#0f766e;
+    color:white;
+    font-weight:700;
+    border:1px solid #14b8a6;
+}
+
+.autoScrollBtn.active{
+    background:#38bdf8;
+    color:black;
+    border-color:#38bdf8;
+    box-shadow:0 0 0 2px rgba(56,189,248,.35);
+}
 
 #chipContainer{
     margin-top:10px;
@@ -463,6 +476,17 @@ a{
     text-align:center !important;
     font-size:18px;
 }
+    .speedRow{
+    align-items:center;
+}
+
+#scrollSpeedValue{
+    min-width:44px;
+    text-align:center;
+    color:#e2e8f0;
+    font-size:14px;
+    font-weight:700;
+}
 </style>
 </head>
 
@@ -489,6 +513,9 @@ a{
             <button id="sortBpm">BPM</button>
             <button id="sortOrder">A-Z</button>
             <button id="sortRandom">Random</button>
+            <button id="autoScrollBtn" class="autoScrollBtn">
+    Auto Scroll
+</button>
         </div>
 
     </div>
@@ -512,6 +539,19 @@ a{
             <button id="fontPlus">+</button>
         </div>
     </div>
+        <div class="settingsSection">
+    <div class="settingsLabel">Auto Scroll Speed</div>
+
+    <div class="settingsRow speedRow">
+        <button id="scrollSpeedMinus">−</button>
+
+        <span id="scrollSpeedValue">
+            40
+        </span>
+
+        <button id="scrollSpeedPlus">+</button>
+    </div>
+</div>
 <div class="settingsSection">
     <div class="settingsLabel">Sub Text Size</div>
 
@@ -586,6 +626,14 @@ let bpmFilter = null;
 let yearFilter = "";
 let scale=1;
 let subScale=1;
+let autoScrollActive = false;
+let autoScrollFrame = null;
+let lastAutoScrollTime = null;
+
+let autoScrollSpeed =
+    Number(
+        localStorage.getItem("autoScrollSpeed") || 40
+    );
 
     let editingSong = null;
 let editingSongIndex = -1;
@@ -700,7 +748,104 @@ function updateClock(){
     document.getElementById("clockBox").innerText=
         `${pad(now.getHours())}:${pad(now.getMinutes())}:${pad(now.getSeconds())}`;
 }
+function updateAutoScrollButton(){
 
+    const btn =
+        document.getElementById("autoScrollBtn");
+
+    if(!btn) return;
+
+    btn.classList.toggle(
+        "active",
+        autoScrollActive
+    );
+
+    btn.innerText =
+        autoScrollActive
+        ? "Scrolling"
+        : "Auto Scroll";
+}
+
+function updateScrollSpeedDisplay(){
+
+    const label =
+        document.getElementById("scrollSpeedValue");
+
+    if(label){
+        label.innerText =
+            Math.round(autoScrollSpeed);
+    }
+
+    localStorage.setItem(
+        "autoScrollSpeed",
+        autoScrollSpeed
+    );
+}
+
+function autoScrollStep(timestamp){
+
+    if(!autoScrollActive) return;
+
+    if(lastAutoScrollTime === null){
+        lastAutoScrollTime = timestamp;
+    }
+
+    const elapsed =
+        timestamp - lastAutoScrollTime;
+
+    lastAutoScrollTime = timestamp;
+
+    window.scrollBy(
+        0,
+        autoScrollSpeed * elapsed / 1000
+    );
+
+    const atBottom =
+        window.innerHeight + window.scrollY >=
+        document.documentElement.scrollHeight - 2;
+
+    if(atBottom){
+        stopAutoScroll();
+        return;
+    }
+
+    autoScrollFrame =
+        requestAnimationFrame(autoScrollStep);
+}
+
+function startAutoScroll(){
+
+    autoScrollActive = true;
+    lastAutoScrollTime = null;
+
+    updateAutoScrollButton();
+
+    autoScrollFrame =
+        requestAnimationFrame(autoScrollStep);
+}
+
+function stopAutoScroll(){
+
+    autoScrollActive = false;
+
+    if(autoScrollFrame){
+        cancelAnimationFrame(autoScrollFrame);
+    }
+
+    autoScrollFrame = null;
+    lastAutoScrollTime = null;
+
+    updateAutoScrollButton();
+}
+
+function toggleAutoScroll(){
+
+    if(autoScrollActive){
+        stopAutoScroll();
+    }else{
+        startAutoScroll();
+    }
+}
 function applyScale(){
     document.documentElement.style.setProperty("--scale",scale);
 }
@@ -1662,6 +1807,7 @@ document.getElementById("fontMinus").onclick = e => {
 
     applyScale();
 };
+    
 document.getElementById("subFontPlus").onclick = e => {
 
     e.stopPropagation();
@@ -1678,6 +1824,35 @@ document.getElementById("subFontMinus").onclick = e => {
     subScale = Math.max(0.6, subScale - 0.1);
 
     applySubScale();
+};
+    document
+.getElementById("scrollSpeedPlus")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    autoScrollSpeed =
+        Math.min(
+            200,
+            autoScrollSpeed + 10
+        );
+
+    updateScrollSpeedDisplay();
+};
+
+document
+.getElementById("scrollSpeedMinus")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    autoScrollSpeed =
+        Math.max(
+            10,
+            autoScrollSpeed - 10
+        );
+
+    updateScrollSpeedDisplay();
 };
 // SORT BUTTON EVENTS
 document.getElementById("sortArtist").onclick = () => {
@@ -1718,6 +1893,12 @@ document.getElementById("sortRandom").onclick = () => {
         .sort(() => Math.random() - 0.5);
 
     render();
+};
+    document
+.getElementById("autoScrollBtn")
+.onclick = () => {
+
+    toggleAutoScroll();
 };
     document.getElementById("resetPlayed").onclick=()=>{
 
@@ -2104,6 +2285,8 @@ applySubScale();
 updateClock();
 updateHeaderOffset();
 positionAlphabet();
+updateScrollSpeedDisplay();
+updateAutoScrollButton();
 
 </script>
 
