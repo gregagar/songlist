@@ -1605,13 +1605,21 @@ document.getElementById("clearSearch").onclick = () => {
 
     render();
 };
-document.getElementById("fontPlus").onclick=()=>{
-    scale=Math.min(2,scale+0.1);
+document.getElementById("fontPlus").onclick = e => {
+
+    e.stopPropagation();
+
+    scale = Math.min(2, scale + 0.1);
+
     applyScale();
 };
 
-document.getElementById("fontMinus").onclick=()=>{
-    scale=Math.max(0.6,scale-0.1);
+document.getElementById("fontMinus").onclick = e => {
+
+    e.stopPropagation();
+
+    scale = Math.max(0.6, scale - 0.1);
+
     applyScale();
 };
 
