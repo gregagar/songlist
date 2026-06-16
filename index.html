@@ -581,11 +581,19 @@ const booleanFields = [
     "Showcase"
 ];
 
-// NEW SORT STATE
+// SORT STATE
 let sortKey = "artist";
-let sortDirection = 1; // A-Z default // 1 = A-Z, -1 = Z-A
+let sortDirection = 1; // 1 = A-Z, -1 = Z-A
 let randomMode = false;
+let randomOrder = [];
 
+function getSongId(song){
+    return (
+        (song["SONG NAME"] || "") +
+        "|" +
+        (song["ARTIST"] || "")
+    );
+}
 const filters=[
     "Favourites",
     "Upbeat",
@@ -747,20 +755,34 @@ function passesFilters(song){
     );
 }
 
-// NEW SORT FUNCTION
 function sortSongs(arr){
 
     if(randomMode){
 
-        const shuffled = [...arr];
+        const orderMap = new Map(
+            randomOrder.map((id,index)=>[
+                id,
+                index
+            ])
+        );
 
-        for(let i = shuffled.length - 1; i > 0; i--){
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] =
-            [shuffled[j], shuffled[i]];
-        }
+        return [...arr].sort((a,b)=>{
 
-        return shuffled;
+            const aId = getSongId(a);
+            const bId = getSongId(b);
+
+            const aOrder =
+                orderMap.has(aId)
+                ? orderMap.get(aId)
+                : Number.MAX_SAFE_INTEGER;
+
+            const bOrder =
+                orderMap.has(bId)
+                ? orderMap.get(bId)
+                : Number.MAX_SAFE_INTEGER;
+
+            return aOrder - bOrder;
+        });
     }
 
     return [...arr].sort((a,b)=>{
@@ -1564,6 +1586,10 @@ document.getElementById("sortOrder").onclick = () => {
 document.getElementById("sortRandom").onclick = () => {
 
     randomMode = true;
+
+    randomOrder = [...songs]
+        .map(getSongId)
+        .sort(() => Math.random() - 0.5);
 
     render();
 };
