@@ -9,7 +9,10 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black">
 
 <style>
-:root{ --scale:1; }
+:root{
+    --scale:1;
+    --subScale:1;
+}
 
 html, body{
     margin:0;
@@ -322,7 +325,7 @@ button{
 }
 
 .meta{
-    font-size:calc(13px * var(--scale));
+    font-size:calc(13px * var(--subScale));
     color:#94a3b8;
 }
 
@@ -500,7 +503,14 @@ a{
             <button id="fontPlus">+</button>
         </div>
     </div>
+<div class="settingsSection">
+    <div class="settingsLabel">Sub Text Size</div>
 
+    <div class="settingsRow">
+        <button id="subFontMinus">−</button>
+        <button id="subFontPlus">+</button>
+    </div>
+</div>
     <button id="exportBackup">
         Export Backup
     </button>
@@ -564,6 +574,7 @@ let countryFilter = "";
 let bpmFilter = null;
 let yearFilter = "";
 let scale=1;
+let subScale=1;
 
     let editingSong = null;
 let editingSongIndex = -1;
@@ -681,6 +692,9 @@ function updateClock(){
 
 function applyScale(){
     document.documentElement.style.setProperty("--scale",scale);
+}
+    function applySubScale(){
+    document.documentElement.style.setProperty("--subScale",subScale);
 }
 
 function updateCount(count){
@@ -1622,7 +1636,23 @@ document.getElementById("fontMinus").onclick = e => {
 
     applyScale();
 };
+document.getElementById("subFontPlus").onclick = e => {
 
+    e.stopPropagation();
+
+    subScale = Math.min(2, subScale + 0.1);
+
+    applySubScale();
+};
+
+document.getElementById("subFontMinus").onclick = e => {
+
+    e.stopPropagation();
+
+    subScale = Math.max(0.6, subScale - 0.1);
+
+    applySubScale();
+};
 // SORT BUTTON EVENTS
 document.getElementById("sortArtist").onclick = () => {
     randomMode = false;
@@ -2038,8 +2068,9 @@ document.addEventListener(
         );
     }
 );
-    load();
+load();
 applyScale();
+applySubScale();
 updateClock();
 
 </script>
