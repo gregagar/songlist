@@ -593,13 +593,26 @@ a{
     <div id="setlistOverlay"></div>
     <div id="setlistPanel">
 
-    <div id="setlistHeader">
-        <span>
-    Set List
-    (<span id="setlistCount">0</span>)
-</span>
-        <button id="closeSetlist">✕</button>
+   <div id="setlistHeader">
+    <span>
+        Set List
+        (<span id="setlistCount">0</span>)
+    </span>
+
+    <div style="
+        display:flex;
+        gap:8px;
+        align-items:center;
+    ">
+        <button id="clearSetlist">
+            Clear
+        </button>
+
+        <button id="closeSetlist">
+            ✕
+        </button>
     </div>
+</div>
 
     <div id="setlistSongs"></div>
 
@@ -2103,8 +2116,27 @@ document
 };
     
 document
-.getElementById("closeSetlist")
-.onclick=closeSetlist;
+.getElementById("clearSetlist")
+.onclick = () => {
+
+    if(setlist.length === 0){
+        return;
+    }
+
+    const sure =
+        confirm(
+            "Clear the whole set list?"
+        );
+
+    if(!sure) return;
+
+    setlist = [];
+
+    saveSetlist();
+
+    render();
+    renderSetlist();
+};
     document
 .getElementById("setlistOverlay")
 .onclick = closeSetlist;
