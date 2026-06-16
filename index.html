@@ -209,18 +209,18 @@ button{
     font-size:16px;
     cursor:pointer;
 }
-    .autoScrollBtn{
-    background:#0f766e;
-    color:white;
-    font-weight:700;
-    border:1px solid #14b8a6;
+.autoScrollBtn{
+    background:#1e293b;
+    color:#38bdf8;
+    font-weight:600;
+    border:1px solid #334155;
 }
 
 .autoScrollBtn.active{
-    background:#38bdf8;
-    color:black;
+    background:#334155;
+    color:#38bdf8;
     border-color:#38bdf8;
-    box-shadow:0 0 0 2px rgba(56,189,248,.35);
+    box-shadow:inset 0 0 0 1px #38bdf8;
 }
 
 #chipContainer{
@@ -540,6 +540,14 @@ a{
         </div>
     </div>
         <div class="settingsSection">
+    <div class="settingsLabel">Sub Text Size</div>
+
+    <div class="settingsRow">
+        <button id="subFontMinus">−</button>
+        <button id="subFontPlus">+</button>
+    </div>
+</div>
+        <div class="settingsSection">
     <div class="settingsLabel">Auto Scroll Speed</div>
 
     <div class="settingsRow speedRow">
@@ -552,14 +560,7 @@ a{
         <button id="scrollSpeedPlus">+</button>
     </div>
 </div>
-<div class="settingsSection">
-    <div class="settingsLabel">Sub Text Size</div>
 
-    <div class="settingsRow">
-        <button id="subFontMinus">−</button>
-        <button id="subFontPlus">+</button>
-    </div>
-</div>
     <button id="exportBackup">
         Export Backup
     </button>
