@@ -24,11 +24,18 @@ html, body{
 }
 
 .header{
-    padding:20px;
-    position:sticky;
+    position:fixed;
     top:0;
+    left:0;
+    right:0;
+
+    padding:20px;
+    box-sizing:border-box;
+
     background:#000000;
-    z-index:10;
+    z-index:10000;
+
+    box-shadow:0 8px 18px rgba(0,0,0,.45);
 }
 
 
@@ -269,7 +276,9 @@ button{
     gap:8px;
 }
 #results{
+    margin-top:var(--headerOffset, 220px);
     padding:20px;
+
     display:grid;
     gap:12px;
     grid-template-columns:repeat(2,1fr);
@@ -536,6 +545,8 @@ a{
 
 </div>
 
+</div> <!-- closes .header -->
+
 <div id="alphaNav"></div>
 <div id="results"></div>
     <div id="setlistOverlay"></div>
@@ -695,6 +706,23 @@ function applyScale(){
 }
     function applySubScale(){
     document.documentElement.style.setProperty("--subScale",subScale);
+}
+    function updateHeaderOffset(){
+
+    const header =
+        document.querySelector(".header");
+
+    if(!header) return;
+
+    const height =
+        Math.ceil(
+            header.getBoundingClientRect().height
+        );
+
+    document.documentElement.style.setProperty(
+        "--headerOffset",
+        `${height}px`
+    );
 }
 
 function updateCount(count){
@@ -870,22 +898,19 @@ function sortSongs(arr){
 }
 function positionAlphabet(){
 
-    const nav = document.getElementById("alphaNav");
+    const nav =
+        document.getElementById("alphaNav");
 
-    if(window.scrollY < 150){
+    const header =
+        document.querySelector(".header");
 
-        const firstCard =
-            document.querySelector(".card");
+    const headerHeight =
+        header
+        ? Math.ceil(header.getBoundingClientRect().height)
+        : 0;
 
-        if(firstCard){
-            nav.style.top =
-                `${firstCard.getBoundingClientRect().top}px`;
-        }
-
-    }else{
-
-        nav.style.top = "20px";
-    }
+    nav.style.top =
+        `${headerHeight + 10}px`;
 }
 function buildChips(){
 
@@ -1596,8 +1621,9 @@ plusBtn.onclick=(e)=>{
         r.appendChild(div);
     });
 
-    updateClock();
+   updateClock();
 updateCount(filtered.length);
+updateHeaderOffset();
 positionAlphabet();
 
 }
@@ -1869,6 +1895,10 @@ window.addEventListener("scroll",()=>{
             );
         });
 });
+    window.addEventListener("resize", ()=>{
+    updateHeaderOffset();
+    positionAlphabet();
+});
 
 window.addEventListener("scroll", positionAlphabet);
 
@@ -2072,6 +2102,8 @@ load();
 applyScale();
 applySubScale();
 updateClock();
+updateHeaderOffset();
+positionAlphabet();
 
 </script>
 
