@@ -428,6 +428,29 @@ a{
     width:100%;
     text-align:left;
 }
+    .settingsSection{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    padding-bottom:6px;
+    border-bottom:1px solid #1e293b;
+}
+
+.settingsLabel{
+    color:#94a3b8;
+    font-size:13px;
+}
+
+.settingsRow{
+    display:flex;
+    gap:8px;
+}
+
+.settingsRow button{
+    flex:1;
+    text-align:center !important;
+    font-size:18px;
+}
 </style>
 </head>
 
@@ -446,10 +469,7 @@ a{
 
         <div id="chipContainer"></div>
         <div id="controls">
-            <span id="fontLabel">Text size</span>
-            <button id="fontMinus">−</button>
-            <button id="fontPlus">+</button>
-
+            
             <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
 
             <button id="sortArtist">Artist</button>
@@ -472,9 +492,18 @@ a{
 
     <div id="settingsMenu">
 
-        <button id="exportBackup">
-            Export Backup
-        </button>
+    <div class="settingsSection">
+        <div class="settingsLabel">Text Size</div>
+
+        <div class="settingsRow">
+            <button id="fontMinus">−</button>
+            <button id="fontPlus">+</button>
+        </div>
+    </div>
+
+    <button id="exportBackup">
+        Export Backup
+    </button>
 
         <button id="importBackup">
             Import Backup
