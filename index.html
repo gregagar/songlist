@@ -2100,9 +2100,8 @@ window.addEventListener("scroll", positionAlphabet);
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 document
-document
 .getElementById("openSetlist")
-.onclick=()=>{
+.onclick = () => {
 
     renderSetlist();
 
@@ -2114,7 +2113,11 @@ document
         .getElementById("setlistOverlay")
         .classList.add("open");
 };
-    
+
+document
+.getElementById("closeSetlist")
+.onclick = closeSetlist;
+
 document
 .getElementById("clearSetlist")
 .onclick = () => {
@@ -2137,7 +2140,8 @@ document
     render();
     renderSetlist();
 };
-    document
+
+document
 .getElementById("setlistOverlay")
 .onclick = closeSetlist;
     document
