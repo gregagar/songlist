@@ -498,6 +498,100 @@ a{
     font-size:14px;
     font-weight:700;
 }
+    #notesDrawer{
+    position:fixed;
+    left:50%;
+    bottom:0;
+    transform:translateX(-50%);
+
+    width:min(92%, 720px);
+
+    background:#0f172a;
+    border:1px solid #1e293b;
+    border-bottom:none;
+
+    border-radius:16px 16px 0 0;
+
+    z-index:90000;
+
+    box-shadow:0 -8px 24px rgba(0,0,0,.35);
+
+    overflow:hidden;
+}
+
+#notesHandle{
+    padding:8px 14px;
+
+    text-align:center;
+
+    color:#94a3b8;
+    font-size:14px;
+    font-weight:700;
+
+    background:#111827;
+
+    cursor:pointer;
+    user-select:none;
+
+    -webkit-tap-highlight-color:transparent;
+}
+
+#notesHandle::after{
+    content:" ↑";
+    color:#38bdf8;
+}
+
+#notesDrawer.open #notesHandle::after{
+    content:" ↓";
+}
+
+#notesContent{
+    display:none;
+
+    padding:12px;
+    box-sizing:border-box;
+}
+
+#notesDrawer.open #notesContent{
+    display:block;
+}
+
+#notesHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:10px;
+
+    color:#e2e8f0;
+}
+
+#notesText{
+    width:100%;
+    height:180px;
+
+    box-sizing:border-box;
+
+    padding:12px;
+
+    border:none;
+    border-radius:12px;
+
+    background:#020617;
+    color:#e2e8f0;
+
+    font-size:16px;
+    font-family:inherit;
+
+    resize:none;
+    outline:none;
+
+    touch-action:auto;
+}
+
+#clearNotesBtn{
+    color:#fca5a5;
+}
 </style>
 </head>
 
@@ -637,9 +731,41 @@ a{
 
     <div id="editForm"></div>
 
-    <button id="saveSongBtn">Save Changes</button>
+   <button id="saveSongBtn">Save Changes</button>
 
 </div>
+
+<div id="notesDrawer">
+    <div id="notesHandle">
+        Notes
+    </div>
+
+    <div id="notesContent">
+        <div id="notesHeader">
+            <strong>Notes</strong>
+
+            <div style="
+                display:flex;
+                gap:8px;
+                align-items:center;
+            ">
+                <button id="clearNotesBtn">
+                    Clear
+                </button>
+
+                <button id="closeNotesBtn">
+                    ✕
+                </button>
+            </div>
+        </div>
+
+        <textarea
+            id="notesText"
+            placeholder="Things to remember..."
+        ></textarea>
+    </div>
+</div>
+
 <script>
 
 let songs=[];
@@ -2444,6 +2570,64 @@ document.addEventListener(
         );
     }
 );
+    const notesDrawer =
+    document.getElementById("notesDrawer");
+
+const notesHandle =
+    document.getElementById("notesHandle");
+
+const closeNotesBtn =
+    document.getElementById("closeNotesBtn");
+
+const clearNotesBtn =
+    document.getElementById("clearNotesBtn");
+
+const notesText =
+    document.getElementById("notesText");
+
+notesText.value =
+    localStorage.getItem("songFinderNotes") || "";
+
+notesHandle.onclick = () => {
+
+    notesDrawer.classList.toggle("open");
+};
+
+closeNotesBtn.onclick = e => {
+
+    e.stopPropagation();
+
+    notesDrawer.classList.remove("open");
+};
+
+notesText.addEventListener("input", () => {
+
+    localStorage.setItem(
+        "songFinderNotes",
+        notesText.value
+    );
+});
+
+clearNotesBtn.onclick = e => {
+
+    e.stopPropagation();
+
+    if(!notesText.value.trim()){
+        return;
+    }
+
+    const sure =
+        confirm("Clear notes?");
+
+    if(!sure) return;
+
+    notesText.value = "";
+
+    localStorage.setItem(
+        "songFinderNotes",
+        ""
+    );
+};
 load();
 applyScale();
 applySubScale();
