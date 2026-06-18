@@ -370,20 +370,37 @@ a{
     z-index:999;
     user-select:none;
 }
-    .setlistItem{
-
+.setlistItem{
     background:#1e293b;
-
     padding:12px;
-
     border-radius:10px;
-
     margin-bottom:8px;
+    touch-action:pan-y;
+    transition:
+        transform .18s ease,
+        opacity .18s ease,
+        background .18s ease;
+}
+
+.setlistItem.played{
+    background:#475569 !important;
+    opacity:.45;
+}
+
+.setlistItem.swiping{
+    transition:none;
+}
+
+.setlistHint{
+    font-size:12px;
+    color:#94a3b8;
+    margin-top:6px;
 }
 
 .setlistItem.dragging{
     opacity:.4;
 }
+    
 
 .alphaLetter{
     font-size:11px;
@@ -754,6 +771,18 @@ function saveSetlist(){
         "setlist",
         JSON.stringify(setlist)
     );
+}
+    function removeFromSetlist(songId){
+
+    setlist =
+        setlist.filter(
+            id => id !== songId
+        );
+
+    saveSetlist();
+
+    render();
+    renderSetlist();
 }
 function pad(n){return n.toString().padStart(2,'0');}
 
@@ -1310,14 +1339,17 @@ if(count){
 
         if(!song) return;
 
-        const div =
-            document.createElement("div");
-        div.draggable = true;
-div.dataset.songid = songId;
+    const div =
+    document.createElement("div");
 
-        div.style.background="#1e293b";
-        div.style.padding="10px";
-        div.style.borderRadius="10px";
+div.className = "setlistItem";
+
+if(playedSongs.has(songId)){
+    div.classList.add("played");
+}
+
+div.draggable = true;
+div.dataset.songid = songId;
 
         const link = song.Link || song.link || "";
 const wiki = song.Wiki || song.wiki || "";
@@ -1332,9 +1364,13 @@ align-items:flex-start;
 
     <div style="flex:1;">
 
-        <strong>${song["SONG NAME"]}</strong>
-        <br>
-        ${song["ARTIST"]}
+       <strong>${song["SONG NAME"]}</strong>
+<br>
+${song["ARTIST"]}
+
+<div class="setlistHint">
+    Double tap = played · swipe left = remove
+</div>
 
         <div style="
             margin-top:8px;
@@ -1371,18 +1407,120 @@ align-items:flex-start;
         const removeBtn =
     div.querySelector(".removeSetSong");
 
-removeBtn.onclick=()=>{
+removeBtn.onclick = e => {
 
-    setlist =
-        setlist.filter(
-            id => id !== songId
-        );
+    e.stopPropagation();
 
-    saveSetlist();
-
-    render();
-    renderSetlist();
+    removeFromSetlist(songId);
 };
+        let tapTimer = null;
+let lastTapTime = 0;
+
+let startX = 0;
+let startY = 0;
+let currentX = 0;
+let isSwiping = false;
+
+div.addEventListener("pointerdown", e => {
+
+    startX = e.clientX;
+    startY = e.clientY;
+    currentX = 0;
+    isSwiping = false;
+
+    div.classList.add("swiping");
+});
+
+div.addEventListener("pointermove", e => {
+
+    const diffX =
+        e.clientX - startX;
+
+    const diffY =
+        e.clientY - startY;
+
+    if(
+        Math.abs(diffX) > 10 &&
+        Math.abs(diffX) > Math.abs(diffY)
+    ){
+        isSwiping = true;
+    }
+
+    if(isSwiping && diffX < 0){
+
+        currentX =
+            Math.max(diffX, -120);
+
+        div.style.transform =
+            `translateX(${currentX}px)`;
+    }
+});
+
+div.addEventListener("pointerup", e => {
+
+    div.classList.remove("swiping");
+
+    if(isSwiping){
+
+        if(currentX < -70){
+
+            div.style.transform =
+                "translateX(-140px)";
+
+            div.style.opacity =
+                "0";
+
+            setTimeout(() => {
+                removeFromSetlist(songId);
+            }, 160);
+
+            return;
+
+        }else{
+
+            div.style.transform =
+                "";
+        }
+
+        return;
+    }
+
+    const now = Date.now();
+
+    if(now - lastTapTime < 300){
+
+        clearTimeout(tapTimer);
+
+        if(playedSongs.has(songId)){
+
+            playedSongs.delete(songId);
+            div.classList.remove("played");
+
+        }else{
+
+            playedSongs.add(songId);
+            div.classList.add("played");
+        }
+
+        render();
+
+        lastTapTime = 0;
+
+    }else{
+
+        lastTapTime = now;
+
+        tapTimer = setTimeout(() => {
+            lastTapTime = 0;
+        }, 320);
+    }
+});
+
+div.addEventListener("pointercancel", () => {
+
+    div.classList.remove("swiping");
+    div.style.transform = "";
+});
 div.addEventListener("dragstart",()=>{
 
     div.classList.add("dragging");
