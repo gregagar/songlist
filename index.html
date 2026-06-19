@@ -594,7 +594,29 @@ a{
 
     color:#e2e8f0;
 }
+#notePresets{
+    display:flex;
+    flex-wrap:wrap;
+    gap:6px;
+    margin-bottom:10px;
+}
 
+.notePreset{
+    width:auto;
+    padding:5px 8px;
+
+    border-radius:999px;
+
+    background:#1e293b;
+    color:#38bdf8;
+
+    font-size:13px;
+    font-weight:600;
+
+    white-space:nowrap;
+
+    -webkit-tap-highlight-color:transparent;
+}
 #notesText{
     width:100%;
     height:140px;
@@ -786,12 +808,29 @@ a{
                     ✕
                 </button>
             </div>
-        </div>
+       </div>
 
-        <textarea
-            id="notesText"
-            placeholder="Things to remember..."
-        ></textarea>
+<div id="notePresets">
+    <button type="button" class="notePreset">Birthday</button>
+    <button type="button" class="notePreset">Anniversary</button>
+    <button type="button" class="notePreset">Request</button>
+    <button type="button" class="notePreset">Hen Night</button>
+    <button type="button" class="notePreset">Stag Night</button>
+
+    <button type="button" class="notePreset">18th</button>
+    <button type="button" class="notePreset">21st</button>
+    <button type="button" class="notePreset">30th</button>
+    <button type="button" class="notePreset">40th</button>
+    <button type="button" class="notePreset">50th</button>
+    <button type="button" class="notePreset">60th</button>
+    <button type="button" class="notePreset">70th</button>
+    <button type="button" class="notePreset">80th</button>
+</div>
+
+<textarea
+    id="notesText"
+    placeholder="Things to remember..."
+></textarea>
     </div>
 </div>
 
@@ -2616,6 +2655,49 @@ const notesText =
 
 notesText.value =
     localStorage.getItem("songFinderNotes") || "";
+    function addNotePreset(text){
+
+    const existing =
+        notesText.value;
+
+    const prefix =
+        existing.trim()
+        ? "\n"
+        : "";
+
+    const insert =
+        text + ": ";
+
+    notesText.value =
+        existing + prefix + insert;
+
+    localStorage.setItem(
+        "songFinderNotes",
+        notesText.value
+    );
+
+    notesText.focus();
+
+    notesText.selectionStart =
+        notesText.value.length;
+
+    notesText.selectionEnd =
+        notesText.value.length;
+}
+
+document
+.querySelectorAll(".notePreset")
+.forEach(btn => {
+
+    btn.onclick = e => {
+
+        e.stopPropagation();
+
+        addNotePreset(
+            btn.innerText
+        );
+    };
+});
 
 notesHandle.onclick = () => {
 
