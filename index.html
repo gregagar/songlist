@@ -506,19 +506,19 @@ a{
 
     width:150px;
 
-    background:rgba(15,23,42,.52);
-    border:1px solid rgba(148,163,184,.24);
+    background:rgba(15,23,42,.68);
+    border:1px solid rgba(148,163,184,.36);
     border-bottom:none;
 
     border-radius:14px 14px 0 0;
 
     z-index:90000;
 
-    box-shadow:0 -4px 16px rgba(0,0,0,.22);
+    box-shadow:0 -4px 18px rgba(0,0,0,.28);
 
     overflow:hidden;
 
-    opacity:.42;
+    opacity:.58;
 
     transition:
         width .22s ease,
@@ -526,7 +526,6 @@ a{
         background .22s ease,
         border-color .22s ease;
 }
-
 #notesDrawer.open{
     width:min(86%, 500px);
 
@@ -811,9 +810,10 @@ a{
        </div>
 
 <div id="notePresets">
-    <button type="button" class="notePreset">Birthday</button>
-    <button type="button" class="notePreset">Anniversary</button>
-    <button type="button" class="notePreset">Request</button>
+   <button type="button" class="notePreset">Name</button>
+<button type="button" class="notePreset">Birthday</button>
+<button type="button" class="notePreset">Anniversary</button>
+<button type="button" class="notePreset">Request</button>
     <button type="button" class="notePreset">Hen Night</button>
     <button type="button" class="notePreset">Stag Night</button>
 
@@ -2655,14 +2655,19 @@ const notesText =
 
 notesText.value =
     localStorage.getItem("songFinderNotes") || "";
-    function addNotePreset(text){
+ function addNotePreset(text){
 
     const existing =
         notesText.value;
 
+    const needsSpace =
+        existing.length > 0 &&
+        !existing.endsWith(" ") &&
+        !existing.endsWith("\n");
+
     const prefix =
-        existing.trim()
-        ? "\n"
+        needsSpace
+        ? " "
         : "";
 
     const insert =
