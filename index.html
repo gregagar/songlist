@@ -755,19 +755,23 @@ a{
         (<span id="setlistCount">0</span>)
     </span>
 
-    <div style="
-        display:flex;
-        gap:8px;
-        align-items:center;
-    ">
-        <button id="clearSetlist">
-            Clear
-        </button>
+<div style="
+    display:flex;
+    gap:8px;
+    align-items:center;
+">
+    <button id="exportSetlist">
+        Export
+    </button>
 
-        <button id="closeSetlist">
-            ✕
-        </button>
-    </div>
+    <button id="clearSetlist">
+        Clear
+    </button>
+
+    <button id="closeSetlist">
+        ✕
+    </button>
+</div>
 </div>
 
     <div id="setlistSongs"></div>
@@ -2505,7 +2509,60 @@ document
 document
 .getElementById("closeSetlist")
 .onclick = closeSetlist;
+document
+.getElementById("exportSetlist")
+.onclick = () => {
 
+    if(setlist.length === 0){
+        alert("Set list is empty.");
+        return;
+    }
+
+    const lines = setlist.map((songId, index) => {
+
+        const song = songs.find(s =>
+            getSongId(s) === songId
+        );
+
+        if(!song){
+            return `${index + 1}. ${songId}`;
+        }
+
+        return `${index + 1}. ${song["SONG NAME"] || ""} - ${song["ARTIST"] || ""}`;
+    });
+
+    const text =
+        "Set List\n" +
+        "========\n\n" +
+        lines.join("\n");
+
+    const blob = new Blob(
+        [text],
+        { type:"text/plain" }
+    );
+
+    const a =
+        document.createElement("a");
+
+    const now = new Date();
+
+    const stamp =
+        now.getFullYear() + "-" +
+        String(now.getMonth()+1).padStart(2,"0") + "-" +
+        String(now.getDate()).padStart(2,"0") + "_" +
+        String(now.getHours()).padStart(2,"0") + "-" +
+        String(now.getMinutes()).padStart(2,"0");
+
+    a.href =
+        URL.createObjectURL(blob);
+
+    a.download =
+        `SetList_${stamp}.txt`;
+
+    a.click();
+
+    URL.revokeObjectURL(a.href);
+};
 document
 .getElementById("clearSetlist")
 .onclick = () => {
