@@ -2517,141 +2517,277 @@ document
         return;
     }
 
-    const exportWindow =
-        window.open("", "_blank");
-
-    if(!exportWindow){
-        alert("Popup blocked. Please allow popups for this page.");
-        return;
-    }
-
     const now = new Date();
 
     const stamp =
         now.getFullYear() + "-" +
         String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") + " " +
-        String(now.getHours()).padStart(2,"0") + ":" +
+        String(now.getDate()).padStart(2,"0") + "_" +
+        String(now.getHours()).padStart(2,"0") + "-" +
         String(now.getMinutes()).padStart(2,"0");
 
-    const doc =
-        exportWindow.document;
+    function cleanPdfText(text){
 
-    doc.open();
+        return String(text || "")
+            .replace(/[‘’]/g, "'")
+            .replace(/[“”]/g, '"')
+            .replace(/–/g, "-")
+            .replace(/—/g, "-")
+            .replace(/…/g, "...")
+            .replace(/[^\x20-\x7E]/g, "");
+    }
 
-    doc.write("<!DOCTYPE html><html><head><title>Set List</title></head><body></body></html>");
+    function escapePdfText(text){
 
-    doc.close();
+        return cleanPdfText(text)
+            .replace(/\\/g, "\\\\")
+            .replace(/\(/g, "\\(")
+            .replace(/\)/g, "\\)");
+    }
 
-    const style =
-        doc.createElement("style");
+    function wrapLine(text, maxChars){
 
-    style.textContent =
-        "body{" +
-            "font-family:-apple-system,BlinkMacSystemFont,sans-serif;" +
-            "margin:40px;" +
-            "color:#111827;" +
-            "background:white;" +
-        "}" +
-        "h1{margin:0 0 6px;font-size:28px;}" +
-        ".date{color:#6b7280;font-size:13px;margin-bottom:28px;}" +
-        "ol{padding-left:28px;margin:0;}" +
-        "li{margin-bottom:14px;font-size:16px;line-height:1.35;}" +
-        "li span{display:block;color:#4b5563;font-size:14px;margin-top:2px;}" +
-        ".buttons{margin-top:32px;display:flex;gap:10px;}" +
-        "button{padding:10px 14px;border:none;border-radius:8px;background:#111827;color:white;font-size:15px;}" +
-        "@media print{.buttons{display:none;}body{margin:28px;}}";
+        const words =
+            cleanPdfText(text).split(" ");
 
-    doc.head.appendChild(style);
+        const lines = [];
+        let line = "";
 
-    const title =
-        doc.createElement("h1");
+        words.forEach(word => {
 
-    title.textContent =
-        "Set List";
+            const test =
+                line
+                ? line + " " + word
+                : word;
 
-    doc.body.appendChild(title);
+            if(test.length > maxChars){
 
-    const date =
-        doc.createElement("div");
+                if(line){
+                    lines.push(line);
+                }
 
-    date.className =
-        "date";
+                line = word;
 
-    date.textContent =
-        stamp;
+            }else{
 
-    doc.body.appendChild(date);
+                line = test;
+            }
+        });
 
-    const list =
-        doc.createElement("ol");
-
-    setlist.forEach(songId => {
-
-        const song =
-            songs.find(s =>
-                getSongId(s) === songId
-            );
-
-        const item =
-            doc.createElement("li");
-
-        const strong =
-            doc.createElement("strong");
-
-        strong.textContent =
-            song
-            ? song["SONG NAME"] || ""
-            : songId;
-
-        item.appendChild(strong);
-
-        if(song){
-
-            const artist =
-                doc.createElement("span");
-
-            artist.textContent =
-                song["ARTIST"] || "";
-
-            item.appendChild(artist);
+        if(line){
+            lines.push(line);
         }
 
-        list.appendChild(item);
+        return lines;
+    }
+
+    const rawLines =
+        setlist.map((songId, index) => {
+
+            const song =
+                songs.find(s =>
+                    getSongId(s) === songId
+                );
+
+            if(!song){
+                return `${index + 1}. ${songId}`;
+            }
+
+            return (
+                `${index + 1}. ` +
+                `${song["SONG NAME"] || ""}` +
+                ` - ` +
+                `${song["ARTIST"] || ""}`
+            );
+        });
+
+    const allLines = [];
+
+    rawLines.forEach(line => {
+
+        wrapLine(line, 70).forEach(wrapped => {
+            allLines.push(wrapped);
+        });
+
+        allLines.push("");
     });
 
-    doc.body.appendChild(list);
+    const pages = [];
+    const linesPerPage = 36;
 
-    const buttons =
-        doc.createElement("div");
+    for(
+        let i = 0;
+        i < allLines.length;
+        i += linesPerPage
+    ){
+        pages.push(
+            allLines.slice(
+                i,
+                i + linesPerPage
+            )
+        );
+    }
 
-    buttons.className =
-        "buttons";
+    if(pages.length === 0){
+        pages.push([]);
+    }
 
-    const printBtn =
-        doc.createElement("button");
+    const objects = [];
 
-    printBtn.textContent =
-        "Save / Print PDF";
+    function addObject(content){
 
-    printBtn.onclick = () => {
-        exportWindow.print();
-    };
+        objects.push(content);
 
-    const closeBtn =
-        doc.createElement("button");
+        return objects.length;
+    }
 
-    closeBtn.textContent =
-        "Close";
+    const catalogObj = addObject("");
+    const pagesObj = addObject("");
 
-    closeBtn.onclick = () => {
-        exportWindow.close();
-    };
+    const fontObj = addObject(
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+    );
 
-    buttons.appendChild(printBtn);
-    buttons.appendChild(closeBtn);
+    const pageRefs = [];
 
-    doc.body.appendChild(buttons);
+    pages.forEach((pageLines, pageIndex) => {
+
+        const streamParts = [];
+
+        streamParts.push("BT");
+        streamParts.push("/F1 22 Tf");
+        streamParts.push("50 790 Td");
+        streamParts.push("(Set List) Tj");
+
+        streamParts.push("/F1 10 Tf");
+        streamParts.push("0 -24 Td");
+        streamParts.push(`(${escapePdfText(stamp)}) Tj`);
+
+        if(pages.length > 1){
+
+            streamParts.push("0 -16 Td");
+            streamParts.push(
+                `(Page ${pageIndex + 1} of ${pages.length}) Tj`
+            );
+
+            streamParts.push("0 -30 Td");
+
+        }else{
+
+            streamParts.push("0 -38 Td");
+        }
+
+        streamParts.push("/F1 12 Tf");
+
+        pageLines.forEach((line, lineIndex) => {
+
+            if(lineIndex > 0){
+                streamParts.push("0 -18 Td");
+            }
+
+            streamParts.push(
+                `(${escapePdfText(line)}) Tj`
+            );
+        });
+
+        streamParts.push("ET");
+
+        const stream =
+            streamParts.join("\n");
+
+        const contentObj = addObject(
+            "<< /Length " + stream.length + " >>\n" +
+            "stream\n" +
+            stream + "\n" +
+            "endstream"
+        );
+
+        const pageObj = addObject(
+            "<< /Type /Page " +
+            "/Parent " + pagesObj + " 0 R " +
+            "/MediaBox [0 0 595 842] " +
+            "/Resources << /Font << /F1 " + fontObj + " 0 R >> >> " +
+            "/Contents " + contentObj + " 0 R " +
+            ">>"
+        );
+
+        pageRefs.push(
+            pageObj + " 0 R"
+        );
+    });
+
+    objects[catalogObj - 1] =
+        "<< /Type /Catalog /Pages " + pagesObj + " 0 R >>";
+
+    objects[pagesObj - 1] =
+        "<< /Type /Pages /Kids [" +
+        pageRefs.join(" ") +
+        "] /Count " +
+        pages.length +
+        " >>";
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+
+    objects.forEach((object, index) => {
+
+        offsets.push(pdf.length);
+
+        pdf += `${index + 1} 0 obj\n`;
+        pdf += object + "\n";
+        pdf += "endobj\n";
+    });
+
+    const xrefStart =
+        pdf.length;
+
+    pdf += "xref\n";
+    pdf += "0 " + (objects.length + 1) + "\n";
+    pdf += "0000000000 65535 f \n";
+
+    for(let i = 1; i < offsets.length; i++){
+
+        pdf +=
+            String(offsets[i]).padStart(10, "0") +
+            " 00000 n \n";
+    }
+
+    pdf += "trailer\n";
+    pdf +=
+        "<< /Size " +
+        (objects.length + 1) +
+        " /Root " +
+        catalogObj +
+        " 0 R >>\n";
+
+    pdf += "startxref\n";
+    pdf += xrefStart + "\n";
+    pdf += "%%EOF";
+
+    const blob =
+        new Blob(
+            [pdf],
+            { type:"application/pdf" }
+        );
+
+    const a =
+        document.createElement("a");
+
+    a.href =
+        URL.createObjectURL(blob);
+
+    a.download =
+        `SetList_${stamp}.pdf`;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+    }, 1000);
 };
 document
 .getElementById("clearSetlist")
