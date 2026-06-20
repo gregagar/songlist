@@ -2493,7 +2493,6 @@ window.addEventListener("scroll", positionAlphabet);
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 document
-document
 .getElementById("openSetlist")
 .onclick = () => {
 
@@ -2522,28 +2521,6 @@ document
         return;
     }
 
-    if(!window.jspdf){
-        alert("PDF maker could not load.");
-        return;
-    }
-
-    const { jsPDF } = window.jspdf;
-
-    const pdf = new jsPDF({
-        orientation:"portrait",
-        unit:"pt",
-        format:"a4"
-    });
-
-    const pageWidth =
-        pdf.internal.pageSize.getWidth();
-
-    const pageHeight =
-        pdf.internal.pageSize.getHeight();
-
-    const margin = 48;
-    let y = 58;
-
     const now = new Date();
 
     const stamp =
@@ -2553,57 +2530,7 @@ document
         String(now.getHours()).padStart(2,"0") + "-" +
         String(now.getMinutes()).padStart(2,"0");
 
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(22);
-    pdf.text("Set List", margin, y);
-
-    y += 26;
-
-    pdf.setFont("helvetica", "normal");
-    pdf.setFontSize(10);
-    pdf.text(stamp, margin, y);
-
-    y += 32;
-
-    pdf.setFontSize(13);
-
-    setlist.forEach((songId, index) => {
-
-        const song = songs.find(s =>
-            getSongId(s) === songId
-        );
-
-        const line = song
-            ? `${index + 1}. ${song["SONG NAME"] || ""} - ${song["ARTIST"] || ""}`
-            : `${index + 1}. ${songId}`;
-
-        const wrapped =
-            pdf.splitTextToSize(
-                line,
-                pageWidth - margin * 2
-            );
-
-        if(y + wrapped.length * 18 > pageHeight - margin){
-
-            pdf.addPage();
-
-            y = margin;
-        }
-
-        pdf.text(wrapped, margin, y);
-
-        y += wrapped.length * 18 + 6;
-    });
-
-    pdf.save(`SetList_${stamp}.pdf`);
-};
-
-    if(setlist.length === 0){
-        alert("Set list is empty.");
-        return;
-    }
-
-    const lines = setlist.map((songId, index) => {
+    const rawLines = setlist.map((songId, index) => {
 
         const song = songs.find(s =>
             getSongId(s) === songId
@@ -2616,33 +2543,191 @@ document
         return `${index + 1}. ${song["SONG NAME"] || ""} - ${song["ARTIST"] || ""}`;
     });
 
-    const text =
-        "Set List\n" +
-        "========\n\n" +
-        lines.join("\n");
+    function escapePdfText(text){
+
+        return String(text)
+            .replace(/\\/g, "\\\\")
+            .replace(/\(/g, "\\(")
+            .replace(/\)/g, "\\)");
+    }
+
+    function wrapLine(line, maxLength){
+
+        const words = line.split(" ");
+        const lines = [];
+        let current = "";
+
+        words.forEach(word => {
+
+            const test =
+                current
+                ? current + " " + word
+                : word;
+
+            if(test.length > maxLength){
+
+                if(current){
+                    lines.push(current);
+                }
+
+                current = word;
+
+            }else{
+
+                current = test;
+            }
+        });
+
+        if(current){
+            lines.push(current);
+        }
+
+        return lines;
+    }
+
+    const wrappedLines = [];
+
+    rawLines.forEach(line => {
+
+        wrapLine(line, 72).forEach(wrapped => {
+            wrappedLines.push(wrapped);
+        });
+
+        wrappedLines.push("");
+    });
+
+    const linesPerPage = 34;
+    const pages = [];
+
+    for(
+        let i = 0;
+        i < wrappedLines.length;
+        i += linesPerPage
+    ){
+        pages.push(
+            wrappedLines.slice(
+                i,
+                i + linesPerPage
+            )
+        );
+    }
+
+    if(pages.length === 0){
+        pages.push([]);
+    }
+
+    const objects = [];
+
+    function addObject(content){
+        objects.push(content);
+        return objects.length;
+    }
+
+    const catalogObj = addObject("");
+    const pagesObj = addObject("");
+    const fontObj = addObject(
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+    );
+
+    const pageRefs = [];
+
+    pages.forEach((pageLines, pageIndex) => {
+
+        let stream = "";
+
+        stream += "BT\n";
+        stream += "/F1 22 Tf\n";
+        stream += "50 790 Td\n";
+        stream += `(Set List) Tj\n`;
+
+        stream += "/F1 10 Tf\n";
+        stream += "0 -24 Td\n";
+        stream += `(${escapePdfText(stamp)}) Tj\n`;
+
+        if(pages.length > 1){
+
+            stream += "0 -16 Td\n";
+            stream += `(Page ${pageIndex + 1} of ${pages.length}) Tj\n`;
+            stream += "0 -30 Td\n";
+
+        }else{
+
+            stream += "0 -38 Td\n";
+        }
+
+        stream += "/F1 12 Tf\n";
+
+        pageLines.forEach((line, lineIndex) => {
+
+            if(lineIndex > 0){
+                stream += "0 -18 Td\n";
+            }
+
+            stream += `(${escapePdfText(line)}) Tj\n`;
+        });
+
+        stream += "ET";
+
+        const contentObj = addObject(
+            `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
+        );
+
+        const pageObj = addObject(
+            `<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontObj} 0 R >> >> /Contents ${contentObj} 0 R >>`
+        );
+
+        pageRefs.push(`${pageObj} 0 R`);
+    });
+
+    objects[catalogObj - 1] =
+        `<< /Type /Catalog /Pages ${pagesObj} 0 R >>`;
+
+    objects[pagesObj - 1] =
+        `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pages.length} >>`;
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+
+    objects.forEach((obj, index) => {
+
+        offsets.push(pdf.length);
+
+        pdf += `${index + 1} 0 obj\n`;
+        pdf += obj + "\n";
+        pdf += "endobj\n";
+    });
+
+    const xrefStart = pdf.length;
+
+    pdf += `xref\n0 ${objects.length + 1}\n`;
+    pdf += "0000000000 65535 f \n";
+
+    for(let i = 1; i < offsets.length; i++){
+
+        pdf +=
+            String(offsets[i]).padStart(10, "0") +
+            " 00000 n \n";
+    }
+
+    pdf += "trailer\n";
+    pdf += `<< /Size ${objects.length + 1} /Root ${catalogObj} 0 R >>\n`;
+    pdf += "startxref\n";
+    pdf += xrefStart + "\n";
+    pdf += "%%EOF";
 
     const blob = new Blob(
-        [text],
-        { type:"text/plain" }
+        [pdf],
+        { type:"application/pdf" }
     );
 
     const a =
         document.createElement("a");
 
-    const now = new Date();
-
-    const stamp =
-        now.getFullYear() + "-" +
-        String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") + "_" +
-        String(now.getHours()).padStart(2,"0") + "-" +
-        String(now.getMinutes()).padStart(2,"0");
-
     a.href =
         URL.createObjectURL(blob);
 
     a.download =
-        `SetList_${stamp}.txt`;
+        `SetList_${stamp}.pdf`;
 
     a.click();
 
