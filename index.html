@@ -1547,31 +1547,42 @@ function getDecadeColor(decade){
 }
 
 function getFlag(country){
+
     if(!country) return "";
 
-const flags = {
-    "united kingdom":"🇬🇧",
-    "uk":"🇬🇧",
-    "england":"🇬🇧",
-    "usa":"🇺🇸",
-    "united states":"🇺🇸",
-    "canada":"🇨🇦",
-    "france":"🇫🇷",
-    "germany":"🇩🇪",
-    "italy":"🇮🇹",
-    "spain":"🇪🇸",
-    "ireland":"🇮🇪",
-    "sweden":"🇸🇪",
-    "australia":"🇦🇺",
-    "new zealand":"🇳🇿",
-    "japan":"🇯🇵",
-    "jamaica":"🇯🇲",
-    "scotland":"🏴󠁧󠁢󠁳󠁣󠁴󠁿",
-    "wales":"🏴󠁧󠁢󠁷󠁬󠁳󠁿",
-    "mexico":"🇲🇽"
-};
+    const flags = {
+        "united kingdom":"🇬🇧",
+        "uk":"🇬🇧",
+        "england":"🇬🇧",
 
-    return flags[country.toString().toLowerCase()] || "";
+        "usa":"🇺🇸",
+        "us":"🇺🇸",
+        "united states":"🇺🇸",
+        "united states of america":"🇺🇸",
+
+        "canada":"🇨🇦",
+        "france":"🇫🇷",
+        "germany":"🇩🇪",
+        "italy":"🇮🇹",
+        "spain":"🇪🇸",
+        "ireland":"🇮🇪",
+        "sweden":"🇸🇪",
+        "australia":"🇦🇺",
+        "new zealand":"🇳🇿",
+        "japan":"🇯🇵",
+        "jamaica":"🇯🇲",
+        "scotland":"🏴",
+        "wales":"🏴",
+        "mexico":"🇲🇽"
+    };
+
+    return country
+        .toString()
+        .split("/")
+        .map(c => c.trim().toLowerCase())
+        .map(c => flags[c] || "")
+        .filter(Boolean)
+        .join("");
 }
 function buildAlphabet(filtered){
 
