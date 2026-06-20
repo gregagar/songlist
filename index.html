@@ -846,9 +846,9 @@ let yearFilter = "";
 let scale=1;
 let subScale=1;
 let autoScrollActive = false;
+let autoScrollPaused = false;
 let autoScrollFrame = null;
 let lastAutoScrollTime = null;
-
 let autoScrollSpeed =
     Number(
         localStorage.getItem("autoScrollSpeed") || 40
@@ -993,7 +993,11 @@ function updateAutoScrollButton(){
 
     btn.innerText =
         autoScrollActive
-        ? "Scrolling"
+        ? (
+            autoScrollPaused
+            ? "Paused"
+            : "Scrolling"
+        )
         : "Auto Scroll";
 }
 
@@ -1015,7 +1019,12 @@ function updateScrollSpeedDisplay(){
 
 function autoScrollStep(timestamp){
 
-    if(!autoScrollActive) return;
+    if(
+        !autoScrollActive ||
+        autoScrollPaused
+    ){
+        return;
+    }
 
     if(lastAutoScrollTime === null){
         lastAutoScrollTime = timestamp;
@@ -1047,6 +1056,41 @@ function autoScrollStep(timestamp){
 function startAutoScroll(){
 
     autoScrollActive = true;
+    autoScrollPaused = false;
+    lastAutoScrollTime = null;
+
+    updateAutoScrollButton();
+
+    autoScrollFrame =
+        requestAnimationFrame(autoScrollStep);
+}
+
+function pauseAutoScroll(){
+
+    if(!autoScrollActive) return;
+
+    autoScrollPaused = true;
+
+    if(autoScrollFrame){
+        cancelAnimationFrame(autoScrollFrame);
+    }
+
+    autoScrollFrame = null;
+    lastAutoScrollTime = null;
+
+    updateAutoScrollButton();
+}
+
+function resumeAutoScroll(){
+
+    if(
+        !autoScrollActive ||
+        !autoScrollPaused
+    ){
+        return;
+    }
+
+    autoScrollPaused = false;
     lastAutoScrollTime = null;
 
     updateAutoScrollButton();
@@ -1058,6 +1102,7 @@ function startAutoScroll(){
 function stopAutoScroll(){
 
     autoScrollActive = false;
+    autoScrollPaused = false;
 
     if(autoScrollFrame){
         cancelAnimationFrame(autoScrollFrame);
@@ -1738,7 +1783,7 @@ div.addEventListener(
         container.appendChild(div);
     });
 }
-    function closeSetlist(){
+function closeSetlist(){
 
     document
         .getElementById("setlistPanel")
@@ -1747,6 +1792,8 @@ div.addEventListener(
     document
         .getElementById("setlistOverlay")
         .classList.remove("open");
+
+    resumeAutoScroll();
 }
 function render(){
     const r=document.getElementById("results");
@@ -2416,14 +2463,32 @@ window.addEventListener("scroll",()=>{
     updateHeaderOffset();
     positionAlphabet();
 });
+document.addEventListener("visibilitychange", () => {
 
+    if(document.hidden){
+        pauseAutoScroll();
+    }else{
+        resumeAutoScroll();
+    }
+});
+
+window.addEventListener("blur", () => {
+    pauseAutoScroll();
+});
+
+window.addEventListener("focus", () => {
+    resumeAutoScroll();
+});
 window.addEventListener("scroll", positionAlphabet);
 
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 document
+document
 .getElementById("openSetlist")
 .onclick = () => {
+
+    pauseAutoScroll();
 
     renderSetlist();
 
