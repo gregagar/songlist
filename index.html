@@ -2519,12 +2519,19 @@ document
 
     const now = new Date();
 
-    const stamp =
-        now.getFullYear() + "-" +
-        String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") + "_" +
-        String(now.getHours()).padStart(2,"0") + "-" +
-        String(now.getMinutes()).padStart(2,"0");
+  const displayStamp =
+    String(now.getDate()).padStart(2,"0") + "/" +
+    String(now.getMonth()+1).padStart(2,"0") + "/" +
+    now.getFullYear() + " " +
+    String(now.getHours()).padStart(2,"0") + ":" +
+    String(now.getMinutes()).padStart(2,"0");
+
+const fileStamp =
+    String(now.getDate()).padStart(2,"0") + "-" +
+    String(now.getMonth()+1).padStart(2,"0") + "-" +
+    now.getFullYear() + "_" +
+    String(now.getHours()).padStart(2,"0") + "-" +
+    String(now.getMinutes()).padStart(2,"0");
 
     function cleanPdfText(text){
 
@@ -2661,7 +2668,7 @@ document
 
         streamParts.push("/F1 10 Tf");
         streamParts.push("0 -24 Td");
-        streamParts.push(`(${escapePdfText(stamp)}) Tj`);
+        streamParts.push(`(${escapePdfText(displayStamp)}) Tj`);
 
         if(pages.length > 1){
 
@@ -2776,8 +2783,8 @@ document
     a.href =
         URL.createObjectURL(blob);
 
-    a.download =
-        `SetList_${stamp}.pdf`;
+   a.download =
+    `SetList_${fileStamp}.pdf`;
 
     document.body.appendChild(a);
 
