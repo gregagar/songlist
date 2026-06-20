@@ -394,7 +394,28 @@ a{
 .setlistItem.dragging{
     opacity:.4;
 }
-    
+  .placeMarkerItem{
+    border:1px dashed #38bdf8;
+    background:#0f172a;
+}
+
+.placeMarkerInput{
+    flex:1;
+    min-width:0;
+
+    padding:10px;
+
+    border:none;
+    border-radius:8px;
+
+    background:#020617;
+    color:#e2e8f0;
+
+    font-size:16px;
+    font-family:inherit;
+
+    outline:none;
+}  
 
 .alphaLetter{
     font-size:11px;
@@ -761,12 +782,16 @@ a{
     align-items:center;
 ">
     <button id="exportSetlist">
-        Export
-    </button>
+    Export
+</button>
 
-    <button id="clearSetlist">
-        Clear
-    </button>
+<button id="addPlaceMarker">
+    + Marker
+</button>
+
+<button id="clearSetlist">
+    Clear
+</button>
 
     <button id="closeSetlist">
         ✕
@@ -958,6 +983,73 @@ let setlist =
 JSON.parse(
     localStorage.getItem("setlist") || "[]"
 );
+    function isPlaceMarker(item){
+
+    return String(item || "")
+        .startsWith("__PLACEMARKER__|");
+}
+
+function createPlaceMarker(title = ""){
+
+    return (
+        "__PLACEMARKER__|" +
+        Date.now() +
+        "_" +
+        Math.random().toString(36).slice(2) +
+        "|" +
+        encodeURIComponent(title)
+    );
+}
+
+function getPlaceMarkerText(item){
+
+    const parts =
+        String(item || "").split("|");
+
+    return decodeURIComponent(
+        parts.slice(2).join("|") || ""
+    );
+}
+
+function updatePlaceMarker(oldId, title){
+
+    const parts =
+        String(oldId || "").split("|");
+
+    const markerKey =
+        parts[1] || (
+            Date.now() +
+            "_" +
+            Math.random().toString(36).slice(2)
+        );
+
+    const newId =
+        "__PLACEMARKER__|" +
+        markerKey +
+        "|" +
+        encodeURIComponent(title);
+
+    const index =
+        setlist.indexOf(oldId);
+
+    if(index !== -1){
+
+        setlist[index] = newId;
+
+        saveSetlist();
+    }
+
+    return newId;
+}
+
+function escapeAttr(text){
+
+    return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/"/g, "&quot;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
 function saveSetlist(){
 
     localStorage.setItem(
@@ -1565,17 +1657,201 @@ if(count){
         setlist.length;
 }
 
-    setlist.forEach(songId=>{
+setlist.forEach(songId=>{
 
-        const song = songs.find(s=>
+    if(isPlaceMarker(songId)){
 
-            (s["SONG NAME"]||"") +
-            "|" +
-            (s["ARTIST"]||"")
-            === songId
+        let markerId =
+            songId;
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            "setlistItem placeMarkerItem";
+
+        div.draggable = true;
+        div.dataset.songid = markerId;
+
+        div.innerHTML = `
+            <div style="
+                display:flex;
+                gap:10px;
+                align-items:center;
+            ">
+                <input
+                    class="placeMarkerInput"
+                    value="${escapeAttr(getPlaceMarkerText(markerId))}"
+                    placeholder="Marker title..."
+                >
+
+                <button class="removeSetSong">
+                    ✕
+                </button>
+            </div>
+        `;
+
+        const input =
+            div.querySelector(".placeMarkerInput");
+
+        const removeBtn =
+            div.querySelector(".removeSetSong");
+
+        input.draggable = false;
+
+        input.addEventListener("pointerdown", e => {
+            e.stopPropagation();
+        });
+
+        input.addEventListener("click", e => {
+            e.stopPropagation();
+        });
+
+        input.addEventListener("input", () => {
+
+            markerId =
+                updatePlaceMarker(
+                    markerId,
+                    input.value
+                );
+
+            div.dataset.songid =
+                markerId;
+        });
+
+        removeBtn.onclick = e => {
+
+            e.stopPropagation();
+
+            removeFromSetlist(markerId);
+        };
+
+        let startX = 0;
+        let startY = 0;
+        let currentX = 0;
+        let isSwiping = false;
+        let swipeStarted = false;
+
+        div.addEventListener("pointerdown", e => {
+
+            if(e.target.closest("input,button")){
+                return;
+            }
+
+            swipeStarted = true;
+
+            startX = e.clientX;
+            startY = e.clientY;
+            currentX = 0;
+            isSwiping = false;
+
+            div.classList.add("swiping");
+        });
+
+        div.addEventListener("pointermove", e => {
+
+            if(!swipeStarted) return;
+
+            const diffX =
+                e.clientX - startX;
+
+            const diffY =
+                e.clientY - startY;
+
+            if(
+                Math.abs(diffX) > 10 &&
+                Math.abs(diffX) > Math.abs(diffY)
+            ){
+                isSwiping = true;
+            }
+
+            if(isSwiping && diffX < 0){
+
+                currentX =
+                    Math.max(diffX, -120);
+
+                div.style.transform =
+                    `translateX(${currentX}px)`;
+            }
+        });
+
+        div.addEventListener("pointerup", () => {
+
+            if(!swipeStarted) return;
+
+            swipeStarted = false;
+
+            div.classList.remove("swiping");
+
+            if(isSwiping){
+
+                if(currentX < -70){
+
+                    div.style.transform =
+                        "translateX(-140px)";
+
+                    div.style.opacity =
+                        "0";
+
+                    setTimeout(() => {
+                        removeFromSetlist(markerId);
+                    }, 160);
+
+                }else{
+
+                    div.style.transform =
+                        "";
+                }
+            }
+        });
+
+        div.addEventListener("pointercancel", () => {
+
+            swipeStarted = false;
+
+            div.classList.remove("swiping");
+            div.style.transform = "";
+        });
+
+        div.addEventListener("dragstart",()=>{
+
+            div.classList.add("dragging");
+
+            draggedSongId =
+                markerId;
+        });
+
+        div.addEventListener("dragend",()=>{
+
+            div.classList.remove("dragging");
+        });
+
+        div.addEventListener("dragover", e => {
+
+            e.preventDefault();
+        });
+
+        div.addEventListener("drop", e => {
+
+            e.preventDefault();
+
+            moveSetlistItem(
+                draggedSongId,
+                markerId
+            );
+        });
+
+        container.appendChild(div);
+
+        return;
+    }
+
+    const song =
+        songs.find(s =>
+            getSongId(s) === songId
         );
 
-        if(!song) return;
+    if(!song) return;
 
     const div =
     document.createElement("div");
@@ -2508,6 +2784,33 @@ document
 document
 .getElementById("closeSetlist")
 .onclick = closeSetlist;
+    document
+.getElementById("addPlaceMarker")
+.onclick = () => {
+
+    const marker =
+        createPlaceMarker("");
+
+    setlist.push(marker);
+
+    saveSetlist();
+
+    renderSetlist();
+
+    setTimeout(() => {
+
+        const inputs =
+            document.querySelectorAll(".placeMarkerInput");
+
+        const lastInput =
+            inputs[inputs.length - 1];
+
+        if(lastInput){
+            lastInput.focus();
+        }
+
+    }, 50);
+};
 document
 .getElementById("exportSetlist")
 .onclick = () => {
@@ -2588,25 +2891,34 @@ const fileStamp =
         return lines;
     }
 
-    const rawLines =
-        setlist.map((songId, index) => {
+   const rawLines =
+    setlist.map((songId, index) => {
 
-            const song =
-                songs.find(s =>
-                    getSongId(s) === songId
-                );
+        if(isPlaceMarker(songId)){
 
-            if(!song){
-                return `${index + 1}. ${songId}`;
-            }
+            const title =
+                getPlaceMarkerText(songId).trim() ||
+                "Marker";
 
-            return (
-                `${index + 1}. ` +
-                `${song["SONG NAME"] || ""}` +
-                ` - ` +
-                `${song["ARTIST"] || ""}`
+            return `${index + 1}. ${title}`;
+        }
+
+        const song =
+            songs.find(s =>
+                getSongId(s) === songId
             );
-        });
+
+        if(!song){
+            return `${index + 1}. ${songId}`;
+        }
+
+        return (
+            `${index + 1}. ` +
+            `${song["SONG NAME"] || ""}` +
+            ` - ` +
+            `${song["ARTIST"] || ""}`
+        );
+    });
 
     const allLines = [];
 
