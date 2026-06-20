@@ -840,8 +840,6 @@ a{
 </div>
 </div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
 <script>
 <script>
 
@@ -2521,6 +2519,14 @@ document
         return;
     }
 
+    const exportWindow =
+        window.open("", "_blank");
+
+    if(!exportWindow){
+        alert("Popup blocked. Please allow popups for this page.");
+        return;
+    }
+
     const now = new Date();
 
     const stamp =
@@ -2530,133 +2536,124 @@ document
         String(now.getHours()).padStart(2,"0") + ":" +
         String(now.getMinutes()).padStart(2,"0");
 
-    const lines = setlist.map((songId, index) => {
+    const doc =
+        exportWindow.document;
 
-        const song = songs.find(s =>
-            getSongId(s) === songId
-        );
+    doc.open();
 
-        if(!song){
-            return `
-                <li>
-                    ${songId}
-                </li>
-            `;
+    doc.write("<!DOCTYPE html><html><head><title>Set List</title></head><body></body></html>");
+
+    doc.close();
+
+    const style =
+        doc.createElement("style");
+
+    style.textContent =
+        "body{" +
+            "font-family:-apple-system,BlinkMacSystemFont,sans-serif;" +
+            "margin:40px;" +
+            "color:#111827;" +
+            "background:white;" +
+        "}" +
+        "h1{margin:0 0 6px;font-size:28px;}" +
+        ".date{color:#6b7280;font-size:13px;margin-bottom:28px;}" +
+        "ol{padding-left:28px;margin:0;}" +
+        "li{margin-bottom:14px;font-size:16px;line-height:1.35;}" +
+        "li span{display:block;color:#4b5563;font-size:14px;margin-top:2px;}" +
+        ".buttons{margin-top:32px;display:flex;gap:10px;}" +
+        "button{padding:10px 14px;border:none;border-radius:8px;background:#111827;color:white;font-size:15px;}" +
+        "@media print{.buttons{display:none;}body{margin:28px;}}";
+
+    doc.head.appendChild(style);
+
+    const title =
+        doc.createElement("h1");
+
+    title.textContent =
+        "Set List";
+
+    doc.body.appendChild(title);
+
+    const date =
+        doc.createElement("div");
+
+    date.className =
+        "date";
+
+    date.textContent =
+        stamp;
+
+    doc.body.appendChild(date);
+
+    const list =
+        doc.createElement("ol");
+
+    setlist.forEach(songId => {
+
+        const song =
+            songs.find(s =>
+                getSongId(s) === songId
+            );
+
+        const item =
+            doc.createElement("li");
+
+        const strong =
+            doc.createElement("strong");
+
+        strong.textContent =
+            song
+            ? song["SONG NAME"] || ""
+            : songId;
+
+        item.appendChild(strong);
+
+        if(song){
+
+            const artist =
+                doc.createElement("span");
+
+            artist.textContent =
+                song["ARTIST"] || "";
+
+            item.appendChild(artist);
         }
 
-        return `
-            <li>
-                <strong>${song["SONG NAME"] || ""}</strong>
-                <span>${song["ARTIST"] || ""}</span>
-            </li>
-        `;
-    }).join("");
+        list.appendChild(item);
+    });
 
-    const exportWindow =
-        window.open("", "_blank");
+    doc.body.appendChild(list);
 
-    if(!exportWindow){
-        alert("Popup blocked. Please allow popups for this page.");
-        return;
-    }
+    const buttons =
+        doc.createElement("div");
 
-    exportWindow.document.open();
+    buttons.className =
+        "buttons";
 
-    exportWindow.document.write(`
-        <!DOCTYPE html>
-        <html>
-        <head>
-            <title>Set List</title>
+    const printBtn =
+        doc.createElement("button");
 
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    printBtn.textContent =
+        "Save / Print PDF";
 
-            <style>
-                body{
-                    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
-                    margin:40px;
-                    color:#111827;
-                    background:white;
-                }
+    printBtn.onclick = () => {
+        exportWindow.print();
+    };
 
-                h1{
-                    margin:0 0 6px;
-                    font-size:28px;
-                }
+    const closeBtn =
+        doc.createElement("button");
 
-                .date{
-                    color:#6b7280;
-                    font-size:13px;
-                    margin-bottom:28px;
-                }
+    closeBtn.textContent =
+        "Close";
 
-                ol{
-                    padding-left:28px;
-                    margin:0;
-                }
+    closeBtn.onclick = () => {
+        exportWindow.close();
+    };
 
-                li{
-                    margin-bottom:14px;
-                    font-size:16px;
-                    line-height:1.35;
-                }
+    buttons.appendChild(printBtn);
+    buttons.appendChild(closeBtn);
 
-                li span{
-                    display:block;
-                    color:#4b5563;
-                    font-size:14px;
-                    margin-top:2px;
-                }
-
-                .buttons{
-                    margin-top:32px;
-                    display:flex;
-                    gap:10px;
-                }
-
-                button{
-                    padding:10px 14px;
-                    border:none;
-                    border-radius:8px;
-                    background:#111827;
-                    color:white;
-                    font-size:15px;
-                    cursor:pointer;
-                }
-
-                @media print{
-                    .buttons{
-                        display:none;
-                    }
-
-                    body{
-                        margin:28px;
-                    }
-                }
-            </style>
-        </head>
-
-        <body>
-            <h1>Set List</h1>
-            <div class="date">${stamp}</div>
-
-            <ol>
-                ${lines}
-            </ol>
-
-            <div class="buttons">
-                <button onclick="window.print()">
-                    Save / Print PDF
-                </button>
-
-                <button onclick="window.close()">
-                    Close
-                </button>
-            </div>
-        </body>
-        </html>
-    `);
-
-    exportWindow.document.close();
+    doc.body.appendChild(buttons);
 };
 document
 .getElementById("clearSetlist")
