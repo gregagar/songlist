@@ -1573,12 +1573,23 @@ function getFlag(country){
         "jamaica":"🇯🇲",
         "scotland":"🏴",
         "wales":"🏴",
-        "mexico":"🇲🇽"
+        "mexico":"🇲🇽",
+
+        "norway":"🇳🇴",
+        "denmark":"🇩🇰",
+        "colombia":"🇨🇴",
+        "barbados":"🇧🇧",
+        "netherlands":"🇳🇱",
+        "venezuela":"🇻🇪",
+        "puerto rico":"🇵🇷",
+        "south korea":"🇰🇷",
+        "brazil":"🇧🇷",
+        "greece":"🇬🇷"
     };
 
     return country
         .toString()
-        .split("/")
+        .split(/[\/,]/)
         .map(c => c.trim().toLowerCase())
         .map(c => flags[c] || "")
         .filter(Boolean)
