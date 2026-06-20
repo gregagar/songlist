@@ -395,27 +395,33 @@ a{
     opacity:.4;
 }
   .placeMarkerItem{
-    border:1px dashed #38bdf8;
-    background:#0f172a;
+    background:#1e293b;
+    border:none;
 }
 
 .placeMarkerInput{
     flex:1;
     min-width:0;
 
-    padding:10px;
+    padding:0;
 
     border:none;
-    border-radius:8px;
+    border-radius:0;
 
-    background:#020617;
+    background:transparent;
     color:#e2e8f0;
 
-    font-size:16px;
+    font-size:calc(18px * var(--scale));
+    font-weight:700;
     font-family:inherit;
 
     outline:none;
-}  
+}
+
+.placeMarkerInput::placeholder{
+    color:#94a3b8;
+    font-weight:700;
+}
 
 .alphaLetter{
     font-size:11px;
