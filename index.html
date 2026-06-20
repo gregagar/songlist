@@ -820,92 +820,7 @@ a{
         </div>
 
     </div>
-document
-.getElementById("birthdayBtn")
-.onclick = e => {
-
-    e.stopPropagation();
-
-    openBirthdayPanel();
-};
-
-document
-.getElementById("birthdayClose")
-.onclick = e => {
-
-    e.stopPropagation();
-
-    closeBirthdayPanel();
-};
-
-document
-.getElementById("birthdayOverlay")
-.onclick = () => {
-
-    closeBirthdayPanel();
-};
-
-document
-.getElementById("birthdayClear")
-.onclick = e => {
-
-    e.stopPropagation();
-
-    clearBirthdayFilter();
-
-    closeBirthdayPanel();
-};
-
-document
-.getElementById("birthdayAge")
-.addEventListener("input", e => {
-
-    if(birthdayInputLock) return;
-
-    const value =
-        e.target.value.trim();
-
-    if(value === ""){
-        clearBirthdayFilter();
-        return;
-    }
-
-    const age =
-        Number(value);
-
-    if(
-        !Number.isInteger(age) ||
-        age < 0 ||
-        age > 120
-    ){
-        return;
-    }
-
-    const birthYear =
-        getCurrentYear() - age;
-
-    applyBirthdayYear(birthYear);
-});
-
-document
-.getElementById("birthdayYear")
-.addEventListener("input", e => {
-
-    if(birthdayInputLock) return;
-
-    const value =
-        e.target.value.trim();
-
-    if(value === ""){
-        clearBirthdayFilter();
-        return;
-    }
-
-    const year =
-        Number(value);
-
-    applyBirthdayYear(year);
-});
+    
     <div id="statusRight">
     <div id="songCount"></div>
     <div id="clockBox"></div>
@@ -2977,7 +2892,72 @@ document.getElementById("sortOrder").onclick = () => {
 
     render();
 };
+document
+.getElementById("birthdayBtn")
+.onclick = e => {
 
+    e.stopPropagation();
+
+    openBirthdayPanel();
+};
+
+document
+.getElementById("birthdayClose")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    closeBirthdayPanel();
+};
+
+document
+.getElementById("birthdayOverlay")
+.onclick = () => {
+
+    closeBirthdayPanel();
+};
+
+document
+.getElementById("birthdayClear")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    clearBirthdayFilter();
+
+    closeBirthdayPanel();
+};
+
+document
+.getElementById("birthdayAge")
+.addEventListener("input", e => {
+
+    if(birthdayInputLock) return;
+
+    const value =
+        e.target.value.trim();
+
+    if(value === ""){
+        clearBirthdayFilter();
+        return;
+    }
+
+    const age =
+        Number(value);
+
+    if(
+        !Number.isInteger(age) ||
+        age < 0 ||
+        age > 120
+    ){
+        return;
+    }
+
+    const birthYear =
+        getCurrentYear() - age;
+
+    applyBirthdayYear(birthYear);
+});
 document.getElementById("sortRandom").onclick = () => {
 
     randomMode = true;
