@@ -838,7 +838,11 @@ a{
 ></textarea>
     </div>
 </div>
+</div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script>
 <script>
 
 let songs=[];
@@ -2512,6 +2516,87 @@ document
 document
 .getElementById("exportSetlist")
 .onclick = () => {
+
+    if(setlist.length === 0){
+        alert("Set list is empty.");
+        return;
+    }
+
+    if(!window.jspdf){
+        alert("PDF maker could not load.");
+        return;
+    }
+
+    const { jsPDF } = window.jspdf;
+
+    const pdf = new jsPDF({
+        orientation:"portrait",
+        unit:"pt",
+        format:"a4"
+    });
+
+    const pageWidth =
+        pdf.internal.pageSize.getWidth();
+
+    const pageHeight =
+        pdf.internal.pageSize.getHeight();
+
+    const margin = 48;
+    let y = 58;
+
+    const now = new Date();
+
+    const stamp =
+        now.getFullYear() + "-" +
+        String(now.getMonth()+1).padStart(2,"0") + "-" +
+        String(now.getDate()).padStart(2,"0") + "_" +
+        String(now.getHours()).padStart(2,"0") + "-" +
+        String(now.getMinutes()).padStart(2,"0");
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+    pdf.text("Set List", margin, y);
+
+    y += 26;
+
+    pdf.setFont("helvetica", "normal");
+    pdf.setFontSize(10);
+    pdf.text(stamp, margin, y);
+
+    y += 32;
+
+    pdf.setFontSize(13);
+
+    setlist.forEach((songId, index) => {
+
+        const song = songs.find(s =>
+            getSongId(s) === songId
+        );
+
+        const line = song
+            ? `${index + 1}. ${song["SONG NAME"] || ""} - ${song["ARTIST"] || ""}`
+            : `${index + 1}. ${songId}`;
+
+        const wrapped =
+            pdf.splitTextToSize(
+                line,
+                pageWidth - margin * 2
+            );
+
+        if(y + wrapped.length * 18 > pageHeight - margin){
+
+            pdf.addPage();
+
+            y = margin;
+        }
+
+        pdf.text(wrapped, margin, y);
+
+        y += wrapped.length * 18 + 6;
+    });
+
+    pdf.save(`SetList_${stamp}.pdf`);
+};
 
     if(setlist.length === 0){
         alert("Set list is empty.");
