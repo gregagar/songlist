@@ -2801,7 +2801,19 @@ closeNotesBtn.onclick = e => {
 
     closeNotesDrawer();
 };
+document.addEventListener("click", e => {
 
+    if(
+        notesDrawer.classList.contains("open") &&
+        !notesDrawer.contains(e.target)
+    ){
+        closeNotesDrawer();
+    }
+});
+    notesDrawer.addEventListener("click", e => {
+
+    e.stopPropagation();
+});
 notesText.addEventListener("input", () => {
 
     localStorage.setItem(
