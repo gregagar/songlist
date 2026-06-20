@@ -2526,212 +2526,137 @@ document
     const stamp =
         now.getFullYear() + "-" +
         String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") + "_" +
-        String(now.getHours()).padStart(2,"0") + "-" +
+        String(now.getDate()).padStart(2,"0") + " " +
+        String(now.getHours()).padStart(2,"0") + ":" +
         String(now.getMinutes()).padStart(2,"0");
 
-    const rawLines = setlist.map((songId, index) => {
+    const lines = setlist.map((songId, index) => {
 
         const song = songs.find(s =>
             getSongId(s) === songId
         );
 
         if(!song){
-            return `${index + 1}. ${songId}`;
+            return `
+                <li>
+                    ${songId}
+                </li>
+            `;
         }
 
-        return `${index + 1}. ${song["SONG NAME"] || ""} - ${song["ARTIST"] || ""}`;
-    });
+        return `
+            <li>
+                <strong>${song["SONG NAME"] || ""}</strong>
+                <span>${song["ARTIST"] || ""}</span>
+            </li>
+        `;
+    }).join("");
 
-    function escapePdfText(text){
+    const exportWindow =
+        window.open("", "_blank");
 
-        return String(text)
-            .replace(/\\/g, "\\\\")
-            .replace(/\(/g, "\\(")
-            .replace(/\)/g, "\\)");
+    if(!exportWindow){
+        alert("Popup blocked. Please allow popups for this page.");
+        return;
     }
 
-    function wrapLine(line, maxLength){
+    exportWindow.document.open();
 
-        const words = line.split(" ");
-        const lines = [];
-        let current = "";
+    exportWindow.document.write(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Set List</title>
 
-        words.forEach(word => {
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-            const test =
-                current
-                ? current + " " + word
-                : word;
-
-            if(test.length > maxLength){
-
-                if(current){
-                    lines.push(current);
+            <style>
+                body{
+                    font-family:-apple-system,BlinkMacSystemFont,sans-serif;
+                    margin:40px;
+                    color:#111827;
+                    background:white;
                 }
 
-                current = word;
+                h1{
+                    margin:0 0 6px;
+                    font-size:28px;
+                }
 
-            }else{
+                .date{
+                    color:#6b7280;
+                    font-size:13px;
+                    margin-bottom:28px;
+                }
 
-                current = test;
-            }
-        });
+                ol{
+                    padding-left:28px;
+                    margin:0;
+                }
 
-        if(current){
-            lines.push(current);
-        }
+                li{
+                    margin-bottom:14px;
+                    font-size:16px;
+                    line-height:1.35;
+                }
 
-        return lines;
-    }
+                li span{
+                    display:block;
+                    color:#4b5563;
+                    font-size:14px;
+                    margin-top:2px;
+                }
 
-    const wrappedLines = [];
+                .buttons{
+                    margin-top:32px;
+                    display:flex;
+                    gap:10px;
+                }
 
-    rawLines.forEach(line => {
+                button{
+                    padding:10px 14px;
+                    border:none;
+                    border-radius:8px;
+                    background:#111827;
+                    color:white;
+                    font-size:15px;
+                    cursor:pointer;
+                }
 
-        wrapLine(line, 72).forEach(wrapped => {
-            wrappedLines.push(wrapped);
-        });
+                @media print{
+                    .buttons{
+                        display:none;
+                    }
 
-        wrappedLines.push("");
-    });
+                    body{
+                        margin:28px;
+                    }
+                }
+            </style>
+        </head>
 
-    const linesPerPage = 34;
-    const pages = [];
+        <body>
+            <h1>Set List</h1>
+            <div class="date">${stamp}</div>
 
-    for(
-        let i = 0;
-        i < wrappedLines.length;
-        i += linesPerPage
-    ){
-        pages.push(
-            wrappedLines.slice(
-                i,
-                i + linesPerPage
-            )
-        );
-    }
+            <ol>
+                ${lines}
+            </ol>
 
-    if(pages.length === 0){
-        pages.push([]);
-    }
+            <div class="buttons">
+                <button onclick="window.print()">
+                    Save / Print PDF
+                </button>
 
-    const objects = [];
+                <button onclick="window.close()">
+                    Close
+                </button>
+            </div>
+        </body>
+        </html>
+    `);
 
-    function addObject(content){
-        objects.push(content);
-        return objects.length;
-    }
-
-    const catalogObj = addObject("");
-    const pagesObj = addObject("");
-    const fontObj = addObject(
-        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
-    );
-
-    const pageRefs = [];
-
-    pages.forEach((pageLines, pageIndex) => {
-
-        let stream = "";
-
-        stream += "BT\n";
-        stream += "/F1 22 Tf\n";
-        stream += "50 790 Td\n";
-        stream += `(Set List) Tj\n`;
-
-        stream += "/F1 10 Tf\n";
-        stream += "0 -24 Td\n";
-        stream += `(${escapePdfText(stamp)}) Tj\n`;
-
-        if(pages.length > 1){
-
-            stream += "0 -16 Td\n";
-            stream += `(Page ${pageIndex + 1} of ${pages.length}) Tj\n`;
-            stream += "0 -30 Td\n";
-
-        }else{
-
-            stream += "0 -38 Td\n";
-        }
-
-        stream += "/F1 12 Tf\n";
-
-        pageLines.forEach((line, lineIndex) => {
-
-            if(lineIndex > 0){
-                stream += "0 -18 Td\n";
-            }
-
-            stream += `(${escapePdfText(line)}) Tj\n`;
-        });
-
-        stream += "ET";
-
-        const contentObj = addObject(
-            `<< /Length ${stream.length} >>\nstream\n${stream}\nendstream`
-        );
-
-        const pageObj = addObject(
-            `<< /Type /Page /Parent ${pagesObj} 0 R /MediaBox [0 0 595 842] /Resources << /Font << /F1 ${fontObj} 0 R >> >> /Contents ${contentObj} 0 R >>`
-        );
-
-        pageRefs.push(`${pageObj} 0 R`);
-    });
-
-    objects[catalogObj - 1] =
-        `<< /Type /Catalog /Pages ${pagesObj} 0 R >>`;
-
-    objects[pagesObj - 1] =
-        `<< /Type /Pages /Kids [${pageRefs.join(" ")}] /Count ${pages.length} >>`;
-
-    let pdf = "%PDF-1.4\n";
-    const offsets = [0];
-
-    objects.forEach((obj, index) => {
-
-        offsets.push(pdf.length);
-
-        pdf += `${index + 1} 0 obj\n`;
-        pdf += obj + "\n";
-        pdf += "endobj\n";
-    });
-
-    const xrefStart = pdf.length;
-
-    pdf += `xref\n0 ${objects.length + 1}\n`;
-    pdf += "0000000000 65535 f \n";
-
-    for(let i = 1; i < offsets.length; i++){
-
-        pdf +=
-            String(offsets[i]).padStart(10, "0") +
-            " 00000 n \n";
-    }
-
-    pdf += "trailer\n";
-    pdf += `<< /Size ${objects.length + 1} /Root ${catalogObj} 0 R >>\n`;
-    pdf += "startxref\n";
-    pdf += xrefStart + "\n";
-    pdf += "%%EOF";
-
-    const blob = new Blob(
-        [pdf],
-        { type:"application/pdf" }
-    );
-
-    const a =
-        document.createElement("a");
-
-    a.href =
-        URL.createObjectURL(blob);
-
-    a.download =
-        `SetList_${stamp}.pdf`;
-
-    a.click();
-
-    URL.revokeObjectURL(a.href);
+    exportWindow.document.close();
 };
 document
 .getElementById("clearSetlist")
