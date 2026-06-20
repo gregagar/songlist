@@ -2769,16 +2769,37 @@ document
     };
 });
 
+function openNotesDrawer(){
+
+    pauseAutoScroll();
+
+    notesDrawer.classList.add("open");
+}
+
+function closeNotesDrawer(){
+
+    notesDrawer.classList.remove("open");
+
+    resumeAutoScroll();
+}
+
 notesHandle.onclick = () => {
 
-    notesDrawer.classList.toggle("open");
+    if(notesDrawer.classList.contains("open")){
+
+        closeNotesDrawer();
+
+    }else{
+
+        openNotesDrawer();
+    }
 };
 
 closeNotesBtn.onclick = e => {
 
     e.stopPropagation();
 
-    notesDrawer.classList.remove("open");
+    closeNotesDrawer();
 };
 
 notesText.addEventListener("input", () => {
