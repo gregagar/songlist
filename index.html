@@ -3414,29 +3414,18 @@ document.getElementById("sortRandom").onclick = () => {
 function openEditPanel(song){
 
     editingSong = song;
-editingSongIndex = songs.indexOf(song);
+    editingSongIndex = songs.indexOf(song);
 
-const title =
-    document.getElementById("editPanelTitle");
+    const title =
+        document.getElementById("editPanelTitle");
 
-if(title){
+    if(title){
 
-    title.innerText =
-        editingSongIndex === -1
-        ? "Add New Song"
-        : "Edit Song";
-}
-
-const form =
-    document.getElementById("editForm");
-
-if(title){
-
-    title.innerText =
-        editingSongIndex === -1
-        ? "Add New Song"
-        : "Edit Song";
-}
+        title.innerText =
+            editingSongIndex === -1
+            ? "Add New Song"
+            : "Edit Song";
+    }
 
     const form =
         document.getElementById("editForm");
@@ -3530,16 +3519,12 @@ if(title){
     });
 
     document
-    .getElementById("editOverlay")
-    .classList.add("open");
+        .getElementById("editOverlay")
+        .classList.add("open");
 
-document
-    .getElementById("editOverlay")
-    .classList.add("open");
-
-document
-    .getElementById("editPanel")
-    .classList.add("open");
+    document
+        .getElementById("editPanel")
+        .classList.add("open");
 }
 async function load(){
 
