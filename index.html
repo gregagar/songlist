@@ -618,7 +618,104 @@ a{
     #settingsWrap{
     position:relative;
 }
+#decadeColoursOverlay{
+    position:fixed;
+    inset:0;
 
+    background:rgba(0,0,0,.45);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .2s ease;
+
+    z-index:100001;
+}
+
+#decadeColoursOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#decadeColoursPanel{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+
+    width:min(92%, 420px);
+    max-height:75vh;
+
+    background:#0f172a;
+    border-radius:16px;
+
+    padding:18px;
+    box-sizing:border-box;
+
+    display:none;
+
+    z-index:100002;
+
+    box-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+
+#decadeColoursPanel.open{
+    display:block;
+}
+
+#decadeColoursHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:14px;
+}
+
+#decadeColoursList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+    max-height:55vh;
+    overflow-y:auto;
+
+    margin-bottom:14px;
+}
+
+.decadeColourRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+
+    background:#1e293b;
+
+    padding:10px 12px;
+    border-radius:12px;
+}
+
+.decadeColourName{
+    font-weight:700;
+    color:#e2e8f0;
+}
+
+.decadeColourInput{
+    width:52px;
+    height:36px;
+
+    border:none;
+    border-radius:8px;
+
+    background:transparent;
+    padding:0;
+
+    cursor:pointer;
+}
+
+#resetDecadeColours{
+    width:100%;
+    color:#fca5a5;
+}
 #settingsBtn{
 
     width:42px;
@@ -1050,6 +1147,9 @@ a{
 <button id="addNewSong">
     Add New Song
 </button>
+        <button id="decadeColoursBtn">
+    Decade Colours
+</button>
 
 <button id="exportBackup">
     Export Backup
@@ -1175,6 +1275,23 @@ a{
     </div>
 
     <div id="savedSetlistsList"></div>
+</div>
+    <div id="decadeColoursOverlay"></div>
+
+<div id="decadeColoursPanel">
+    <div id="decadeColoursHeader">
+        <strong>Decade Colours</strong>
+
+        <button id="closeDecadeColours">
+            ✕
+        </button>
+    </div>
+
+    <div id="decadeColoursList"></div>
+
+    <button id="resetDecadeColours">
+        Reset Colours
+    </button>
 </div>
 <div id="editOverlay"></div>
 
@@ -2693,22 +2810,194 @@ function syncGenreDropdown(){
         !!genreFilter
     );
 }
-function getDecadeColor(decade){
-    const d=(decade||"").toString().toLowerCase().trim();
+const defaultDecadeColours = {
+    "30s":"#331f1e",
+    "40s":"#3e5347",
+    "50s":"#211708",
+    "60s":"#695b30",
+    "70s":"#543424",
+    "80s":"#2a0e02",
+    "90s":"#29331e",
+    "00s":"#405674",
+    "10s":"#1e2533",
+    "20s":"#1c0f1a",
+    "Newer":"#1c0f1a"
+};
 
-    if(d.includes("1920") || d.includes("20s")) return "#212121";
-    if(d.includes("1930") || d.includes("30s")) return "#331f1e";
-    if(d.includes("1940") || d.includes("40s")) return "#3e5347";
-    if(d.includes("1950") || d.includes("50s")) return "#211708";
-    if(d.includes("1960") || d.includes("60s")) return "#695b30";
-    if(d.includes("1970") || d.includes("70s")) return "#543424";
-    if(d.includes("1980") || d.includes("80s")) return "#2a0e02";
-    if(d.includes("1990") || d.includes("90s")) return "#29331e";
-    if(d.includes("2000") || d.includes("00s")) return "#405674";
-    if(d.includes("2010") || d.includes("10s")) return "#1e2533";
-    if(d.includes("2020")) return "#1c0f1a";
+function getSavedDecadeColours(){
+
+    try{
+
+        const saved =
+            JSON.parse(
+                localStorage.getItem("decadeColours") || "{}"
+            );
+
+        return {
+            ...defaultDecadeColours,
+            ...saved
+        };
+
+    }catch(e){
+
+        return {
+            ...defaultDecadeColours
+        };
+    }
+}
+
+function saveDecadeColours(colours){
+
+    localStorage.setItem(
+        "decadeColours",
+        JSON.stringify(colours)
+    );
+}
+
+function getDecadeColor(decade){
+
+    const d =
+        String(decade || "")
+        .trim();
+
+    const colours =
+        getSavedDecadeColours();
+
+    if(colours[d]){
+        return colours[d];
+    }
+
+    const lower =
+        d.toLowerCase();
+
+    if(lower.includes("1930") || lower.includes("30s")) return colours["30s"];
+    if(lower.includes("1940") || lower.includes("40s")) return colours["40s"];
+    if(lower.includes("1950") || lower.includes("50s")) return colours["50s"];
+    if(lower.includes("1960") || lower.includes("60s")) return colours["60s"];
+    if(lower.includes("1970") || lower.includes("70s")) return colours["70s"];
+    if(lower.includes("1980") || lower.includes("80s")) return colours["80s"];
+    if(lower.includes("1990") || lower.includes("90s")) return colours["90s"];
+    if(lower.includes("2000") || lower.includes("00s")) return colours["00s"];
+    if(lower.includes("2010") || lower.includes("10s")) return colours["10s"];
+    if(lower.includes("2020") || lower.includes("20s")) return colours["20s"];
 
     return "#1e293b";
+}
+
+function buildDecadeColourPanel(){
+
+    const container =
+        document.getElementById("decadeColoursList");
+
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    const colours =
+        getSavedDecadeColours();
+
+    Object.keys(defaultDecadeColours)
+    .forEach(decade => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "decadeColourRow";
+
+        row.innerHTML = `
+            <div class="decadeColourName">
+                ${decade}
+            </div>
+
+            <input
+                class="decadeColourInput"
+                type="color"
+                value="${colours[decade]}"
+                data-decade="${decade}"
+            >
+        `;
+
+        const input =
+            row.querySelector(".decadeColourInput");
+
+        input.oninput = e => {
+
+            const saved =
+                getSavedDecadeColours();
+
+            saved[decade] =
+                e.target.value;
+
+            saveDecadeColours(saved);
+
+            render();
+            updateDecadeChipColours();
+        };
+
+        container.appendChild(row);
+    });
+}
+
+function updateDecadeChipColours(){
+
+    document
+    .querySelectorAll(".chip")
+    .forEach(chip => {
+
+        const decade =
+            chip.innerText;
+
+        if(!decadeFilters.includes(decade)){
+            return;
+        }
+
+        if(chip.classList.contains("decade-active")){
+            chip.style.background =
+                getDecadeColor(decade);
+        }
+    });
+}
+
+function openDecadeColoursPanel(){
+
+    buildDecadeColourPanel();
+
+    document
+        .getElementById("decadeColoursOverlay")
+        .classList.add("open");
+
+    document
+        .getElementById("decadeColoursPanel")
+        .classList.add("open");
+}
+
+function closeDecadeColoursPanel(){
+
+    document
+        .getElementById("decadeColoursOverlay")
+        .classList.remove("open");
+
+    document
+        .getElementById("decadeColoursPanel")
+        .classList.remove("open");
+}
+
+function resetDecadeColours(){
+
+    const sure =
+        confirm("Reset decade colours?");
+
+    if(!sure){
+        return;
+    }
+
+    localStorage.removeItem("decadeColours");
+
+    buildDecadeColourPanel();
+
+    render();
+    updateDecadeChipColours();
 }
 
 function getFlag(country){
@@ -3630,6 +3919,7 @@ updateCount(filtered.length);
 updateHeaderOffset();
 positionAlphabet();
 updateDecadeAvailability();
+updateDecadeChipColours();
 
 }
 
@@ -3989,8 +4279,9 @@ async function load(){
         }
     }
 
-    buildChips();
+buildChips();
 buildGenreDropdown();
+buildDecadeColourPanel();
 render();
 }
 window.addEventListener("scroll",()=>{
@@ -4637,6 +4928,28 @@ settingsBtn.onclick = e => {
 
     openNewSongPanel();
 };
+    document
+.getElementById("decadeColoursBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    settingsMenu.classList.remove("open");
+
+    openDecadeColoursPanel();
+};
+
+document
+.getElementById("closeDecadeColours")
+.onclick = closeDecadeColoursPanel;
+
+document
+.getElementById("decadeColoursOverlay")
+.onclick = closeDecadeColoursPanel;
+
+document
+.getElementById("resetDecadeColours")
+.onclick = resetDecadeColours;
     document
 .getElementById("addNewSong")
 .onclick = e => {
