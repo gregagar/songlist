@@ -648,9 +648,11 @@ a{
     position:fixed;
     left:50%;
     bottom:0;
-    transform:translateX(-50%);
 
-    width:150px;
+    width:min(94%, 720px);
+    max-height:72vh;
+
+    transform:translate(-50%, calc(100% - 32px));
 
     background:rgba(15,23,42,.68);
     border:1px solid rgba(148,163,184,.36);
@@ -664,17 +666,18 @@ a{
 
     overflow:hidden;
 
-    opacity:.58;
+    opacity:.72;
 
     transition:
-        width .22s ease,
+        transform .24s ease,
         opacity .22s ease,
         background .22s ease,
-        border-color .22s ease;
+        border-color .22s ease,
+        box-shadow .22s ease;
 }
+
 #notesDrawer.open{
-    width:min(94%, 720px);
-    max-height:72vh;
+    transform:translate(-50%, 0);
 
     background:#0f172a;
     border-color:#1e293b;
