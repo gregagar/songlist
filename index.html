@@ -1687,8 +1687,22 @@ function songMatchesDecadeAvailability(song){
     }
 
     if(
+        genreFilter &&
+        song.Genre !== genreFilter
+    ){
+        return false;
+    }
+
+    if(
         countryFilter &&
         song["Country of Origin"] !== countryFilter
+    ){
+        return false;
+    }
+
+    if(
+        yearFilter &&
+        String(song.Year) !== yearFilter
     ){
         return false;
     }
@@ -1715,6 +1729,36 @@ function songMatchesDecadeAvailability(song){
         ){
             return false;
         }
+    }
+
+    const map = {};
+
+    Object.keys(song).forEach(key => {
+
+        map[key.trim().toLowerCase()] =
+            song[key];
+    });
+
+    const topFiltersPass =
+        [...activeFilters].every(filterName => {
+
+            const value =
+                map[filterName.toLowerCase()];
+
+            const normalised =
+                String(value || "")
+                .toLowerCase();
+
+            return (
+                value === true ||
+                normalised === "true" ||
+                normalised === "1" ||
+                normalised === "yes"
+            );
+        });
+
+    if(!topFiltersPass){
+        return false;
     }
 
     return true;
