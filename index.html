@@ -696,7 +696,121 @@ a{
     .speedRow{
     align-items:center;
 }
+#savedSetlistsOverlay{
+    position:fixed;
+    inset:0;
 
+    background:rgba(0,0,0,.45);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .2s ease;
+
+    z-index:100001;
+}
+
+#savedSetlistsOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#savedSetlistsPanel{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+
+    width:min(92%, 520px);
+    max-height:75vh;
+
+    background:#0f172a;
+    border-radius:16px;
+
+    padding:18px;
+    box-sizing:border-box;
+
+    display:none;
+
+    z-index:100002;
+
+    box-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+
+#savedSetlistsPanel.open{
+    display:block;
+}
+
+#savedSetlistsHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:14px;
+}
+
+#savedSetlistsList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+    max-height:60vh;
+    overflow-y:auto;
+}
+
+.savedSetlistRow{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+
+    background:#1e293b;
+
+    padding:12px;
+    border-radius:12px;
+}
+
+.savedSetlistInfo{
+    min-width:0;
+    flex:1;
+}
+
+.savedSetlistName{
+    font-size:17px;
+    font-weight:700;
+    color:#e2e8f0;
+
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+.savedSetlistMeta{
+    margin-top:3px;
+    font-size:12px;
+    color:#94a3b8;
+}
+
+.savedSetlistActions{
+    display:flex;
+    gap:6px;
+    flex-shrink:0;
+}
+
+.savedSetlistActions button{
+    font-size:14px;
+    padding:6px 8px;
+}
+
+.savedSetlistDelete{
+    color:#fca5a5;
+}
+
+.savedSetlistEmpty{
+    color:#94a3b8;
+    text-align:center;
+    padding:20px;
+}
 #scrollSpeedValue{
     min-width:44px;
     text-align:center;
@@ -1019,8 +1133,16 @@ a{
     gap:8px;
     align-items:center;
 ">
-    <button id="exportSetlist">
+   <button id="exportSetlist">
     Export
+</button>
+
+<button id="saveSetlistBtn">
+    Save
+</button>
+
+<button id="loadSetlistBtn">
+    Load
 </button>
 
 <button id="addPlaceMarker">
@@ -1040,7 +1162,20 @@ a{
     <div id="setlistSongs"></div>
 
 </div>
-    <div id="editOverlay"></div>
+    
+   <div id="savedSetlistsOverlay"></div>
+
+<div id="savedSetlistsPanel">
+    <div id="savedSetlistsHeader">
+        <strong>Saved Set Lists</strong>
+
+        <button id="closeSavedSetlists">
+            ✕
+        </button>
+    </div>
+
+    <div id="savedSetlistsList"></div>
+</div>
 <div id="editOverlay"></div>
 
 <div id="editPanel">
@@ -1562,6 +1697,306 @@ function saveSetlist(){
         "setlist",
         JSON.stringify(setlist)
     );
+}
+    function getSavedSetlists(){
+
+    try{
+
+        const saved =
+            JSON.parse(
+                localStorage.getItem("savedSetlists") || "[]"
+            );
+
+        return Array.isArray(saved)
+            ? saved
+            : [];
+
+    }catch(e){
+
+        return [];
+    }
+}
+
+function saveSavedSetlists(saved){
+
+    localStorage.setItem(
+        "savedSetlists",
+        JSON.stringify(saved)
+    );
+}
+
+function formatSavedSetlistDate(iso){
+
+    if(!iso) return "";
+
+    const date =
+        new Date(iso);
+
+    if(Number.isNaN(date.getTime())){
+        return "";
+    }
+
+    return (
+        String(date.getDate()).padStart(2,"0") +
+        "/" +
+        String(date.getMonth() + 1).padStart(2,"0") +
+        "/" +
+        date.getFullYear() +
+        " " +
+        String(date.getHours()).padStart(2,"0") +
+        ":" +
+        String(date.getMinutes()).padStart(2,"0")
+    );
+}
+
+function saveCurrentSetlistAsNamed(){
+
+    if(setlist.length === 0){
+        alert("Set list is empty.");
+        return;
+    }
+
+    const name =
+        prompt("Name this set list:");
+
+    if(!name || !name.trim()){
+        return;
+    }
+
+    const cleanName =
+        name.trim();
+
+    const now =
+        new Date().toISOString();
+
+    const saved =
+        getSavedSetlists();
+
+    const existingIndex =
+        saved.findIndex(item =>
+            String(item.name || "").toLowerCase() ===
+            cleanName.toLowerCase()
+        );
+
+    if(existingIndex !== -1){
+
+        const overwrite =
+            confirm(
+                `"${cleanName}" already exists. Replace it?`
+            );
+
+        if(!overwrite){
+            return;
+        }
+
+        saved[existingIndex] = {
+            ...saved[existingIndex],
+            name: cleanName,
+            updatedAt: now,
+            items: [...setlist]
+        };
+
+    }else{
+
+        saved.push({
+            id:
+                "setlist_" +
+                Date.now() +
+                "_" +
+                Math.random().toString(36).slice(2),
+            name: cleanName,
+            createdAt: now,
+            updatedAt: now,
+            items: [...setlist]
+        });
+    }
+
+    saveSavedSetlists(saved);
+
+    alert(`Saved "${cleanName}".`);
+}
+
+function openSavedSetlistsPanel(){
+
+    renderSavedSetlists();
+
+    document
+        .getElementById("savedSetlistsOverlay")
+        .classList.add("open");
+
+    document
+        .getElementById("savedSetlistsPanel")
+        .classList.add("open");
+}
+
+function closeSavedSetlistsPanel(){
+
+    document
+        .getElementById("savedSetlistsOverlay")
+        .classList.remove("open");
+
+    document
+        .getElementById("savedSetlistsPanel")
+        .classList.remove("open");
+}
+
+function renderSavedSetlists(){
+
+    const container =
+        document.getElementById("savedSetlistsList");
+
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    const saved =
+        getSavedSetlists()
+        .sort((a,b) =>
+            new Date(b.updatedAt || b.createdAt || 0) -
+            new Date(a.updatedAt || a.createdAt || 0)
+        );
+
+    if(saved.length === 0){
+
+        const empty =
+            document.createElement("div");
+
+        empty.className =
+            "savedSetlistEmpty";
+
+        empty.innerText =
+            "No saved set lists yet.";
+
+        container.appendChild(empty);
+
+        return;
+    }
+
+    saved.forEach(savedSetlist => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "savedSetlistRow";
+
+        const info =
+            document.createElement("div");
+
+        info.className =
+            "savedSetlistInfo";
+
+        const name =
+            document.createElement("div");
+
+        name.className =
+            "savedSetlistName";
+
+        name.innerText =
+            savedSetlist.name || "Untitled Set List";
+
+        const meta =
+            document.createElement("div");
+
+        meta.className =
+            "savedSetlistMeta";
+
+        const count =
+            Array.isArray(savedSetlist.items)
+            ? savedSetlist.items.length
+            : 0;
+
+        meta.innerText =
+            `${count} items` +
+            (
+                savedSetlist.updatedAt
+                ? ` • ${formatSavedSetlistDate(savedSetlist.updatedAt)}`
+                : ""
+            );
+
+        info.appendChild(name);
+        info.appendChild(meta);
+
+        const actions =
+            document.createElement("div");
+
+        actions.className =
+            "savedSetlistActions";
+
+        const loadBtn =
+            document.createElement("button");
+
+        loadBtn.innerText =
+            "Load";
+
+        loadBtn.onclick = e => {
+
+            e.stopPropagation();
+
+            const replace =
+                setlist.length === 0 ||
+                confirm(
+                    "Replace your current set list with this one?"
+                );
+
+            if(!replace){
+                return;
+            }
+
+            setlist =
+                Array.isArray(savedSetlist.items)
+                ? [...savedSetlist.items]
+                : [];
+
+            saveSetlist();
+
+            render();
+            renderSetlist();
+
+            closeSavedSetlistsPanel();
+        };
+
+        const deleteBtn =
+            document.createElement("button");
+
+        deleteBtn.innerText =
+            "Delete";
+
+        deleteBtn.className =
+            "savedSetlistDelete";
+
+        deleteBtn.onclick = e => {
+
+            e.stopPropagation();
+
+            const sure =
+                confirm(
+                    `Delete "${savedSetlist.name || "Untitled Set List"}"?`
+                );
+
+            if(!sure){
+                return;
+            }
+
+            const updated =
+                getSavedSetlists()
+                .filter(item =>
+                    item.id !== savedSetlist.id
+                );
+
+            saveSavedSetlists(updated);
+
+            renderSavedSetlists();
+        };
+
+        actions.appendChild(loadBtn);
+        actions.appendChild(deleteBtn);
+
+        row.appendChild(info);
+        row.appendChild(actions);
+
+        container.appendChild(row);
+    });
 }
     function removeFromSetlist(songId){
 
@@ -3636,6 +4071,31 @@ document
 document
 .getElementById("closeSetlist")
 .onclick = closeSetlist;
+    document
+.getElementById("saveSetlistBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    saveCurrentSetlistAsNamed();
+};
+
+document
+.getElementById("loadSetlistBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    openSavedSetlistsPanel();
+};
+
+document
+.getElementById("closeSavedSetlists")
+.onclick = closeSavedSetlistsPanel;
+
+document
+.getElementById("savedSetlistsOverlay")
+.onclick = closeSavedSetlistsPanel;
     document
 .getElementById("addPlaceMarker")
 .onclick = () => {
