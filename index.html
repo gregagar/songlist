@@ -139,6 +139,24 @@ html, body{
     opacity:1;
     pointer-events:auto;
 }
+    #editOverlay{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.4);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .25s ease;
+
+    z-index:99999;
+}
+
+#editOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
     #editPanel{
     position:fixed;
     top:0;
@@ -897,7 +915,9 @@ a{
         <button id="scrollSpeedPlus">+</button>
     </div>
 </div>
-
+<button id="addNewSong">
+    Add New Song
+</button>
     <button id="exportBackup">
         Export Backup
     </button>
@@ -1001,10 +1021,11 @@ a{
     <div id="setlistSongs"></div>
 
 </div>
+    <div id="editOverlay"></div>
 <div id="editPanel">
 
     <div id="editHeader">
-        <h2>Edit Song</h2>
+        <h2 id="editPanelTitle">Edit Song</h2>
         <button id="closeEditPanel">✕</button>
     </div>
 
@@ -1158,6 +1179,66 @@ function getSongId(song){
         "|" +
         (song["ARTIST"] || "")
     );
+}
+    function createBlankSong(){
+
+    const fallback = {
+        "ARTIST":"",
+        "SONG NAME":"",
+        "Year":"",
+        "Decade":"",
+        "Genre":"",
+        "Tempo":"",
+        "Country of Origin":"",
+        "Link":"",
+        "Upbeat":false,
+        "Favourites":false,
+        "Dancefloor":false,
+        "Sing-a-Long":false,
+        "Happy":false,
+        "Easy to Sing":false,
+        "Romantic":false,
+        "Showcase":false,
+        "Tags":"",
+        "Wiki":""
+    };
+
+    const template =
+        songs[0] || fallback;
+
+    const blank = {};
+
+    Object.keys(template).forEach(key => {
+
+        blank[key] =
+            booleanFields.includes(key)
+            ? false
+            : "";
+    });
+
+    return blank;
+}
+
+function closeEditPanel(){
+
+    document
+        .getElementById("editPanel")
+        .classList.remove("open");
+
+    document
+        .getElementById("editOverlay")
+        .classList.remove("open");
+
+    editingSong = null;
+    editingSongIndex = -1;
+}
+
+function openNewSongPanel(){
+
+    const blankSong =
+        createBlankSong();
+
+    openEditPanel(blankSong);
 }
 const filters=[
     "Favourites",
@@ -3250,6 +3331,16 @@ function openEditPanel(song){
 
     editingSong = song;
     editingSongIndex = songs.indexOf(song);
+    const title =
+    document.getElementById("editPanelTitle");
+
+if(title){
+
+    title.innerText =
+        editingSongIndex === -1
+        ? "Add New Song"
+        : "Edit Song";
+}
 
     const form =
         document.getElementById("editForm");
@@ -3343,8 +3434,12 @@ function openEditPanel(song){
     });
 
     document
-        .getElementById("editPanel")
-        .classList.add("open");
+    .getElementById("editOverlay")
+    .classList.add("open");
+
+document
+    .getElementById("editPanel")
+    .classList.add("open");
 }
 async function load(){
 
@@ -3913,9 +4008,64 @@ render();
         }
     }
 );
-    document
+document
 .getElementById("saveSongBtn")
-.onclick = ()=>{
+.onclick = () => {
+
+    if(!editingSong) return;
+
+    const isNewSong =
+        editingSongIndex === -1;
+
+    document
+    .querySelectorAll(
+        "#editForm input, #editForm select"
+    )
+    .forEach(input => {
+
+        const field =
+            input.dataset.field;
+
+        if(!field) return;
+
+        let value;
+
+        if(input.type === "checkbox"){
+
+            value =
+                input.checked;
+
+        }else{
+
+            value =
+                input.value;
+        }
+
+        editingSong[field] =
+            value;
+    });
+
+    if(isNewSong){
+
+        songs.push(editingSong);
+
+        editingSongIndex =
+            songs.length - 1;
+    }
+
+    localStorage.setItem(
+        "songsData",
+        JSON.stringify(songs)
+    );
+
+    if(typeof buildGenreDropdown === "function"){
+        buildGenreDropdown();
+    }
+
+    render();
+
+    closeEditPanel();
+};
 
     if(!editingSong) return;
 
@@ -3953,14 +4103,13 @@ if(input.type === "checkbox"){
         .getElementById("editPanel")
         .classList.remove("open");
 };
-    document
+document
 .getElementById("closeEditPanel")
-.onclick = ()=>{
+.onclick = closeEditPanel;
 
-    document
-        .getElementById("editPanel")
-        .classList.remove("open");
-};
+document
+.getElementById("editOverlay")
+.onclick = closeEditPanel;
     const settingsBtn =
     document.getElementById("settingsBtn");
 
@@ -3972,6 +4121,16 @@ settingsBtn.onclick = e => {
     e.stopPropagation();
 
     settingsMenu.classList.toggle("open");
+};
+    document
+.getElementById("addNewSong")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    settingsMenu.classList.remove("open");
+
+    openNewSongPanel();
 };
 
 document.addEventListener(
