@@ -4117,15 +4117,6 @@ document
     const isNewSong =
         editingSongIndex === -1;
 
-document
-.getElementById("saveSongBtn")
-.onclick = () => {
-
-    if(!editingSong) return;
-
-    const isNewSong =
-        editingSongIndex === -1;
-
     document
     .querySelectorAll(
         "#editForm input, #editForm select"
@@ -4173,6 +4164,7 @@ document
 
     closeEditPanel();
 };
+
 document
 .getElementById("closeEditPanel")
 .onclick = closeEditPanel;
@@ -4180,6 +4172,8 @@ document
 document
 .getElementById("editOverlay")
 .onclick = closeEditPanel;
+
+const settingsBtn =
     const settingsBtn =
     document.getElementById("settingsBtn");
 
