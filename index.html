@@ -1063,6 +1063,41 @@ a{
 #clearNotesBtn{
     color:#fca5a5;
 }
+    #backToTop{
+    position:fixed;
+    right:18px;
+    bottom:58px;
+
+    width:46px;
+    height:46px;
+
+    border:none;
+    border-radius:50%;
+
+    background:#1e293b;
+    color:#e2e8f0;
+
+    font-size:22px;
+    font-weight:700;
+
+    display:none;
+    align-items:center;
+    justify-content:center;
+
+    z-index:95000;
+
+    box-shadow:0 4px 12px rgba(0,0,0,.35);
+
+    opacity:.92;
+
+    cursor:pointer;
+
+    -webkit-tap-highlight-color:transparent;
+}
+
+#backToTop.show{
+    display:flex;
+}
 </style>
 </head>
 
@@ -1184,6 +1219,7 @@ a{
 
 <div id="alphaNav"></div>
 <div id="results"></div>
+    <button id="backToTop">↑</button>
     <div id="setlistOverlay"></div>
     <div id="birthdayOverlay"></div>
 
@@ -5517,6 +5553,27 @@ clearNotesBtn.onclick = e => {
         ""
     );
 };
+    const backToTopBtn =
+    document.getElementById("backToTop");
+
+if(backToTopBtn){
+
+    window.addEventListener("scroll", () => {
+
+        backToTopBtn.classList.toggle(
+            "show",
+            window.scrollY > 350
+        );
+    });
+
+    backToTopBtn.onclick = () => {
+
+        window.scrollTo({
+            top:0,
+            behavior:"smooth"
+        });
+    };
+}
 load();
 applyScale();
 applySubScale();
