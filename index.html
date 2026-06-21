@@ -356,6 +356,11 @@ button{
     color:#fff;
     font-weight:600;
 }
+    .chip.unavailable{
+    opacity:.28;
+    filter:grayscale(1);
+    pointer-events:none;
+}
 #setlistPanel{
 
     position:fixed;
@@ -1639,7 +1644,128 @@ if(
 
     return true;
 }
+function songMatchesDecadeAvailability(song){
 
+    const q =
+        normalize(currentQuery.trim());
+
+    if(q){
+
+        const text =
+            normalize(
+                Object.values(song).join(" ")
+            );
+
+        if(/^\d+$/.test(q)){
+
+            if(!new RegExp(`\\b${q}\\b`).test(text)){
+                return false;
+            }
+
+        }else if(q.includes(" ")){
+
+            if(
+                !q.split(/\s+/)
+                .every(w => text.includes(w))
+            ){
+                return false;
+            }
+
+        }else{
+
+            if(!text.includes(q)){
+                return false;
+            }
+        }
+    }
+
+    if(
+        artistFilter &&
+        song["ARTIST"] !== artistFilter
+    ){
+        return false;
+    }
+
+    if(
+        countryFilter &&
+        song["Country of Origin"] !== countryFilter
+    ){
+        return false;
+    }
+
+    if(
+        bpmFilter !== null &&
+        Math.abs(
+            Number(song.Tempo || 0) -
+            bpmFilter
+        ) > 10
+    ){
+        return false;
+    }
+
+    if(birthdayBirthYear !== null){
+
+        const songYear =
+            Number(song.Year);
+
+        if(
+            !songYear ||
+            songYear < birthdayStartYear ||
+            songYear > birthdayEndYear
+        ){
+            return false;
+        }
+    }
+
+    return true;
+}
+    function updateDecadeAvailability(){
+
+    const availableDecades =
+        new Set();
+
+    songs
+    .filter(songMatchesDecadeAvailability)
+    .forEach(song => {
+
+        const decade =
+            String(song.Decade || "").trim();
+
+        const year =
+            Number(song.Year || 0);
+
+        if(decade){
+            availableDecades.add(decade);
+        }
+
+        if(
+            year >= 2020 &&
+            year <= getCurrentYear()
+        ){
+            availableDecades.add("Newer");
+        }
+    });
+
+    document
+    .querySelectorAll(".chip")
+    .forEach(chip => {
+
+        const decade =
+            chip.innerText;
+
+        if(!decadeFilters.includes(decade)){
+            return;
+        }
+
+        const available =
+            availableDecades.has(decade);
+
+        chip.classList.toggle(
+            "unavailable",
+            !available
+        );
+    });
+}
 function passesFilters(song){
 
     const map={};
@@ -2779,6 +2905,7 @@ plusBtn.onclick=(e)=>{
 updateCount(filtered.length);
 updateHeaderOffset();
 positionAlphabet();
+updateDecadeAvailability();
 
 }
 
