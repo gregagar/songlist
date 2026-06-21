@@ -1151,8 +1151,12 @@ a{
     Decade Colours
 </button>
 
+<button id="undoBtn">
+    Undo
+</button>
+
 <button id="exportBackup">
-    Export Backup
+    Export Full Backup
 </button>
 
         <button id="importBackup">
@@ -1815,6 +1819,358 @@ function saveSetlist(){
         JSON.stringify(setlist)
     );
 }
+    let undoStack = [];
+
+function safeJsonParse(value, fallback){
+
+    try{
+        return JSON.parse(value);
+    }catch(e){
+        return fallback;
+    }
+}
+
+function getLocalStorageObject(){
+
+    const data = {};
+
+    for(let i = 0; i < localStorage.length; i++){
+
+        const key =
+            localStorage.key(i);
+
+        data[key] =
+            localStorage.getItem(key);
+    }
+
+    return data;
+}
+
+function makeSnapshot(label = "Change"){
+
+    return {
+        label,
+        createdAt:new Date().toISOString(),
+
+        songs:JSON.parse(JSON.stringify(songs || [])),
+        setlist:[...setlist],
+        savedSetlists:safeJsonParse(
+            localStorage.getItem("savedSetlists") || "[]",
+            []
+        ),
+        decadeColours:safeJsonParse(
+            localStorage.getItem("decadeColours") || "{}",
+            {}
+        ),
+        notes:
+            localStorage.getItem("songFinderNotes") || "",
+        autoScrollSpeed,
+        playedSongs:[...playedSongs],
+        localStorage:getLocalStorageObject()
+    };
+}
+
+function pushUndo(label = "Change"){
+
+    undoStack.push(
+        makeSnapshot(label)
+    );
+
+    if(undoStack.length > 25){
+        undoStack.shift();
+    }
+
+    updateUndoButton();
+}
+
+function updateUndoButton(){
+
+    const btn =
+        document.getElementById("undoBtn");
+
+    if(!btn) return;
+
+    btn.disabled =
+        undoStack.length === 0;
+
+    btn.innerText =
+        undoStack.length
+        ? `Undo: ${undoStack[undoStack.length - 1].label}`
+        : "Undo";
+}
+
+function restoreSnapshot(snapshot){
+
+    if(!snapshot) return;
+
+    songs =
+        JSON.parse(
+            JSON.stringify(snapshot.songs || [])
+        );
+
+    setlist =
+        Array.isArray(snapshot.setlist)
+        ? [...snapshot.setlist]
+        : [];
+pushUndo("Reset Played");
+    playedSongs.clear();
+
+    if(Array.isArray(snapshot.playedSongs)){
+
+        snapshot.playedSongs.forEach(id => {
+            playedSongs.add(id);
+        });
+    }
+
+    localStorage.setItem(
+        "songsData",
+        JSON.stringify(songs)
+    );
+
+    localStorage.setItem(
+        "setlist",
+        JSON.stringify(setlist)
+    );
+
+    localStorage.setItem(
+        "savedSetlists",
+        JSON.stringify(snapshot.savedSetlists || [])
+    );
+
+    localStorage.setItem(
+        "decadeColours",
+        JSON.stringify(snapshot.decadeColours || {})
+    );
+
+    localStorage.setItem(
+        "songFinderNotes",
+        snapshot.notes || ""
+    );
+
+    autoScrollSpeed =
+        Number(snapshot.autoScrollSpeed || 40);
+
+    localStorage.setItem(
+        "autoScrollSpeed",
+        autoScrollSpeed
+    );
+
+    const notesText =
+        document.getElementById("notesText");
+
+    if(notesText){
+        notesText.value =
+            snapshot.notes || "";
+    }
+
+    buildGenreDropdown();
+
+    if(typeof buildDecadeColourPanel === "function"){
+        buildDecadeColourPanel();
+    }
+
+    updateScrollSpeedDisplay();
+
+    render();
+    renderSetlist();
+
+    updateUndoButton();
+}
+
+function undoLastAction(){
+
+    if(undoStack.length === 0){
+        alert("Nothing to undo.");
+        return;
+    }
+
+    const snapshot =
+        undoStack.pop();
+
+    restoreSnapshot(snapshot);
+}
+
+function exportFullBackup(){
+
+    const now =
+        new Date();
+
+    const stamp =
+        now.getFullYear() + "-" +
+        String(now.getMonth()+1).padStart(2,"0") + "-" +
+        String(now.getDate()).padStart(2,"0") + "_" +
+        String(now.getHours()).padStart(2,"0") + "-" +
+        String(now.getMinutes()).padStart(2,"0");
+
+    const backup = {
+        type:"SongFinderFullBackup",
+        version:1,
+        createdAt:new Date().toISOString(),
+
+        data:{
+            songs:
+                safeJsonParse(
+                    localStorage.getItem("songsData") || "[]",
+                    songs
+                ),
+
+            currentSetlist:
+                safeJsonParse(
+                    localStorage.getItem("setlist") || "[]",
+                    setlist
+                ),
+
+            savedSetlists:
+                safeJsonParse(
+                    localStorage.getItem("savedSetlists") || "[]",
+                    []
+                ),
+
+            decadeColours:
+                safeJsonParse(
+                    localStorage.getItem("decadeColours") || "{}",
+                    {}
+                ),
+
+            notes:
+                localStorage.getItem("songFinderNotes") || "",
+
+            autoScrollSpeed:
+                localStorage.getItem("autoScrollSpeed") || String(autoScrollSpeed),
+
+            playedSongs:
+                [...playedSongs],
+
+            scale,
+            subScale
+        },
+
+        localStorage:
+            getLocalStorageObject()
+    };
+
+    const blob =
+        new Blob(
+            [JSON.stringify(backup, null, 2)],
+            { type:"application/json" }
+        );
+
+    const a =
+        document.createElement("a");
+
+    a.href =
+        URL.createObjectURL(blob);
+
+    a.download =
+        `SongFinder_FULL_BACKUP_${stamp}.json`;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+    }, 1000);
+}
+
+function restoreFullBackup(imported){
+
+    if(!imported || imported.type !== "SongFinderFullBackup"){
+
+        return false;
+    }
+
+    const sure =
+        confirm(
+            "Restore this full backup? This will replace your songs, setlists, notes, colours and settings."
+        );
+
+    if(!sure){
+        return true;
+    }
+
+    pushUndo("Restore Backup");
+
+    const data =
+        imported.data || {};
+
+    songs =
+        Array.isArray(data.songs)
+        ? data.songs
+        : [];
+
+    setlist =
+        Array.isArray(data.currentSetlist)
+        ? data.currentSetlist
+        : [];
+
+    localStorage.setItem(
+        "songsData",
+        JSON.stringify(songs)
+    );
+
+    localStorage.setItem(
+        "setlist",
+        JSON.stringify(setlist)
+    );
+
+    localStorage.setItem(
+        "savedSetlists",
+        JSON.stringify(data.savedSetlists || [])
+    );
+
+    localStorage.setItem(
+        "decadeColours",
+        JSON.stringify(data.decadeColours || {})
+    );
+
+    localStorage.setItem(
+        "songFinderNotes",
+        data.notes || ""
+    );
+
+    autoScrollSpeed =
+        Number(data.autoScrollSpeed || 40);
+
+    localStorage.setItem(
+        "autoScrollSpeed",
+        autoScrollSpeed
+    );
+
+    playedSongs.clear();
+
+    if(Array.isArray(data.playedSongs)){
+
+        data.playedSongs.forEach(id => {
+            playedSongs.add(id);
+        });
+    }
+
+    const notesText =
+        document.getElementById("notesText");
+
+    if(notesText){
+        notesText.value =
+            data.notes || "";
+    }
+
+    buildGenreDropdown();
+
+    if(typeof buildDecadeColourPanel === "function"){
+        buildDecadeColourPanel();
+    }
+
+    updateScrollSpeedDisplay();
+
+    render();
+    renderSetlist();
+
+    alert("Full backup restored.");
+
+    return true;
+}
     function getSavedSetlists(){
 
     try{
@@ -2059,7 +2415,7 @@ function renderSavedSetlists(){
             if(!replace){
                 return;
             }
-
+pushUndo("Load Setlist");
             setlist =
                 Array.isArray(savedSetlist.items)
                 ? [...savedSetlist.items]
@@ -2094,7 +2450,7 @@ function renderSavedSetlists(){
             if(!sure){
                 return;
             }
-
+pushUndo("Delete Saved Setlist");
             const updated =
                 getSavedSetlists()
                 .filter(item =>
@@ -2116,7 +2472,7 @@ function renderSavedSetlists(){
     });
 }
     function removeFromSetlist(songId){
-
+pushUndo("Remove From Setlist");
     setlist =
         setlist.filter(
             id => id !== songId
@@ -3893,7 +4249,7 @@ if(tempoLink){
 plusBtn.onclick=(e)=>{
 
     e.stopPropagation();
-
+pushUndo("Update Setlist");
     if(setlist.includes(songId)){
 
         setlist =
@@ -4390,7 +4746,7 @@ document
     document
 .getElementById("addPlaceMarker")
 .onclick = () => {
-
+pushUndo("Add Marker");
     const marker =
         createPlaceMarker("");
 
@@ -4725,7 +5081,7 @@ document
         );
 
     if(!sure) return;
-
+pushUndo("Clear Setlist");
     setlist = [];
 
     saveSetlist();
@@ -4738,16 +5094,12 @@ document
 .getElementById("setlistOverlay")
 .onclick = closeSetlist;
     document
+document
 .getElementById("exportBackup")
 .onclick = () => {
 
-    const data = JSON.stringify(
-    JSON.parse(
-        localStorage.getItem("songsData")
-    ),
-    null,
-    2
-);
+    exportFullBackup();
+};
 
     if(!data){
         alert("No song data found.");
@@ -4791,10 +5143,82 @@ document
 };
 
 document
+document
 .getElementById("importFile")
 .addEventListener(
     "change",
     async e => {
+
+        const file =
+            e.target.files[0];
+
+        if(!file) return;
+
+        try{
+
+            const text =
+                await file.text();
+
+            const imported =
+                JSON.parse(text);
+
+            const restoredFullBackup =
+                restoreFullBackup(imported);
+
+            if(restoredFullBackup){
+                e.target.value = "";
+                return;
+            }
+
+            if(!Array.isArray(imported)){
+
+                alert(
+                    "Invalid backup file."
+                );
+
+                e.target.value = "";
+                return;
+            }
+
+            const sure =
+                confirm(
+                    "This looks like an older songs-only backup. Import it and replace your current song list?"
+                );
+
+            if(!sure){
+                e.target.value = "";
+                return;
+            }
+
+            pushUndo("Import Songs");
+
+            localStorage.setItem(
+                "songsData",
+                JSON.stringify(imported)
+            );
+
+            songs = imported;
+
+            buildGenreDropdown();
+
+            render();
+
+            alert(
+                "Song backup imported successfully."
+            );
+
+            e.target.value = "";
+
+        }catch(err){
+
+            alert(
+                "Could not import file."
+            );
+
+            e.target.value = "";
+        }
+    }
+);
 
         const file =
             e.target.files[0];
@@ -4849,6 +5273,11 @@ document
 
     const isNewSong =
         editingSongIndex === -1;
+    pushUndo(
+    isNewSong
+    ? "Add Song"
+    : "Edit Song"
+);
 
     document
     .querySelectorAll(
@@ -4911,6 +5340,18 @@ document
 
 const settingsMenu =
     document.getElementById("settingsMenu");
+    document
+.getElementById("undoBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    settingsMenu.classList.remove("open");
+
+    undoLastAction();
+};
+
+updateUndoButton();
 
 settingsBtn.onclick = e => {
 
