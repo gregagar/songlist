@@ -204,6 +204,24 @@ html, body{
     color:white;
     box-sizing:border-box;
 }
+    #editOverlay{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.4);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .25s ease;
+
+    z-index:99999;
+}
+
+#editOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
 
 #saveSongBtn{
     margin-top:20px;
@@ -918,9 +936,13 @@ a{
 <button id="addNewSong">
     Add New Song
 </button>
-    <button id="exportBackup">
-        Export Backup
-    </button>
+    <button id="addNewSong">
+    Add New Song
+</button>
+
+<button id="exportBackup">
+    Export Backup
+</button>
 
         <button id="importBackup">
             Import Backup
@@ -1022,6 +1044,8 @@ a{
 
 </div>
     <div id="editOverlay"></div>
+<div id="editOverlay"></div>
+
 <div id="editPanel">
 
     <div id="editHeader">
@@ -1179,6 +1203,66 @@ function getSongId(song){
         "|" +
         (song["ARTIST"] || "")
     );
+}
+    function createBlankSong(){
+
+    const fallback = {
+        "ARTIST":"",
+        "SONG NAME":"",
+        "Year":"",
+        "Decade":"",
+        "Genre":"",
+        "Tempo":"",
+        "Country of Origin":"",
+        "Link":"",
+        "Upbeat":false,
+        "Favourites":false,
+        "Dancefloor":false,
+        "Sing-a-Long":false,
+        "Happy":false,
+        "Easy to Sing":false,
+        "Romantic":false,
+        "Showcase":false,
+        "Tags":"",
+        "Wiki":""
+    };
+
+    const template =
+        songs[0] || fallback;
+
+    const blank = {};
+
+    Object.keys(template).forEach(key => {
+
+        blank[key] =
+            booleanFields.includes(key)
+            ? false
+            : "";
+    });
+
+    return blank;
+}
+
+function closeEditPanel(){
+
+    document
+        .getElementById("editPanel")
+        .classList.remove("open");
+
+    document
+        .getElementById("editOverlay")
+        .classList.remove("open");
+
+    editingSong = null;
+    editingSongIndex = -1;
+}
+
+function openNewSongPanel(){
+
+    const blankSong =
+        createBlankSong();
+
+    openEditPanel(blankSong);
 }
     function createBlankSong(){
 
@@ -3330,9 +3414,21 @@ document.getElementById("sortRandom").onclick = () => {
 function openEditPanel(song){
 
     editingSong = song;
-    editingSongIndex = songs.indexOf(song);
-    const title =
+editingSongIndex = songs.indexOf(song);
+
+const title =
     document.getElementById("editPanelTitle");
+
+if(title){
+
+    title.innerText =
+        editingSongIndex === -1
+        ? "Add New Song"
+        : "Edit Song";
+}
+
+const form =
+    document.getElementById("editForm");
 
 if(title){
 
@@ -3434,6 +3530,10 @@ if(title){
     });
 
     document
+    .getElementById("editOverlay")
+    .classList.add("open");
+
+document
     .getElementById("editOverlay")
     .classList.add("open");
 
@@ -4017,6 +4117,15 @@ document
     const isNewSong =
         editingSongIndex === -1;
 
+document
+.getElementById("saveSongBtn")
+.onclick = () => {
+
+    if(!editingSong) return;
+
+    const isNewSong =
+        editingSongIndex === -1;
+
     document
     .querySelectorAll(
         "#editForm input, #editForm select"
@@ -4058,50 +4167,11 @@ document
         JSON.stringify(songs)
     );
 
-    if(typeof buildGenreDropdown === "function"){
-        buildGenreDropdown();
-    }
+    buildGenreDropdown();
 
     render();
 
     closeEditPanel();
-};
-
-    if(!editingSong) return;
-
-    document
-    .querySelectorAll(
-        "#editForm input"
-    )
-    .forEach(input=>{
-
-        const field =
-            input.dataset.field;
-
-        let value;
-
-if(input.type === "checkbox"){
-
-    value = input.checked;
-
-}else{
-
-    value = input.value;
-}
-
-        editingSong[field] = value;
-    });
-
-    localStorage.setItem(
-        "songsData",
-        JSON.stringify(songs)
-    );
-
-    render();
-
-    document
-        .getElementById("editPanel")
-        .classList.remove("open");
 };
 document
 .getElementById("closeEditPanel")
@@ -4121,6 +4191,16 @@ settingsBtn.onclick = e => {
     e.stopPropagation();
 
     settingsMenu.classList.toggle("open");
+};
+    document
+.getElementById("addNewSong")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    settingsMenu.classList.remove("open");
+
+    openNewSongPanel();
 };
     document
 .getElementById("addNewSong")
