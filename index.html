@@ -318,6 +318,28 @@ button{
     width:100%;
     color:#fca5a5;
 }
+    .genreSelect{
+    padding:6px 10px;
+
+    border:none;
+    border-radius:8px;
+
+    background:#1e293b;
+    color:#e2e8f0;
+
+    font-size:16px;
+    font-family:inherit;
+
+    cursor:pointer;
+
+    max-width:180px;
+}
+
+.genreSelect.active{
+    color:#38bdf8;
+    font-weight:700;
+    box-shadow:inset 0 0 0 1px #38bdf8;
+}
 .autoScrollBtn{
     background:#1e293b;
     color:#38bdf8;
@@ -825,6 +847,10 @@ a{
 <button id="birthdayBtn" class="birthdayBtn">
     Birthday
 </button>
+
+<select id="genreSelect" class="genreSelect">
+    <option value="">All Genres</option>
+</select>
         </div>
 
     </div>
@@ -1995,6 +2021,7 @@ c.appendChild(spacer);
 
     artistFilter = "";
     genreFilter = "";
+    syncGenreDropdown();
     countryFilter = "";
     yearFilter = "";
     bpmFilter = null;
@@ -2017,7 +2044,56 @@ c.appendChild(spacer);
 
    c.appendChild(clear);
 }
+function buildGenreDropdown(){
 
+    const select =
+        document.getElementById("genreSelect");
+
+    if(!select) return;
+
+    const genres =
+        [...new Set(
+            songs
+                .map(song => String(song.Genre || "").trim())
+                .filter(Boolean)
+        )]
+        .sort((a,b) => a.localeCompare(b));
+
+    select.innerHTML =
+        `<option value="">All Genres</option>`;
+
+    genres.forEach(genre => {
+
+        const option =
+            document.createElement("option");
+
+        option.value =
+            genre;
+
+        option.innerText =
+            genre;
+
+        select.appendChild(option);
+    });
+
+    syncGenreDropdown();
+}
+
+function syncGenreDropdown(){
+
+    const select =
+        document.getElementById("genreSelect");
+
+    if(!select) return;
+
+    select.value =
+        genreFilter || "";
+
+    select.classList.toggle(
+        "active",
+        !!genreFilter
+    );
+}
 function getDecadeColor(decade){
     const d=(decade||"").toString().toLowerCase().trim();
 
@@ -2861,11 +2937,13 @@ if(genreLink){
         e.stopPropagation();
 
         genreFilter =
-            genreFilter === genreLink.dataset.genre
-            ? ""
-            : genreLink.dataset.genre;
+    genreFilter === genreLink.dataset.genre
+    ? ""
+    : genreLink.dataset.genre;
 
-        render();
+syncGenreDropdown();
+
+render();
     };
 }
 
@@ -3074,7 +3152,17 @@ document
 
     openBirthdayPanel();
 };
+document
+.getElementById("genreSelect")
+.onchange = e => {
 
+    genreFilter =
+        e.target.value;
+
+    syncGenreDropdown();
+
+    render();
+};
 document
 .getElementById("birthdayClose")
 .onclick = e => {
@@ -3288,7 +3376,8 @@ async function load(){
     }
 
     buildChips();
-    render();
+buildGenreDropdown();
+render();
 }
 window.addEventListener("scroll",()=>{
 
@@ -3806,7 +3895,9 @@ document
 
             songs = imported;
 
-            render();
+buildGenreDropdown();
+
+render();
 
             alert(
                 "Backup imported successfully."
