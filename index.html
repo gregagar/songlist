@@ -5609,56 +5609,5 @@ updateAutoScrollButton();
 
 </script>
 
-<button id="backToTop">↑</button>
-
-<style>
-#backToTop{
-    position:fixed;
-    right:18px;
-    bottom:18px;
-    width:46px;
-    height:46px;
-    border:none;
-    border-radius:50%;
-    background:#1e293b;
-    color:#e2e8f0;
-    font-size:22px;
-
-    display:none;
-    align-items:center;
-    justify-content:center;
-
-    z-index:9999;
-    box-shadow:0 4px 12px rgba(0,0,0,0.35);
-
-    opacity:0.92;
-
-    cursor:pointer;
-
-    -webkit-tap-highlight-color: transparent;
-}
-</style>
-
-<script>
-const backToTopBtn = document.getElementById("backToTop");
-
-window.addEventListener("scroll", () => {
-
-    // show after scrolling down 300px
-    if (window.scrollY > 300) {
-        backToTopBtn.style.display = "flex";
-    } else {
-        backToTopBtn.style.display = "none";
-    }
-});
-
-backToTopBtn.addEventListener("click", () => {
-    window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-    });
-});
-</script>
-
 </body>
 </html>
