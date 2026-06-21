@@ -4606,14 +4606,35 @@ function openEditPanel(song){
 }
 async function load(){
 
+    songs = [];
+
     const localSongs =
         localStorage.getItem("songsData");
 
     if(localSongs){
 
-        songs = JSON.parse(localSongs);
+        try{
 
-    }else{
+            const parsed =
+                JSON.parse(localSongs);
+
+            if(Array.isArray(parsed)){
+                songs = parsed;
+            }else{
+                localStorage.removeItem("songsData");
+            }
+
+        }catch(e){
+
+            console.warn(
+                "songsData was broken, reloading from songs.json"
+            );
+
+            localStorage.removeItem("songsData");
+        }
+    }
+
+    if(songs.length === 0){
 
         try{
 
@@ -4622,23 +4643,49 @@ async function load(){
                     await fetch("songs.json")
                 ).json();
 
-            localStorage.setItem(
-                "songsData",
-                JSON.stringify(songs)
-            );
+            if(Array.isArray(songs)){
+
+                localStorage.setItem(
+                    "songsData",
+                    JSON.stringify(songs)
+                );
+
+            }else{
+
+                songs = [];
+            }
 
         }catch(e){
 
-            songs = JSON.parse(
-                localStorage.getItem("cache") || "[]"
-            );
+            try{
+
+                songs =
+                    JSON.parse(
+                        localStorage.getItem("cache") || "[]"
+                    );
+
+                if(!Array.isArray(songs)){
+                    songs = [];
+                }
+
+            }catch(err){
+
+                songs = [];
+            }
         }
     }
 
-buildChips();
-buildGenreDropdown();
-buildDecadeColourPanel();
-render();
+    buildChips();
+
+    if(typeof buildGenreDropdown === "function"){
+        buildGenreDropdown();
+    }
+
+    if(typeof buildDecadeColourPanel === "function"){
+        buildDecadeColourPanel();
+    }
+
+    render();
 }
 window.addEventListener("scroll",()=>{
 
