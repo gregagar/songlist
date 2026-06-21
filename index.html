@@ -5141,46 +5141,13 @@ document
 .getElementById("setlistOverlay")
 .onclick = closeSetlist;
     document
-document
 .getElementById("exportBackup")
 .onclick = () => {
 
     exportFullBackup();
 };
 
-    if(!data){
-        alert("No song data found.");
-        return;
-    }
-
-    const blob = new Blob(
-        [data],
-        { type:"application/json" }
-    );
-
-    const a =
-        document.createElement("a");
-
-    const now = new Date();
-
-    const stamp =
-        now.getFullYear() + "-" +
-        String(now.getMonth()+1).padStart(2,"0") + "-" +
-        String(now.getDate()).padStart(2,"0") + "_" +
-        String(now.getHours()).padStart(2,"0") + "-" +
-        String(now.getMinutes()).padStart(2,"0");
-
-    a.href =
-        URL.createObjectURL(blob);
-
-    a.download =
-        `SongBackup_${stamp}.json`;
-
-    a.click();
-
-    URL.revokeObjectURL(a.href);
-};
-    document
+document
 .getElementById("importBackup")
 .onclick = () => {
 
@@ -5189,7 +5156,6 @@ document
         .click();
 };
 
-document
 document
 .getElementById("importFile")
 .addEventListener(
@@ -5263,52 +5229,6 @@ document
             );
 
             e.target.value = "";
-        }
-    }
-);
-
-        const file =
-            e.target.files[0];
-
-        if(!file) return;
-
-        try{
-
-            const text =
-                await file.text();
-
-            const imported =
-                JSON.parse(text);
-
-            if(!Array.isArray(imported)){
-
-                alert(
-                    "Invalid backup file."
-                );
-
-                return;
-            }
-
-            localStorage.setItem(
-                "songsData",
-                JSON.stringify(imported)
-            );
-
-            songs = imported;
-
-buildGenreDropdown();
-
-render();
-
-            alert(
-                "Backup imported successfully."
-            );
-
-        }catch(err){
-
-            alert(
-                "Could not import file."
-            );
         }
     }
 );
