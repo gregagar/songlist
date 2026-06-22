@@ -1927,26 +1927,29 @@ function extractEventSelectionItems(imported){
         return [];
     }
 
+    // Preferred modern client selector format:
+    // Must Play + Like only.
+    if(Array.isArray(imported.selectedSongs)){
+        return imported.selectedSongs;
+    }
+
+    // Fallback for section-based exports.
+    // Intentionally ignores doNotPlay.
     if(
         imported.selections &&
         typeof imported.selections === "object"
     ){
         const collected = [];
 
-        Object.values(imported.selections).forEach(section => {
-
-            if(Array.isArray(section)){
-                collected.push(...section);
-            }
-        });
-
-        if(collected.length){
-            return collected;
+        if(Array.isArray(imported.selections.mustPlay)){
+            collected.push(...imported.selections.mustPlay);
         }
-    }
 
-    if(Array.isArray(imported.selectedSongs)){
-        return imported.selectedSongs;
+        if(Array.isArray(imported.selections.like)){
+            collected.push(...imported.selections.like);
+        }
+
+        return collected;
     }
 
     if(Array.isArray(imported.songs)){
