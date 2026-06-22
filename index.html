@@ -2113,12 +2113,45 @@ function updateEventBanner(){
     eventChip.innerText =
         `${eventSelection.eventName || "Untitled"} • ${eventSelectionIds.size}`;
 
-   eventChip.onclick = e => {
+    eventChip.onclick = e => {
 
-    e.stopPropagation();
+        e.stopPropagation();
 
-    confirmAndClearEventSelection();
-};
+        confirmAndClearEventSelection();
+    };
+
+    chipContainer.appendChild(eventChip);
+
+    if(eventSelectionDoNotPlayIds.size > 0){
+
+        const noChip =
+            document.createElement("div");
+
+        noChip.id =
+            "eventDoNotPlayChip";
+
+        noChip.className =
+            "chip eventDoNotPlayChip";
+
+        noChip.title =
+            "Tap to view Do Not Play songs";
+
+        noChip.innerText =
+            `${eventSelectionDoNotPlayIds.size}`;
+
+        noChip.onclick = e => {
+
+            e.stopPropagation();
+
+            showEventSongList(
+                "Do Not Play",
+                eventSelectionDoNotPlayIds
+            );
+        };
+
+        chipContainer.appendChild(noChip);
+    }
+}
 function getEventCount(setName, arrayName, totalName){
 
     if(
@@ -2430,7 +2463,61 @@ function importEventSelectionData(imported){
         `Do Not Play: ${doNotPlayIds.size}`
     );
 }
+function getEventClearSummary(){
 
+    const eventName =
+        eventSelection && eventSelection.eventName
+        ? eventSelection.eventName
+        : "this event selection";
+
+    const playableCount =
+        eventSelectionIds instanceof Set
+        ? eventSelectionIds.size
+        : 0;
+
+    const mustPlayCount =
+        eventSelectionMustIds instanceof Set
+        ? eventSelectionMustIds.size
+        : 0;
+
+    const doNotPlayCount =
+        eventSelectionDoNotPlayIds instanceof Set
+        ? eventSelectionDoNotPlayIds.size
+        : 0;
+
+    const likeCount =
+        Math.max(
+            playableCount - mustPlayCount,
+            0
+        );
+
+    return (
+        `Clear ${eventName}?\n\n` +
+        `Playable: ${playableCount}\n` +
+        `Must Play: ${mustPlayCount}\n` +
+        `Like: ${likeCount}\n` +
+        `Do Not Play: ${doNotPlayCount}`
+    );
+}
+
+function confirmAndClearEventSelection(){
+
+    if(!eventSelection){
+        alert("No event selection is currently active.");
+        return;
+    }
+
+    const sure =
+        confirm(
+            getEventClearSummary()
+        );
+
+    if(!sure){
+        return;
+    }
+
+    clearEventSelection();
+}
 function clearEventSelection(){
 
     eventSelection = null;
