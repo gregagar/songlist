@@ -2113,17 +2113,106 @@ function updateEventBanner(){
     eventChip.innerText =
         `${eventSelection.eventName || "Untitled"} • ${eventSelectionIds.size}`;
 
-    eventChip.onclick = e => {
+   eventChip.onclick = e => {
 
-        e.stopPropagation();
+    e.stopPropagation();
 
-        const sure =
-            confirm("Clear the current event selection?");
+    confirmAndClearEventSelection();
+};
+function getEventCount(setName, arrayName, totalName){
 
-        if(!sure){
-            return;
-        }
+    if(
+        typeof window[setName] !== "undefined" &&
+        window[setName] instanceof Set
+    ){
+        return window[setName].size;
+    }
 
+    if(
+        eventSelection &&
+        Array.isArray(eventSelection[arrayName])
+    ){
+        return eventSelection[arrayName].length;
+    }
+
+    if(
+        eventSelection &&
+        typeof eventSelection[totalName] === "number"
+    ){
+        return eventSelection[totalName];
+    }
+
+    return 0;
+}
+
+function getEventClearSummary(){
+
+    const eventName =
+        eventSelection && eventSelection.eventName
+        ? eventSelection.eventName
+        : "this event selection";
+
+    const playableCount =
+        eventSelectionIds instanceof Set
+        ? eventSelectionIds.size
+        : 0;
+
+    const mustPlayCount =
+        getEventCount(
+            "eventSelectionMustIds",
+            "mustPlayIds",
+            "totalMustPlay"
+        );
+
+    const doNotPlayCount =
+        getEventCount(
+            "eventSelectionDoNotPlayIds",
+            "doNotPlayIds",
+            "totalDoNotPlay"
+        );
+
+    let likeCount =
+        getEventCount(
+            "eventSelectionLikeIds",
+            "likeIds",
+            "totalLike"
+        );
+
+    if(!likeCount){
+        likeCount =
+            Math.max(
+                playableCount - mustPlayCount,
+                0
+            );
+    }
+
+    return (
+        `Clear ${eventName}?\n\n` +
+        `Playable: ${playableCount}\n` +
+        `Must Play: ${mustPlayCount}\n` +
+        `Like: ${likeCount}\n` +
+        `Do Not Play: ${doNotPlayCount}`
+    );
+}
+
+function confirmAndClearEventSelection(){
+
+    if(!eventSelection){
+        alert("No event selection is currently active.");
+        return;
+    }
+
+    const sure =
+        confirm(
+            getEventClearSummary()
+        );
+
+    if(!sure){
+        return;
+    }
+
+    clearEventSelection();
+}
         clearEventSelection();
     };
 
@@ -6417,19 +6506,7 @@ if(clearEventSelectionBtn){
 
         settingsMenu.classList.remove("open");
 
-        if(!eventSelection){
-            alert("No event selection is currently active.");
-            return;
-        }
-
-        const sure =
-            confirm("Clear the current event selection?");
-
-        if(!sure){
-            return;
-        }
-
-        clearEventSelection();
+        confirmAndClearEventSelection();
     };
 }
 
