@@ -1098,42 +1098,28 @@ a{
 #backToTop.show{
     display:flex;
 }
-    #eventBanner{
-    margin-top:12px;
-
-    display:none;
-    align-items:center;
-    justify-content:space-between;
-    gap:10px;
-
-    padding:10px 12px;
-
-    border-radius:12px;
-
+   .chip.eventSelectionChip{
     background:#172554;
-    color:#dbeafe;
-
-    font-size:14px;
+    color:#bfdbfe;
     font-weight:700;
 
     box-shadow:inset 0 0 0 1px #2563eb;
-}
 
-#eventBanner.show{
-    display:flex;
-}
-
-#eventBannerText{
-    min-width:0;
+    max-width:220px;
     overflow:hidden;
     white-space:nowrap;
     text-overflow:ellipsis;
 }
 
-#eventBannerClear{
-    flex-shrink:0;
-    color:#bfdbfe;
-    background:#1e3a8a;
+.chip.eventSelectionChip::before{
+    content:"Event: ";
+    color:#93c5fd;
+}
+
+.chip.eventSelectionChip::after{
+    content:"  ×";
+    color:#fca5a5;
+    font-weight:900;
 }
 </style>
 </head>
@@ -1268,13 +1254,7 @@ a{
 </div>
 
 </div>
-<div id="eventBanner">
-    <span id="eventBannerText"></span>
 
-    <button id="eventBannerClear">
-        Clear
-    </button>
-</div>
 </div> <!-- closes .header -->
 
 <div id="alphaNav"></div>
@@ -1635,30 +1615,56 @@ function getBaseSongsForView(){
 
 function updateEventBanner(){
 
-    const banner =
-        document.getElementById("eventBanner");
+    const chipContainer =
+        document.getElementById("chipContainer");
 
-    const text =
-        document.getElementById("eventBannerText");
+    if(!chipContainer) return;
 
-    if(!banner || !text) return;
+    const existing =
+        document.getElementById("eventSelectionChip");
+
+    if(existing){
+        existing.remove();
+    }
 
     if(
         !eventSelection ||
         eventSelectionIds.size === 0
     ){
-
-        banner.classList.remove("show");
-        text.innerText = "";
         return;
     }
 
-    banner.classList.add("show");
+    const chip =
+        document.createElement("div");
 
-    text.innerText =
-        `Event Selection: ${eventSelection.eventName || "Untitled Event"} • ${eventSelectionIds.size} songs`;
+    chip.id =
+        "eventSelectionChip";
+
+    chip.className =
+        "chip eventSelectionChip";
+
+    chip.title =
+        "Tap to clear event selection";
+
+    chip.innerText =
+        `${eventSelection.eventName || "Untitled"} • ${eventSelectionIds.size}`;
+
+    chip.onclick = e => {
+
+        e.stopPropagation();
+
+        const sure =
+            confirm("Clear the current event selection?");
+
+        if(!sure){
+            return;
+        }
+
+        clearEventSelection();
+    };
+
+    chipContainer.appendChild(chip);
 }
-
 function extractEventSelectionItems(imported){
 
     if(Array.isArray(imported)){
@@ -5920,19 +5926,6 @@ if(reloadMainSongsBtn){
         settingsMenu.classList.remove("open");
 
         reloadMainSongList();
-    };
-}
-
-const eventBannerClearBtn =
-    document.getElementById("eventBannerClear");
-
-if(eventBannerClearBtn){
-
-    eventBannerClearBtn.onclick = e => {
-
-        e.stopPropagation();
-
-        clearEventSelection();
     };
 }
 
