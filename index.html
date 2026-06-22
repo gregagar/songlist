@@ -1526,12 +1526,76 @@ let sortDirection = 1; // 1 = A-Z, -1 = Z-A
 let randomMode = false;
 let randomOrder = [];
 
+function getSongTitle(song){
+    return String(
+        song["SONG NAME"] ||
+        song["Song Name"] ||
+        song.songName ||
+        song.title ||
+        song.song ||
+        ""
+    ).trim();
+}
+
+function getSongArtist(song){
+    return String(
+        song["ARTIST"] ||
+        song["Artist"] ||
+        song.artist ||
+        ""
+    ).trim();
+}
+
 function getSongId(song){
+    const stableId =
+        song.id ||
+        song["SONG ID"] ||
+        song["Song ID"] ||
+        song.songId ||
+        song["song id"] ||
+        "";
+
+    if(String(stableId).trim()){
+        return String(stableId).trim();
+    }
+
+    return getLegacySongId(song);
+}
+
+function getLegacySongId(song){
     return (
-        (song["SONG NAME"] || "") +
+        getSongTitle(song) +
         "|" +
-        (song["ARTIST"] || "")
+        getSongArtist(song)
     );
+}
+
+function songMatchesStoredId(song, storedId){
+    const id =
+        String(storedId || "").trim();
+
+    if(!id) return false;
+
+    return (
+        id === getSongId(song) ||
+        id === getLegacySongId(song) ||
+        normaliseEventText(id) === normaliseEventText(getLegacySongId(song))
+    );
+}
+
+function getImportedSongId(item){
+    if(!item || typeof item !== "object"){
+        return "";
+    }
+
+    return String(
+        item.id ||
+        item["SONG ID"] ||
+        item["Song ID"] ||
+        item.songId ||
+        item["song id"] ||
+        ""
+    ).trim();
 }
     let eventSelection = null;
 let eventSelectionIds = new Set();
@@ -1606,11 +1670,11 @@ function getBaseSongsForView(){
         return songs;
     }
 
-    return songs.filter(song =>
-        eventSelectionIds.has(
-            getSongId(song)
-        )
-    );
+   return songs.filter(song =>
+    [...eventSelectionIds].some(id =>
+        songMatchesStoredId(song, id)
+    )
+);
 }
 
 function updateEventBanner(){
@@ -1671,30 +1735,42 @@ function extractEventSelectionItems(imported){
         return imported;
     }
 
+    if(!imported || typeof imported !== "object"){
+        return [];
+    }
+
     if(
-        imported &&
-        Array.isArray(imported.selectedSongs)
+        imported.selections &&
+        typeof imported.selections === "object"
     ){
+        const collected = [];
+
+        Object.values(imported.selections).forEach(section => {
+
+            if(Array.isArray(section)){
+                collected.push(...section);
+            }
+        });
+
+        if(collected.length){
+            return collected;
+        }
+    }
+
+    if(Array.isArray(imported.selectedSongs)){
         return imported.selectedSongs;
     }
 
-    if(
-        imported &&
-        Array.isArray(imported.songs)
-    ){
+    if(Array.isArray(imported.songs)){
         return imported.songs;
     }
 
-    if(
-        imported &&
-        Array.isArray(imported.items)
-    ){
+    if(Array.isArray(imported.items)){
         return imported.items;
     }
 
     return [];
 }
-
 function importEventSelectionData(imported){
 
     const items =
@@ -1708,6 +1784,9 @@ function importEventSelectionData(imported){
 
         return;
     }
+
+    const selectedIds =
+        new Set();
 
     const selectedKeys =
         new Set();
@@ -1733,6 +1812,10 @@ function importEventSelectionData(imported){
 
             }else{
 
+                selectedIds.add(
+                    String(item).trim()
+                );
+
                 titleOnlyKeys.add(
                     normaliseEventText(item)
                 );
@@ -1743,6 +1826,13 @@ function importEventSelectionData(imported){
 
         if(!item || typeof item !== "object"){
             return;
+        }
+
+        const importedId =
+            getImportedSongId(item);
+
+        if(importedId){
+            selectedIds.add(importedId);
         }
 
         const title =
@@ -1778,11 +1868,17 @@ function importEventSelectionData(imported){
 
     songs.forEach(song => {
 
+        const songId =
+            getSongId(song);
+
+        const legacyId =
+            getLegacySongId(song);
+
         const title =
-            song["SONG NAME"] || "";
+            getSongTitle(song);
 
         const artist =
-            song["ARTIST"] || "";
+            getSongArtist(song);
 
         const fullKey =
             makeEventSongKey(title, artist);
@@ -1791,13 +1887,13 @@ function importEventSelectionData(imported){
             normaliseEventText(title);
 
         if(
+            selectedIds.has(songId) ||
+            selectedIds.has(legacyId) ||
             selectedKeys.has(fullKey) ||
             titleOnlyKeys.has(titleKey)
         ){
 
-            matchedIds.add(
-                getSongId(song)
-            );
+            matchedIds.add(songId);
         }
     });
 
@@ -1812,6 +1908,7 @@ function importEventSelectionData(imported){
 
     let eventName =
         imported.eventName ||
+        imported.coupleName ||
         imported.name ||
         imported.client ||
         "";
@@ -4179,10 +4276,9 @@ setlist.forEach(songId=>{
     }
 
     const song =
-        songs.find(s =>
-            getSongId(s) === songId
-        );
-
+    songs.find(s =>
+        songMatchesStoredId(s, songId)
+    );
     if(!song) return;
 
     const div =
@@ -4430,12 +4526,12 @@ buildAlphabet(filtered);
 
 filtered.forEach((song,index)=>{
     const songId =
-    (song["SONG NAME"] || "") +
-    "|" +
-    (song["ARTIST"] || "");
-    const inSetlist =
-    setlist.includes(songId);
+    getSongId(song);
 
+const inSetlist =
+    setlist.some(id =>
+        songMatchesStoredId(song, id)
+    );
         const div=document.createElement("div");
 
         let anchorText="";
@@ -4748,17 +4844,17 @@ plusBtn.onclick=(e)=>{
 
     e.stopPropagation();
 pushUndo("Update Setlist");
-    if(setlist.includes(songId)){
+    if(inSetlist){
 
-        setlist =
-            setlist.filter(
-                id => id !== songId
-            );
+    setlist =
+        setlist.filter(id =>
+            !songMatchesStoredId(song, id)
+        );
 
-    }else{
+}else{
 
-        setlist.push(songId);
-    }
+    setlist.push(songId);
+}
 
     saveSetlist();
 
@@ -5022,6 +5118,14 @@ function openEditPanel(song){
     `;
 
     Object.keys(song).forEach(key=>{
+        if(
+    key === "id" ||
+    key === "SONG ID" ||
+    key === "Song ID" ||
+    key === "songId"
+){
+    return;
+}
 
         const value = song[key];
 
@@ -5411,9 +5515,9 @@ const fileStamp =
         }
 
         const song =
-            songs.find(s =>
-                getSongId(s) === songId
-            );
+    songs.find(s =>
+        songMatchesStoredId(s, songId)
+    );
 
         if(!song){
             return `${index + 1}. ${songId}`;
