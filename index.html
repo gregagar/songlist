@@ -1098,6 +1098,43 @@ a{
 #backToTop.show{
     display:flex;
 }
+    #eventBanner{
+    margin-top:12px;
+
+    display:none;
+    align-items:center;
+    justify-content:space-between;
+    gap:10px;
+
+    padding:10px 12px;
+
+    border-radius:12px;
+
+    background:#172554;
+    color:#dbeafe;
+
+    font-size:14px;
+    font-weight:700;
+
+    box-shadow:inset 0 0 0 1px #2563eb;
+}
+
+#eventBanner.show{
+    display:flex;
+}
+
+#eventBannerText{
+    min-width:0;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+#eventBannerClear{
+    flex-shrink:0;
+    color:#bfdbfe;
+    background:#1e3a8a;
+}
 </style>
 </head>
 
@@ -1195,13 +1232,24 @@ a{
 </button>
 
         <button id="importBackup">
-            Import Backup
-        </button>
+    Import Backup
+</button>
 
-        <button id="resetPlayed">
-            Reset
-        </button>
+<button id="importEventSelection">
+    Import Event Selection
+</button>
 
+<button id="clearEventSelection">
+    Clear Event Selection
+</button>
+
+<button id="reloadMainSongs">
+    Reload Main JSON
+</button>
+
+<button id="resetPlayed">
+    Reset
+</button>
     </div>
 
 </div>
@@ -1211,10 +1259,22 @@ a{
     accept=".json"
     style="display:none;"
 >
+        <input
+    type="file"
+    id="eventFile"
+    accept=".json"
+    style="display:none;"
+>
 </div>
 
 </div>
+<div id="eventBanner">
+    <span id="eventBannerText"></span>
 
+    <button id="eventBannerClear">
+        Clear
+    </button>
+</div>
 </div> <!-- closes .header -->
 
 <div id="alphaNav"></div>
@@ -1492,6 +1552,395 @@ function getSongId(song){
         "|" +
         (song["ARTIST"] || "")
     );
+}
+    let eventSelection = null;
+let eventSelectionIds = new Set();
+
+function normaliseEventText(value){
+
+    return String(value || "")
+        .trim()
+        .toLowerCase()
+        .replace(/\s+/g, " ");
+}
+
+function makeEventSongKey(title, artist){
+
+    return (
+        normaliseEventText(title) +
+        "|" +
+        normaliseEventText(artist)
+    );
+}
+
+function loadEventSelectionFromStorage(){
+
+    eventSelection = null;
+    eventSelectionIds = new Set();
+
+    try{
+
+        const saved =
+            JSON.parse(
+                localStorage.getItem("eventSelection") || "null"
+            );
+
+        if(
+            saved &&
+            Array.isArray(saved.ids)
+        ){
+
+            eventSelection =
+                saved;
+
+            eventSelectionIds =
+                new Set(saved.ids);
+        }
+
+    }catch(e){
+
+        localStorage.removeItem("eventSelection");
+    }
+}
+
+function saveEventSelection(){
+
+    if(!eventSelection){
+
+        localStorage.removeItem("eventSelection");
+        return;
+    }
+
+    localStorage.setItem(
+        "eventSelection",
+        JSON.stringify(eventSelection)
+    );
+}
+
+function getBaseSongsForView(){
+
+    if(
+        !eventSelection ||
+        eventSelectionIds.size === 0
+    ){
+        return songs;
+    }
+
+    return songs.filter(song =>
+        eventSelectionIds.has(
+            getSongId(song)
+        )
+    );
+}
+
+function updateEventBanner(){
+
+    const banner =
+        document.getElementById("eventBanner");
+
+    const text =
+        document.getElementById("eventBannerText");
+
+    if(!banner || !text) return;
+
+    if(
+        !eventSelection ||
+        eventSelectionIds.size === 0
+    ){
+
+        banner.classList.remove("show");
+        text.innerText = "";
+        return;
+    }
+
+    banner.classList.add("show");
+
+    text.innerText =
+        `Event Selection: ${eventSelection.eventName || "Untitled Event"} • ${eventSelectionIds.size} songs`;
+}
+
+function extractEventSelectionItems(imported){
+
+    if(Array.isArray(imported)){
+        return imported;
+    }
+
+    if(
+        imported &&
+        Array.isArray(imported.selectedSongs)
+    ){
+        return imported.selectedSongs;
+    }
+
+    if(
+        imported &&
+        Array.isArray(imported.songs)
+    ){
+        return imported.songs;
+    }
+
+    if(
+        imported &&
+        Array.isArray(imported.items)
+    ){
+        return imported.items;
+    }
+
+    return [];
+}
+
+function importEventSelectionData(imported){
+
+    const items =
+        extractEventSelectionItems(imported);
+
+    if(!Array.isArray(items) || items.length === 0){
+
+        alert(
+            "No selected songs found in that file."
+        );
+
+        return;
+    }
+
+    const selectedKeys =
+        new Set();
+
+    const titleOnlyKeys =
+        new Set();
+
+    items.forEach(item => {
+
+        if(typeof item === "string"){
+
+            if(item.includes("|")){
+
+                const parts =
+                    item.split("|");
+
+                selectedKeys.add(
+                    makeEventSongKey(
+                        parts[0],
+                        parts.slice(1).join("|")
+                    )
+                );
+
+            }else{
+
+                titleOnlyKeys.add(
+                    normaliseEventText(item)
+                );
+            }
+
+            return;
+        }
+
+        if(!item || typeof item !== "object"){
+            return;
+        }
+
+        const title =
+            item.title ||
+            item.song ||
+            item.songName ||
+            item["SONG NAME"] ||
+            item["Song Name"] ||
+            "";
+
+        const artist =
+            item.artist ||
+            item["ARTIST"] ||
+            item["Artist"] ||
+            "";
+
+        if(title && artist){
+
+            selectedKeys.add(
+                makeEventSongKey(title, artist)
+            );
+
+        }else if(title){
+
+            titleOnlyKeys.add(
+                normaliseEventText(title)
+            );
+        }
+    });
+
+    const matchedIds =
+        new Set();
+
+    songs.forEach(song => {
+
+        const title =
+            song["SONG NAME"] || "";
+
+        const artist =
+            song["ARTIST"] || "";
+
+        const fullKey =
+            makeEventSongKey(title, artist);
+
+        const titleKey =
+            normaliseEventText(title);
+
+        if(
+            selectedKeys.has(fullKey) ||
+            titleOnlyKeys.has(titleKey)
+        ){
+
+            matchedIds.add(
+                getSongId(song)
+            );
+        }
+    });
+
+    if(matchedIds.size === 0){
+
+        alert(
+            "None of the selected songs matched your master song list."
+        );
+
+        return;
+    }
+
+    let eventName =
+        imported.eventName ||
+        imported.name ||
+        imported.client ||
+        "";
+
+    if(!eventName){
+
+        eventName =
+            prompt("Name this event selection:") ||
+            "Untitled Event";
+    }
+
+    eventSelection = {
+        type:"SongFinderEventSelection",
+        eventName:eventName,
+        importedAt:new Date().toISOString(),
+        totalImported:items.length,
+        totalMatched:matchedIds.size,
+        ids:[...matchedIds]
+    };
+
+    eventSelectionIds =
+        matchedIds;
+
+    saveEventSelection();
+
+    resetFiltersForEventSelection();
+
+    buildGenreDropdown();
+
+    render();
+
+    alert(
+        `Loaded ${matchedIds.size} songs for ${eventName}.`
+    );
+}
+
+function clearEventSelection(){
+
+    eventSelection = null;
+    eventSelectionIds = new Set();
+
+    localStorage.removeItem("eventSelection");
+
+    buildGenreDropdown();
+
+    render();
+}
+
+function resetFiltersForEventSelection(){
+
+    activeFilters.clear();
+    activeDecades.clear();
+
+    artistFilter = "";
+    genreFilter = "";
+    countryFilter = "";
+    yearFilter = "";
+    bpmFilter = null;
+
+    clearBirthdayFilter(true);
+
+    currentQuery = "";
+
+    const search =
+        document.getElementById("search");
+
+    if(search){
+        search.value = "";
+    }
+
+    document
+        .querySelectorAll(".chip")
+        .forEach(chip => {
+
+            chip.classList.remove("active");
+            chip.classList.remove("decade-active");
+            chip.style.background = "";
+        });
+
+    syncGenreDropdown();
+}
+
+async function reloadMainSongList(){
+
+    const sure =
+        confirm(
+            "Reload the main songs.json from the site folder? This will replace your local cached song list, but it will not change the actual songs.json file."
+        );
+
+    if(!sure){
+        return;
+    }
+
+    try{
+
+        const response =
+            await fetch(
+                "songs.json?cacheBust=" + Date.now()
+            );
+
+        const freshSongs =
+            await response.json();
+
+        if(!Array.isArray(freshSongs)){
+            throw new Error("songs.json was not an array");
+        }
+
+        songs =
+            freshSongs;
+
+        localStorage.setItem(
+            "songsData",
+            JSON.stringify(songs)
+        );
+
+        clearEventSelection();
+
+        buildGenreDropdown();
+
+        if(typeof buildDecadeColourPanel === "function"){
+            buildDecadeColourPanel();
+        }
+
+        render();
+
+        alert(
+            "Main songs.json reloaded."
+        );
+
+    }catch(e){
+
+        alert(
+            "Could not reload songs.json."
+        );
+    }
 }
     function createBlankSong(){
 
@@ -2905,9 +3354,9 @@ function songMatchesDecadeAvailability(song){
     const availableDecades =
         new Set();
 
-    songs
-    .filter(songMatchesDecadeAvailability)
-    .forEach(song => {
+   getBaseSongsForView()
+.filter(songMatchesDecadeAvailability)
+.forEach(song => {
 
         const decade =
             String(song.Decade || "").trim();
@@ -3159,13 +3608,16 @@ function buildGenreDropdown(){
 
     if(!select) return;
 
-    const genres =
-        [...new Set(
-            songs
-                .map(song => String(song.Genre || "").trim())
-                .filter(Boolean)
-        )]
-        .sort((a,b) => a.localeCompare(b));
+   const sourceSongs =
+    getBaseSongsForView();
+
+const genres =
+    [...new Set(
+        sourceSongs
+            .map(song => String(song.Genre || "").trim())
+            .filter(Boolean)
+    )]
+    .sort((a,b) => a.localeCompare(b));
 
     select.innerHTML =
         `<option value="">All Genres</option>`;
@@ -3957,9 +4409,13 @@ function render(){
     document.getElementById("clearSearch").style.display =
         currentQuery ? "flex" : "none";
 
-  let filtered=songs.filter(
-    s=>songMatches(s,currentQuery)&&passesFilters(s)
-);
+ const sourceSongs =
+    getBaseSongsForView();
+
+let filtered =
+    sourceSongs.filter(
+        s => songMatches(s,currentQuery) && passesFilters(s)
+    );
 
 // APPLY SORT
 filtered = sortSongs(filtered);
@@ -4312,6 +4768,7 @@ updateHeaderOffset();
 positionAlphabet();
 updateDecadeAvailability();
 updateDecadeChipColours();
+updateEventBanner();
 
 }
 
@@ -4711,17 +5168,19 @@ async function load(){
         }
     }
 
-    buildChips();
+   loadEventSelectionFromStorage();
 
-    if(typeof buildGenreDropdown === "function"){
-        buildGenreDropdown();
-    }
+buildChips();
 
-    if(typeof buildDecadeColourPanel === "function"){
-        buildDecadeColourPanel();
-    }
+if(typeof buildGenreDropdown === "function"){
+    buildGenreDropdown();
+}
 
-    render();
+if(typeof buildDecadeColourPanel === "function"){
+    buildDecadeColourPanel();
+}
+
+render();
 }
 window.addEventListener("scroll",()=>{
 
@@ -5394,6 +5853,7 @@ document
 document
 .getElementById("resetDecadeColours")
 .onclick = resetDecadeColours;
+    
     document
 .getElementById("addNewSong")
 .onclick = e => {
@@ -5404,7 +5864,115 @@ document
 
     openNewSongPanel();
 };
+const importEventSelectionBtn =
+    document.getElementById("importEventSelection");
 
+if(importEventSelectionBtn){
+
+    importEventSelectionBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        settingsMenu.classList.remove("open");
+
+        document
+            .getElementById("eventFile")
+            .click();
+    };
+}
+
+const clearEventSelectionBtn =
+    document.getElementById("clearEventSelection");
+
+if(clearEventSelectionBtn){
+
+    clearEventSelectionBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        settingsMenu.classList.remove("open");
+
+        if(!eventSelection){
+            alert("No event selection is currently active.");
+            return;
+        }
+
+        const sure =
+            confirm("Clear the current event selection?");
+
+        if(!sure){
+            return;
+        }
+
+        clearEventSelection();
+    };
+}
+
+const reloadMainSongsBtn =
+    document.getElementById("reloadMainSongs");
+
+if(reloadMainSongsBtn){
+
+    reloadMainSongsBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        settingsMenu.classList.remove("open");
+
+        reloadMainSongList();
+    };
+}
+
+const eventBannerClearBtn =
+    document.getElementById("eventBannerClear");
+
+if(eventBannerClearBtn){
+
+    eventBannerClearBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        clearEventSelection();
+    };
+}
+
+const eventFileInput =
+    document.getElementById("eventFile");
+
+if(eventFileInput){
+
+    eventFileInput.addEventListener(
+        "change",
+        async e => {
+
+            const file =
+                e.target.files[0];
+
+            if(!file) return;
+
+            try{
+
+                const text =
+                    await file.text();
+
+                const imported =
+                    JSON.parse(text);
+
+                importEventSelectionData(imported);
+
+                e.target.value = "";
+
+            }catch(err){
+
+                alert(
+                    "Could not import event selection."
+                );
+
+                e.target.value = "";
+            }
+        }
+    );
+}
 document.addEventListener(
     "click",
     () => {
