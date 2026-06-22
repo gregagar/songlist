@@ -1124,6 +1124,29 @@ a{
     color:#fca5a5;
     font-weight:900;
 }
+    .chip.eventDoNotPlayChip{
+    background:#3f1212;
+    color:#fecaca;
+    font-weight:800;
+
+    box-shadow:inset 0 0 0 1px #ef4444;
+
+    max-width:190px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.chip.eventDoNotPlayChip::before{
+    content:"Do Not Play: ";
+    color:#fca5a5;
+}
+
+.card.eventMustPlay{
+    box-shadow:
+        inset 0 0 0 2px rgba(251,191,36,.75),
+        0 0 0 1px rgba(251,191,36,.15);
+}
 </style>
 </head>
 
@@ -1785,8 +1808,11 @@ function getImportedSongId(item){
         ""
     ).trim();
 }
-    let eventSelection = null;
+let eventSelection = null;
 let eventSelectionIds = new Set();
+
+let eventSelectionMustIds = new Set();
+let eventSelectionDoNotPlayIds = new Set();
 
 function normaliseEventText(value){
 
@@ -1809,6 +1835,8 @@ function loadEventSelectionFromStorage(){
 
     eventSelection = null;
     eventSelectionIds = new Set();
+    eventSelectionMustIds = new Set();
+    eventSelectionDoNotPlayIds = new Set();
 
     try{
 
@@ -1826,7 +1854,13 @@ function loadEventSelectionFromStorage(){
                 saved;
 
             eventSelectionIds =
-                new Set(saved.ids);
+                new Set(saved.ids || []);
+
+            eventSelectionMustIds =
+                new Set(saved.mustPlayIds || []);
+
+            eventSelectionDoNotPlayIds =
+                new Set(saved.doNotPlayIds || []);
         }
 
     }catch(e){
@@ -1846,6 +1880,178 @@ function saveEventSelection(){
     localStorage.setItem(
         "eventSelection",
         JSON.stringify(eventSelection)
+    );
+}
+    function getEventItemId(item){
+
+    if(!item || typeof item !== "object"){
+        return "";
+    }
+
+    return String(
+        item.id ||
+        item["SONG ID"] ||
+        item["Song ID"] ||
+        item.songId ||
+        item["song id"] ||
+        ""
+    ).trim();
+}
+
+function getEventItemTitle(item){
+
+    return String(
+        item.title ||
+        item.song ||
+        item.songName ||
+        item["SONG NAME"] ||
+        item["Song Name"] ||
+        ""
+    ).trim();
+}
+
+function getEventItemArtist(item){
+
+    return String(
+        item.artist ||
+        item["ARTIST"] ||
+        item["Artist"] ||
+        ""
+    ).trim();
+}
+
+function resolveEventItemsToSongIds(items){
+
+    const importedIds = new Set();
+    const selectedKeys = new Set();
+    const titleOnlyKeys = new Set();
+
+    items.forEach(item => {
+
+        if(typeof item === "string"){
+
+            importedIds.add(String(item).trim());
+
+            if(item.includes("|")){
+
+                const parts = item.split("|");
+
+                selectedKeys.add(
+                    makeEventSongKey(
+                        parts[0],
+                        parts.slice(1).join("|")
+                    )
+                );
+
+            }else{
+
+                titleOnlyKeys.add(
+                    normaliseEventText(item)
+                );
+            }
+
+            return;
+        }
+
+        if(!item || typeof item !== "object"){
+            return;
+        }
+
+        const importedId =
+            getEventItemId(item);
+
+        if(importedId){
+            importedIds.add(importedId);
+        }
+
+        const title =
+            getEventItemTitle(item);
+
+        const artist =
+            getEventItemArtist(item);
+
+        if(title && artist){
+
+            selectedKeys.add(
+                makeEventSongKey(title, artist)
+            );
+
+        }else if(title){
+
+            titleOnlyKeys.add(
+                normaliseEventText(title)
+            );
+        }
+    });
+
+    const matchedIds = new Set();
+
+    songs.forEach(song => {
+
+        const songId =
+            getSongId(song);
+
+        const title =
+            song["SONG NAME"] ||
+            song.title ||
+            "";
+
+        const artist =
+            song["ARTIST"] ||
+            song.artist ||
+            "";
+
+        const fullKey =
+            makeEventSongKey(title, artist);
+
+        const titleKey =
+            normaliseEventText(title);
+
+        if(
+            importedIds.has(songId) ||
+            selectedKeys.has(fullKey) ||
+            titleOnlyKeys.has(titleKey)
+        ){
+            matchedIds.add(songId);
+        }
+    });
+
+    return matchedIds;
+}
+
+function showEventSongList(label, idsSet){
+
+    const items =
+        [...idsSet].map(id => {
+
+            const song =
+                songs.find(s => getSongId(s) === id);
+
+            if(!song) return id;
+
+            const title =
+                song["SONG NAME"] ||
+                song.title ||
+                "Untitled";
+
+            const artist =
+                song["ARTIST"] ||
+                song.artist ||
+                "";
+
+            return artist
+                ? `${title} - ${artist}`
+                : title;
+        });
+
+    if(items.length === 0){
+        alert(`${label}: none`);
+        return;
+    }
+
+    alert(
+        `${label} (${items.length})\n\n` +
+        items.join("\n")
     );
 }
 
@@ -1872,12 +2078,18 @@ function updateEventBanner(){
 
     if(!chipContainer) return;
 
-    const existing =
-        document.getElementById("eventSelectionChip");
+    [
+        "eventSelectionChip",
+        "eventDoNotPlayChip"
+    ].forEach(id => {
 
-    if(existing){
-        existing.remove();
-    }
+        const existing =
+            document.getElementById(id);
+
+        if(existing){
+            existing.remove();
+        }
+    });
 
     if(
         !eventSelection ||
@@ -1886,22 +2098,22 @@ function updateEventBanner(){
         return;
     }
 
-    const chip =
+    const eventChip =
         document.createElement("div");
 
-    chip.id =
+    eventChip.id =
         "eventSelectionChip";
 
-    chip.className =
+    eventChip.className =
         "chip eventSelectionChip";
 
-    chip.title =
+    eventChip.title =
         "Tap to clear event selection";
 
-    chip.innerText =
+    eventChip.innerText =
         `${eventSelection.eventName || "Untitled"} • ${eventSelectionIds.size}`;
 
-    chip.onclick = e => {
+    eventChip.onclick = e => {
 
         e.stopPropagation();
 
@@ -1915,7 +2127,37 @@ function updateEventBanner(){
         clearEventSelection();
     };
 
-    chipContainer.appendChild(chip);
+    chipContainer.appendChild(eventChip);
+
+    if(eventSelectionDoNotPlayIds.size > 0){
+
+        const noChip =
+            document.createElement("div");
+
+        noChip.id =
+            "eventDoNotPlayChip";
+
+        noChip.className =
+            "chip eventDoNotPlayChip";
+
+        noChip.title =
+            "Tap to view Do Not Play songs";
+
+        noChip.innerText =
+            `${eventSelectionDoNotPlayIds.size}`;
+
+        noChip.onclick = e => {
+
+            e.stopPropagation();
+
+            showEventSongList(
+                "Do Not Play",
+                eventSelectionDoNotPlayIds
+            );
+        };
+
+        chipContainer.appendChild(noChip);
+    }
 }
 function extractEventSelectionItems(imported){
 
@@ -1964,131 +2206,80 @@ function extractEventSelectionItems(imported){
 }
 function importEventSelectionData(imported){
 
-    const items =
-        extractEventSelectionItems(imported);
+    let mustPlayItems = [];
+    let likeItems = [];
+    let doNotPlayItems = [];
 
-    if(!Array.isArray(items) || items.length === 0){
+    if(
+        imported &&
+        imported.selections &&
+        typeof imported.selections === "object"
+    ){
 
-        alert(
-            "No selected songs found in that file."
-        );
+        mustPlayItems =
+            Array.isArray(imported.selections.mustPlay)
+            ? imported.selections.mustPlay
+            : [];
 
-        return;
+        likeItems =
+            Array.isArray(imported.selections.like)
+            ? imported.selections.like
+            : [];
+
+        doNotPlayItems =
+            Array.isArray(imported.selections.doNotPlay)
+            ? imported.selections.doNotPlay
+            : [];
+
+    }else{
+
+        const selectedSongs =
+            Array.isArray(imported.selectedSongs)
+            ? imported.selectedSongs
+            : [];
+
+        selectedSongs.forEach(item => {
+
+            const status =
+                String(item.status || "")
+                    .trim()
+                    .toLowerCase();
+
+            if(status === "mustplay" || status === "must"){
+                mustPlayItems.push(item);
+            }else{
+                likeItems.push(item);
+            }
+        });
+
+        doNotPlayItems =
+            Array.isArray(imported.doNotPlay)
+            ? imported.doNotPlay
+            : [];
     }
 
-    const selectedIds =
-        new Set();
+    const mustPlayIds =
+        resolveEventItemsToSongIds(mustPlayItems);
 
-    const selectedKeys =
-        new Set();
+    const likeIds =
+        resolveEventItemsToSongIds(likeItems);
 
-    const titleOnlyKeys =
-        new Set();
+    const doNotPlayIds =
+        resolveEventItemsToSongIds(doNotPlayItems);
 
-    items.forEach(item => {
-
-        if(typeof item === "string"){
-
-            if(item.includes("|")){
-
-                const parts =
-                    item.split("|");
-
-                selectedKeys.add(
-                    makeEventSongKey(
-                        parts[0],
-                        parts.slice(1).join("|")
-                    )
-                );
-
-            }else{
-
-                selectedIds.add(
-                    String(item).trim()
-                );
-
-                titleOnlyKeys.add(
-                    normaliseEventText(item)
-                );
-            }
-
-            return;
-        }
-
-        if(!item || typeof item !== "object"){
-            return;
-        }
-
-        const importedId =
-            getImportedSongId(item);
-
-        if(importedId){
-            selectedIds.add(importedId);
-        }
-
-        const title =
-            item.title ||
-            item.song ||
-            item.songName ||
-            item["SONG NAME"] ||
-            item["Song Name"] ||
-            "";
-
-        const artist =
-            item.artist ||
-            item["ARTIST"] ||
-            item["Artist"] ||
-            "";
-
-        if(title && artist){
-
-            selectedKeys.add(
-                makeEventSongKey(title, artist)
-            );
-
-        }else if(title){
-
-            titleOnlyKeys.add(
-                normaliseEventText(title)
-            );
-        }
+    // Do Not Play always wins.
+    doNotPlayIds.forEach(id => {
+        mustPlayIds.delete(id);
+        likeIds.delete(id);
     });
 
-    const matchedIds =
-        new Set();
+    const playableIds =
+        new Set([
+            ...mustPlayIds,
+            ...likeIds
+        ]);
 
-    songs.forEach(song => {
-
-        const songId =
-            getSongId(song);
-
-        const legacyId =
-            getLegacySongId(song);
-
-        const title =
-            getSongTitle(song);
-
-        const artist =
-            getSongArtist(song);
-
-        const fullKey =
-            makeEventSongKey(title, artist);
-
-        const titleKey =
-            normaliseEventText(title);
-
-        if(
-            selectedIds.has(songId) ||
-            selectedIds.has(legacyId) ||
-            selectedKeys.has(fullKey) ||
-            titleOnlyKeys.has(titleKey)
-        ){
-
-            matchedIds.add(songId);
-        }
-    });
-
-    if(matchedIds.size === 0){
+    if(playableIds.size === 0){
 
         alert(
             "None of the selected songs matched your master song list."
@@ -2115,13 +2306,25 @@ function importEventSelectionData(imported){
         type:"SongFinderEventSelection",
         eventName:eventName,
         importedAt:new Date().toISOString(),
-        totalImported:items.length,
-        totalMatched:matchedIds.size,
-        ids:[...matchedIds]
+
+        totalPlayable:playableIds.size,
+        totalMustPlay:mustPlayIds.size,
+        totalLike:likeIds.size,
+        totalDoNotPlay:doNotPlayIds.size,
+
+        ids:[...playableIds],
+        mustPlayIds:[...mustPlayIds],
+        doNotPlayIds:[...doNotPlayIds]
     };
 
     eventSelectionIds =
-        matchedIds;
+        playableIds;
+
+    eventSelectionMustIds =
+        mustPlayIds;
+
+    eventSelectionDoNotPlayIds =
+        doNotPlayIds;
 
     saveEventSelection();
 
@@ -2132,7 +2335,10 @@ function importEventSelectionData(imported){
     render();
 
     alert(
-        `Loaded ${matchedIds.size} songs for ${eventName}.`
+        `Loaded ${playableIds.size} playable songs for ${eventName}.\n\n` +
+        `Must Play: ${mustPlayIds.size}\n` +
+        `Like: ${likeIds.size}\n` +
+        `Do Not Play: ${doNotPlayIds.size}`
     );
 }
 
@@ -2140,6 +2346,8 @@ function clearEventSelection(){
 
     eventSelection = null;
     eventSelectionIds = new Set();
+    eventSelectionMustIds = new Set();
+    eventSelectionDoNotPlayIds = new Set();
 
     localStorage.removeItem("eventSelection");
 
@@ -5035,26 +5243,34 @@ plusBtn.onclick=(e)=>{
 
     e.stopPropagation();
 pushUndo("Update Setlist");
-    if(inSetlist){
+    if(setlist.includes(songId)){
 
-    setlist =
-        setlist.filter(id =>
-            !songMatchesStoredId(song, id)
-        );
+        setlist =
+            setlist.filter(
+                id => id !== songId
+            );
 
-}else{
+    }else{
 
-    setlist.push(songId);
-}
+        setlist.push(songId);
+    }
 
     saveSetlist();
 
     render();
     renderSetlist();
 };
+
+// Must Play outline for event selection
+if(
+    typeof eventSelectionMustIds !== "undefined" &&
+    eventSelectionMustIds.has(songId)
+){
+    div.classList.add("eventMustPlay");
+}
+
         r.appendChild(div);
     });
-
    updateClock();
 updateCount(filtered.length);
 updateHeaderOffset();
