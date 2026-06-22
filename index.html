@@ -1548,21 +1548,206 @@ function getSongArtist(song){
         ""
     ).trim();
 }
+function getField(song, keys, fallback = ""){
 
+    for(const key of keys){
+
+        if(
+            song &&
+            Object.prototype.hasOwnProperty.call(song, key) &&
+            song[key] !== null &&
+            song[key] !== undefined &&
+            String(song[key]).trim() !== ""
+        ){
+            return song[key];
+        }
+    }
+
+    return fallback;
+}
+
+function getBooleanField(song, keys){
+
+    const value =
+        getField(song, keys, false);
+
+    if(value === true) return true;
+    if(value === false) return false;
+
+    const normalised =
+        String(value || "")
+            .trim()
+            .toLowerCase();
+
+    return (
+        normalised === "true" ||
+        normalised === "yes" ||
+        normalised === "1"
+    );
+}
+
+function normaliseSongForSongFinder(rawSong){
+
+    const song = {
+        ...rawSong
+    };
+
+    const stableId =
+        String(
+            getField(rawSong, [
+                "id",
+                "SONG ID",
+                "Song ID",
+                "songId",
+                "song id"
+            ], "")
+        ).trim();
+
+    song.id =
+        stableId;
+
+    song["SONG ID"] =
+        stableId;
+
+    song["ARTIST"] =
+        getField(rawSong, [
+            "ARTIST",
+            "Artist",
+            "artist"
+        ]);
+
+    song["SONG NAME"] =
+        getField(rawSong, [
+            "SONG NAME",
+            "Song Name",
+            "songName",
+            "title",
+            "song",
+            "name"
+        ]);
+
+    song.Year =
+        getField(rawSong, [
+            "Year",
+            "YEAR",
+            "year"
+        ]);
+
+    song.Decade =
+        getField(rawSong, [
+            "Decade",
+            "DECADE",
+            "decade"
+        ]);
+
+    song.Genre =
+        getField(rawSong, [
+            "Genre",
+            "GENRE",
+            "genre"
+        ]);
+
+    song.Tempo =
+        getField(rawSong, [
+            "Tempo",
+            "BPM",
+            "bpm",
+            "tempo"
+        ]);
+
+    song["Country of Origin"] =
+        getField(rawSong, [
+            "Country of Origin",
+            "countryOfOrigin",
+            "country",
+            "Country"
+        ]);
+
+    song.Link =
+        getField(rawSong, [
+            "Link",
+            "link"
+        ]);
+
+    song.Wiki =
+        getField(rawSong, [
+            "Wiki",
+            "wiki",
+            "Wikipedia",
+            "wikipedia"
+        ]);
+
+    song.Upbeat =
+        getBooleanField(rawSong, [
+            "Upbeat",
+            "upbeat"
+        ]);
+
+    song.Favourites =
+        getBooleanField(rawSong, [
+            "Favourites",
+            "favourites",
+            "favorites"
+        ]);
+
+    song.Dancefloor =
+        getBooleanField(rawSong, [
+            "Dancefloor",
+            "dancefloor"
+        ]);
+
+    song["Sing-a-Long"] =
+        getBooleanField(rawSong, [
+            "Sing-a-Long",
+            "singALong",
+            "singAlong"
+        ]);
+
+    song.Happy =
+        getBooleanField(rawSong, [
+            "Happy",
+            "happy"
+        ]);
+
+    song["Easy to Sing"] =
+        getBooleanField(rawSong, [
+            "Easy to Sing",
+            "Easy To Sing",
+            "easyToSing"
+        ]);
+
+    song.Romantic =
+        getBooleanField(rawSong, [
+            "Romantic",
+            "romantic"
+        ]);
+
+    song.Showcase =
+        getBooleanField(rawSong, [
+            "Showcase",
+            "showcase"
+        ]);
+
+    return song;
+}
 function getSongId(song){
+
     const stableId =
         song.id ||
         song["SONG ID"] ||
         song["Song ID"] ||
         song.songId ||
-        song["song id"] ||
         "";
 
     if(String(stableId).trim()){
         return String(stableId).trim();
     }
 
-    return getLegacySongId(song);
+    return (
+        (song["SONG NAME"] || "") +
+        "|" +
+        (song["ARTIST"] || "")
+    );
 }
 
 function getLegacySongId(song){
@@ -2020,7 +2205,7 @@ async function reloadMainSongList(){
         }
 
         songs =
-            freshSongs;
+    freshSongs.map(normaliseSongForSongFinder);
 
         localStorage.setItem(
             "songsData",
@@ -5224,11 +5409,16 @@ async function load(){
             const parsed =
                 JSON.parse(localSongs);
 
-            if(Array.isArray(parsed)){
-                songs = parsed;
-            }else{
-                localStorage.removeItem("songsData");
-            }
+          if(Array.isArray(parsed)){
+    songs = parsed.map(normaliseSongForSongFinder);
+
+    localStorage.setItem(
+        "songsData",
+        JSON.stringify(songs)
+    );
+}else{
+    localStorage.removeItem("songsData");
+}
 
         }catch(e){
 
@@ -5244,22 +5434,25 @@ async function load(){
 
         try{
 
-            songs =
-                await (
-                    await fetch("songs.json")
-                ).json();
+            const loadedSongs =
+    await (
+        await fetch("songs.json?cacheBust=" + Date.now())
+    ).json();
 
-            if(Array.isArray(songs)){
+if(Array.isArray(loadedSongs)){
 
-                localStorage.setItem(
-                    "songsData",
-                    JSON.stringify(songs)
-                );
+    songs =
+        loadedSongs.map(normaliseSongForSongFinder);
 
-            }else{
+    localStorage.setItem(
+        "songsData",
+        JSON.stringify(songs)
+    );
 
-                songs = [];
-            }
+}else{
+
+    songs = [];
+}
 
         }catch(e){
 
