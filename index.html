@@ -2064,11 +2064,67 @@ function getBaseSongsForView(){
         return songs;
     }
 
-   return songs.filter(song =>
-    [...eventSelectionIds].some(id =>
-        songMatchesStoredId(song, id)
-    )
-);
+    return songs.filter(song =>
+        [...eventSelectionIds].some(id =>
+            songMatchesStoredId(song, id)
+        )
+    );
+}
+
+function getEventClearSummary(){
+
+    const eventName =
+        eventSelection && eventSelection.eventName
+        ? eventSelection.eventName
+        : "this event selection";
+
+    const playableCount =
+        eventSelectionIds instanceof Set
+        ? eventSelectionIds.size
+        : 0;
+
+    const mustPlayCount =
+        eventSelectionMustIds instanceof Set
+        ? eventSelectionMustIds.size
+        : 0;
+
+    const doNotPlayCount =
+        eventSelectionDoNotPlayIds instanceof Set
+        ? eventSelectionDoNotPlayIds.size
+        : 0;
+
+    const likeCount =
+        Math.max(
+            playableCount - mustPlayCount,
+            0
+        );
+
+    return (
+        `Clear ${eventName}?\n\n` +
+        `Playable: ${playableCount}\n` +
+        `Must Play: ${mustPlayCount}\n` +
+        `Like: ${likeCount}\n` +
+        `Do Not Play: ${doNotPlayCount}`
+    );
+}
+
+function confirmAndClearEventSelection(){
+
+    if(!eventSelection){
+        alert("No event selection is currently active.");
+        return;
+    }
+
+    const sure =
+        confirm(
+            getEventClearSummary()
+        );
+
+    if(!sure){
+        return;
+    }
+
+    clearEventSelection();
 }
 
 function updateEventBanner(){
@@ -2118,135 +2174,6 @@ function updateEventBanner(){
         e.stopPropagation();
 
         confirmAndClearEventSelection();
-    };
-
-    chipContainer.appendChild(eventChip);
-
-    if(eventSelectionDoNotPlayIds.size > 0){
-
-        const noChip =
-            document.createElement("div");
-
-        noChip.id =
-            "eventDoNotPlayChip";
-
-        noChip.className =
-            "chip eventDoNotPlayChip";
-
-        noChip.title =
-            "Tap to view Do Not Play songs";
-
-        noChip.innerText =
-            `${eventSelectionDoNotPlayIds.size}`;
-
-        noChip.onclick = e => {
-
-            e.stopPropagation();
-
-            showEventSongList(
-                "Do Not Play",
-                eventSelectionDoNotPlayIds
-            );
-        };
-
-        chipContainer.appendChild(noChip);
-    }
-}
-function getEventCount(setName, arrayName, totalName){
-
-    if(
-        typeof window[setName] !== "undefined" &&
-        window[setName] instanceof Set
-    ){
-        return window[setName].size;
-    }
-
-    if(
-        eventSelection &&
-        Array.isArray(eventSelection[arrayName])
-    ){
-        return eventSelection[arrayName].length;
-    }
-
-    if(
-        eventSelection &&
-        typeof eventSelection[totalName] === "number"
-    ){
-        return eventSelection[totalName];
-    }
-
-    return 0;
-}
-
-function getEventClearSummary(){
-
-    const eventName =
-        eventSelection && eventSelection.eventName
-        ? eventSelection.eventName
-        : "this event selection";
-
-    const playableCount =
-        eventSelectionIds instanceof Set
-        ? eventSelectionIds.size
-        : 0;
-
-    const mustPlayCount =
-        getEventCount(
-            "eventSelectionMustIds",
-            "mustPlayIds",
-            "totalMustPlay"
-        );
-
-    const doNotPlayCount =
-        getEventCount(
-            "eventSelectionDoNotPlayIds",
-            "doNotPlayIds",
-            "totalDoNotPlay"
-        );
-
-    let likeCount =
-        getEventCount(
-            "eventSelectionLikeIds",
-            "likeIds",
-            "totalLike"
-        );
-
-    if(!likeCount){
-        likeCount =
-            Math.max(
-                playableCount - mustPlayCount,
-                0
-            );
-    }
-
-    return (
-        `Clear ${eventName}?\n\n` +
-        `Playable: ${playableCount}\n` +
-        `Must Play: ${mustPlayCount}\n` +
-        `Like: ${likeCount}\n` +
-        `Do Not Play: ${doNotPlayCount}`
-    );
-}
-
-function confirmAndClearEventSelection(){
-
-    if(!eventSelection){
-        alert("No event selection is currently active.");
-        return;
-    }
-
-    const sure =
-        confirm(
-            getEventClearSummary()
-        );
-
-    if(!sure){
-        return;
-    }
-
-    clearEventSelection();
-}
-        clearEventSelection();
     };
 
     chipContainer.appendChild(eventChip);
