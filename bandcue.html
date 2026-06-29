@@ -20,7 +20,15 @@
 <div id="receiverPanel" class="panel hidden"><div class="row" style="justify-content:space-between;"><h2 style="margin:0;">Receiver Mode</h2><span id="receiverIdentity" class="badge"></span></div><div id="receiverCueBox" class="currentCue" style="margin-top:14px;"><div id="receiverCueText" class="cueText">Waiting</div><div id="receiverCueMeta" class="cueMeta">No cue yet</div></div><div class="replyGrid"><button data-reply="ACK" class="good">ACK</button><button data-reply="READY" class="primary">Ready</button><button data-reply="REPEAT?" class="warn">Repeat?</button><button data-reply="CAN'T SEE" class="danger">Can't See</button></div><div class="field" style="margin-top:12px;"><label>Write back</label><input id="customReplyInput" placeholder="Type short reply..."></div><button id="sendCustomReplyBtn" class="primary">Send Reply</button></div>
 <div class="grid"><div class="panel"><h3 style="margin-top:0;">Connected Members</h3><div id="memberList" class="memberList"></div></div><div class="panel"><h3 style="margin-top:0;">Replies</h3><div id="replyList" class="replyList"></div></div></div><div class="panel"><h3 style="margin-top:0;">Cue History</h3><div id="historyList" class="history"></div></div></div>
 <script type="module">
-const firebaseConfig = { apiKey:"PASTE_FIREBASE_API_KEY_HERE", authDomain:"PASTE_PROJECT.firebaseapp.com", databaseURL:"https://PASTE_PROJECT-default-rtdb.europe-west1.firebasedatabase.app", projectId:"PASTE_PROJECT", storageBucket:"PASTE_PROJECT.appspot.com", messagingSenderId:"PASTE_SENDER_ID", appId:"PASTE_APP_ID" };
+  
+const firebaseConfig = {
+    apiKey: "AIzaSyC7L7CCt8Pi2U9QyBFjGRU-USyEQdss3tA",
+    authDomain: "bandcue-cb805.firebaseapp.com",
+    projectId: "bandcue-cb805",
+    storageBucket: "bandcue-cb805.firebasestorage.app",
+    messagingSenderId: "843476594976",
+    appId: "1:843476594976:web:fbff30da3e12eafc402745"
+  };
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";import{getAuth,signInAnonymously,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";import{getDatabase,ref,set,update,push,onValue,onDisconnect,serverTimestamp,remove}from"https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 const hasFirebaseConfig=firebaseConfig.apiKey&&!firebaseConfig.apiKey.includes("PASTE_");let app=null,auth=null,db=null;if(hasFirebaseConfig){app=initializeApp(firebaseConfig);auth=getAuth(app);db=getDatabase(app)}else document.getElementById("configWarning").classList.remove("hidden");
 const state={mode:"leader",uid:"",sessionCode:"",name:"",instrument:"Leader",latestCueId:"",sessionData:null,wakeLock:null,unsubscribeSession:null};
