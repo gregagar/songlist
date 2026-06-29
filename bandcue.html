@@ -24,11 +24,12 @@
 const firebaseConfig = {
     apiKey: "AIzaSyC7L7CCt8Pi2U9QyBFjGRU-USyEQdss3tA",
     authDomain: "bandcue-cb805.firebaseapp.com",
+    databaseURL: "https://bandcue-cb805-default-rtdb.europe-west1.firebasedatabase.app",
     projectId: "bandcue-cb805",
     storageBucket: "bandcue-cb805.firebasestorage.app",
     messagingSenderId: "843476594976",
     appId: "1:843476594976:web:fbff30da3e12eafc402745"
-  };
+};
 import{initializeApp}from"https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";import{getAuth,signInAnonymously,onAuthStateChanged}from"https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";import{getDatabase,ref,set,update,push,onValue,onDisconnect,serverTimestamp,remove}from"https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
 const hasFirebaseConfig=firebaseConfig.apiKey&&!firebaseConfig.apiKey.includes("PASTE_");let app=null,auth=null,db=null;if(hasFirebaseConfig){app=initializeApp(firebaseConfig);auth=getAuth(app);db=getDatabase(app)}else document.getElementById("configWarning").classList.remove("hidden");
 const state={mode:"leader",uid:"",sessionCode:"",name:"",instrument:"Leader",latestCueId:"",sessionData:null,wakeLock:null,unsubscribeSession:null};
