@@ -1,0 +1,2250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BandCue + VisualCue</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#000000">
+
+<style>
+:root{
+    --bg:#000000;
+    --panel:#0f172a;
+    --soft:#1e293b;
+    --soft2:#111827;
+    --text:#e2e8f0;
+    --muted:#94a3b8;
+    --blue:#38bdf8;
+    --green:#34d399;
+    --yellow:#fbbf24;
+    --red:#f87171;
+    --purple:#c084fc;
+}
+
+*{ box-sizing:border-box; }
+
+html,
+body{
+    margin:0;
+    min-height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-text-size-adjust:100%;
+    touch-action:manipulation;
+}
+
+body{
+    padding:
+        calc(env(safe-area-inset-top,0px) + 12px)
+        12px
+        calc(env(safe-area-inset-bottom,0px) + 12px);
+}
+
+button,
+input,
+select,
+textarea{ font-family:inherit; }
+
+button{
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    background:var(--soft);
+    color:var(--text);
+    font-size:16px;
+    font-weight:800;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+
+button:disabled{ opacity:.45; }
+
+input,
+select,
+textarea{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    background:#020617;
+    color:var(--text);
+    font-size:18px;
+    outline:none;
+}
+
+textarea{
+    min-height:86px;
+    resize:vertical;
+}
+
+label{
+    display:block;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:12px;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:1000;
+    letter-spacing:-.5px;
+}
+
+.logo span{ color:var(--blue); }
+
+.small{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 9px;
+    border-radius:999px;
+    background:var(--soft);
+    color:var(--muted);
+    font-size:12px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.badge.online{ color:var(--green); }
+.badge.leader{ color:var(--yellow); }
+
+.panel{
+    background:var(--panel);
+    border:1px solid #1e293b;
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:12px;
+    box-shadow:0 10px 28px rgba(0,0,0,.32);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+@media(max-width:520px){
+    .grid{ grid-template-columns:1fr; }
+}
+
+.row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.field{ margin-bottom:12px; }
+
+.modeButtons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+}
+
+.modeButtons button.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+.primary{ background:#075985; color:white; }
+.good{ background:#065f46; color:white; }
+.warn{ background:#713f12; color:white; }
+.danger{ background:#7f1d1d; color:white; }
+.ghost{ background:#111827; color:var(--muted); }
+.purple{ background:#581c87; color:white; }
+
+.quickGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+@media(min-width:760px){
+    .quickGrid{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+
+.quickGrid button{ min-height:58px; }
+
+.sessionCode{
+    font-size:36px;
+    font-weight:1000;
+    letter-spacing:3px;
+    color:var(--yellow);
+    font-variant-numeric:tabular-nums;
+}
+
+.memberList,
+.replyList,
+.history{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.member,
+.replyItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:#111827;
+}
+
+.memberName{
+    font-size:17px;
+    font-weight:1000;
+}
+
+.memberMeta{
+    color:var(--muted);
+    font-size:13px;
+}
+
+ .member.offline{ opacity:.45; }
+
+.replyThumb{
+    font-size:34px;
+    line-height:1;
+    min-height:64px;
+}
+
+.replyValue{
+    font-size:28px;
+    font-weight:1000;
+    min-width:44px;
+    text-align:right;
+}
+
+.replyValue.positive{
+    color:var(--green);
+}
+
+.replyValue.negative{
+    color:var(--red);
+}
+
+.replyValue.neutral{
+    color:var(--yellow);
+}
+
+.currentCue{
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    border-radius:18px;
+    background:linear-gradient(180deg,#111827,#020617);
+    border:1px solid #334155;
+    padding:20px;
+}
+
+.currentCue.alert{ animation:pulseCue .65s ease 0s 3; }
+
+@keyframes pulseCue{
+    0%{ box-shadow:0 0 0 rgba(56,189,248,0); transform:scale(1); }
+    50%{ box-shadow:0 0 36px rgba(56,189,248,.55); transform:scale(1.015); }
+    100%{ box-shadow:0 0 0 rgba(56,189,248,0); transform:scale(1); }
+}
+
+.cueText{
+    white-space:pre-wrap;
+    font-size:clamp(34px,10vw,86px);
+    line-height:.98;
+    font-weight:1000;
+    letter-spacing:-1.5px;
+    color:white;
+}
+
+.cueMeta{
+    margin-top:12px;
+    color:var(--muted);
+    font-size:14px;
+    font-weight:800;
+}
+
+.cue-next{ border-color:#38bdf8; box-shadow:inset 0 0 0 2px rgba(56,189,248,.25); }
+.cue-vamp{ border-color:#c084fc; box-shadow:inset 0 0 0 2px rgba(192,132,252,.25); }
+.cue-cut{ border-color:#f87171; box-shadow:inset 0 0 0 2px rgba(248,113,113,.3); }
+.cue-ready{ border-color:#34d399; box-shadow:inset 0 0 0 2px rgba(52,211,153,.25); }
+.cue-watch{ border-color:#fbbf24; box-shadow:inset 0 0 0 2px rgba(251,191,36,.25); }
+
+.receiverName{
+    color:var(--blue);
+    font-weight:1000;
+}
+
+.replyGrid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:12px;
+}
+
+@media(min-width:720px){
+    .replyGrid{ grid-template-columns:repeat(4,1fr); }
+}
+
+.history{
+    max-height:260px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+.historyItem{
+    padding:10px 12px;
+    border-radius:12px;
+    background:#111827;
+    color:#cbd5e1;
+}
+
+.historyText{
+    font-weight:1000;
+    white-space:pre-wrap;
+}
+
+.historyMeta{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:4px;
+}
+
+.hidden{ display:none !important; }
+
+.footerButtons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.notice{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.4;
+    padding:10px 12px;
+    background:#020617;
+    border:1px solid #1e293b;
+    border-radius:12px;
+}
+
+.notice strong{ color:var(--yellow); }
+
+#configWarning{
+    color:#fecaca;
+    background:#3f1212;
+    border-color:#7f1d1d;
+}
+
+#leaderCurrentCueBox{
+    min-height:110px;
+    margin-bottom:12px;
+}
+
+#leaderCurrentCueText{
+    font-size:clamp(28px,6vw,56px);
+}
+
+#receiverCueHistoryStrip{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:12px;
+}
+
+.receiverHistoryItem{
+    padding:8px 10px;
+    border-radius:10px;
+    background:#111827;
+    color:#cbd5e1;
+    font-size:13px;
+    font-weight:800;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+#flashOverlay{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:rgba(56,189,248,.35);
+    opacity:0;
+    z-index:999999;
+}
+
+#flashOverlay.flash{
+    animation:screenFlash .55s ease 0s 2;
+}
+
+@keyframes screenFlash{
+    0%{ opacity:0; }
+    45%{ opacity:1; }
+    100%{ opacity:0; }
+}
+
+/* Compact iPad portrait leader layout */
+body.leaderView{
+    padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px);
+}
+
+body.leaderView .header{
+    margin-bottom:6px;
+}
+
+body.leaderView .logo{
+    font-size:22px;
+}
+
+body.leaderView .small{
+    font-size:12px;
+}
+
+body.leaderView .panel{
+    padding:10px;
+    margin-bottom:8px;
+    border-radius:14px;
+}
+
+body.leaderView h2,
+body.leaderView h3{
+    margin:0 0 8px;
+    font-size:16px;
+}
+
+body.leaderView button{
+    padding:8px 10px;
+    font-size:13px;
+    border-radius:10px;
+}
+
+body.leaderView input,
+body.leaderView select,
+body.leaderView textarea{
+    padding:9px 10px;
+    font-size:15px;
+    border-radius:10px;
+}
+
+body.leaderView textarea{
+    min-height:48px;
+}
+
+body.leaderView label{
+    font-size:11px;
+    margin-bottom:4px;
+}
+
+body.leaderView .sessionCode{
+    font-size:23px;
+    letter-spacing:2px;
+}
+
+body.leaderView #leaderCurrentCueBox{
+    min-height:72px;
+    padding:10px;
+    margin-bottom:8px;
+}
+
+body.leaderView #leaderCurrentCueText{
+    font-size:clamp(22px,4.5vw,38px);
+    line-height:1;
+}
+
+body.leaderView .cueMeta{
+    margin-top:6px;
+    font-size:11px;
+}
+
+body.leaderView .field{
+    margin-bottom:8px;
+}
+
+body.leaderView .quickGrid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+}
+
+body.leaderView .quickGrid button{
+    min-height:38px;
+    font-size:12px;
+    padding:7px 6px;
+}
+
+body.leaderView .footerButtons{
+    gap:6px;
+}
+
+body.leaderView .member,
+body.leaderView .replyItem,
+body.leaderView .historyItem{
+    padding:7px 8px;
+    border-radius:10px;
+}
+
+body.leaderView .memberName{
+    font-size:14px;
+}
+
+body.leaderView .memberMeta,
+body.leaderView .historyMeta{
+    font-size:11px;
+}
+
+body.leaderView .history{
+    max-height:110px;
+}
+
+body.leaderView .memberList,
+body.leaderView .replyList{
+    max-height:150px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+body.leaderView #leaderCompactGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+@media(max-width:700px){
+    body.leaderView #leaderCompactGrid{
+        grid-template-columns:1fr;
+    }
+}
+
+
+/* Top tabs */
+.topTabs{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.tabBtn{
+    border-radius:999px;
+    background:#111827;
+    color:var(--muted);
+    box-shadow:inset 0 0 0 1px #1e293b;
+    padding:9px 13px;
+}
+
+.tabBtn.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+body.leaderView .tabBtn{
+    padding:7px 10px;
+    font-size:13px;
+}
+
+#visualCueView.hidden,
+#bandCueView.hidden{
+    display:none !important;
+}
+
+.visualToolbar{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+    align-items:end;
+}
+
+@media(max-width:760px){
+    .visualToolbar{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+.visualToolbar .field{
+    margin-bottom:0;
+}
+
+.visualToolRow{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+}
+
+.visualToolRow button.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+#visualStage{
+    position:relative;
+    width:100%;
+    height:min(72vh, 900px);
+    min-height:430px;
+    background:#050505;
+    border:1px solid #334155;
+    border-radius:18px;
+    overflow:hidden;
+    touch-action:none;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+#visualStage.blank{
+    background:#020617;
+}
+
+#pdfCanvas,
+#drawCanvas{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+#pdfCanvas{
+    background:white;
+}
+
+#drawCanvas{
+    touch-action:none;
+    z-index:2;
+}
+
+#visualStatus{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+}
+
+#pdfUploadInput{
+    display:none;
+}
+
+.colourSwatch{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.colourSwatch button{
+    width:34px;
+    height:34px;
+    border-radius:999px;
+    padding:0;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.18);
+}
+
+.colourSwatch button.active{
+    box-shadow:
+        inset 0 0 0 3px white,
+        0 0 0 2px var(--blue);
+}
+
+body.leaderView #visualStage{
+    height:calc(100vh - 230px);
+    min-height:420px;
+}
+
+body.leaderView .visualToolbar{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+}
+
+</style>
+</head>
+
+<body>
+<div id="flashOverlay"></div>
+
+<div class="header">
+    <div>
+        <div class="topTabs">
+            <button id="bandCueTab" class="tabBtn active">BandCue</button>
+            <button id="visualCueTab" class="tabBtn">VisualCue</button>
+        </div>
+        <div class="small">Leader cues and live visual notes for bands</div>
+    </div>
+    <div id="connectionBadge" class="badge">Offline</div>
+</div>
+
+<div id="configWarning" class="panel hidden">
+    <strong>Firebase config missing.</strong><br>
+    Paste your Firebase web app config into the <code>firebaseConfig</code> object near the top of the script.
+</div>
+
+<div id="setupPanel" class="panel">
+    <div class="field">
+        <label>Mode</label>
+        <div class="modeButtons">
+            <button id="leaderModeBtn" class="active">I am Band Leader</button>
+            <button id="receiverModeBtn">I am Band Mate</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="field">
+            <label>Session code</label>
+            <input id="sessionCodeInput" placeholder="e.g. 4821" inputmode="text" autocomplete="off">
+        </div>
+        <div class="field">
+            <label>Your name</label>
+            <input id="nameInput" placeholder="e.g. Greg" autocomplete="name">
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="field">
+            <label>Instrument / role</label>
+            <select id="instrumentInput">
+                <option value="Leader">Leader</option>
+                <option value="Vocals">Vocals</option>
+                <option value="Piano / Keys">Piano / Keys</option>
+                <option value="Guitar">Guitar</option>
+                <option value="Bass">Bass</option>
+                <option value="Drums">Drums</option>
+                <option value="Sax">Sax</option>
+                <option value="Trumpet">Trumpet</option>
+                <option value="Trombone">Trombone</option>
+                <option value="Strings">Strings</option>
+                <option value="DJ">DJ</option>
+                <option value="Sound Engineer">Sound Engineer</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <button id="connectBtn" class="primary">Create Session</button>
+        </div>
+    </div>
+
+    <div class="notice">
+        First version: band mates keep this page visible, ideally on an iPhone beside their iPad.
+        Later version: iPad Home Screen notifications can show short cues while ForScore stays open.
+    </div>
+</div>
+
+<div id="appPanel" class="hidden">
+    <div class="panel">
+        <div class="row" style="justify-content:space-between;align-items:flex-start;">
+            <div>
+                <div class="small">Session</div>
+                <div id="sessionCodeDisplay" class="sessionCode">----</div>
+            </div>
+            <div style="text-align:right;">
+                <div id="identityDisplay" class="small"></div>
+                <div id="modeBadge" class="badge"></div>
+            </div>
+        </div>
+
+        <div class="footerButtons" style="margin-top:10px;">
+            <button id="copyJoinLinkBtn" class="ghost">Copy Join Link</button>
+            <button id="wakeLockBtn" class="ghost">Keep Screen Awake</button>
+            <button id="leaveBtn" class="danger">Leave</button>
+        </div>
+    </div>
+
+    <div id="bandCueView">
+    <div id="leaderPanel" class="panel hidden">
+        <h2>Band Leader Mode</h2>
+
+        <div id="leaderCurrentCueBox" class="currentCue">
+            <div id="leaderCurrentCueText" class="cueText">No cue sent</div>
+            <div id="leaderCurrentCueMeta" class="cueMeta">Waiting</div>
+        </div>
+
+        <div class="grid">
+            <div class="field">
+                <label>Send to</label>
+                <select id="targetSelect"><option value="all">Everyone</option></select>
+            </div>
+            <div class="field">
+                <label>Next song</label>
+                <div class="row">
+                    <input id="nextSongInput" placeholder="e.g. Valerie">
+                    <button id="sendNextSongBtn" class="good" style="flex:0 0 auto;">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Quick cues</label>
+            <div class="quickGrid">
+                <button data-cue="NEXT SONG CHANGED" data-kind="next" class="primary">Next Changed</button>
+                <button data-cue="SKIP NEXT SONG" data-kind="cut" class="warn">Skip Next</button>
+                <button data-cue="VAMP\nWAIT FOR CUE" data-kind="vamp" class="purple">Vamp</button>
+                <button data-cue="REPEAT CHORUS" data-kind="vamp" class="purple">Repeat Chorus</button>
+                <button data-cue="CUT TO ENDING" data-kind="cut" class="danger">Cut To Ending</button>
+                <button data-cue="END AFTER SOLO" data-kind="cut" class="warn">End After Solo</button>
+                <button data-cue="WATCH ME" data-kind="watch" class="primary">Watch Me</button>
+                <button data-cue="GO STRAIGHT INTO NEXT" data-kind="next" class="good">Straight Into Next</button>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Custom cue</label>
+            <textarea id="customCueInput" placeholder="e.g. NEXT: Valerie, not Mr Brightside"></textarea>
+        </div>
+
+        <div class="footerButtons">
+            <button id="sendCustomCueBtn" class="primary">Send Cue</button>
+            <button id="clearCueBtn" class="ghost">Clear Cue</button>
+            <button id="clearHistoryBtn" class="ghost">Clear History</button>
+            <button id="endSessionBtn" class="danger">End Session</button>
+        </div>
+    </div>
+
+    <div id="receiverPanel" class="panel hidden">
+        <div class="row" style="justify-content:space-between;">
+            <h2 style="margin:0;">Band Mate Mode</h2>
+            <span id="receiverIdentity" class="badge"></span>
+        </div>
+
+        <div id="receiverCueBox" class="currentCue" style="margin-top:14px;">
+            <div id="receiverCueText" class="cueText">Waiting</div>
+            <div id="receiverCueMeta" class="cueMeta">No cue yet</div>
+        </div>
+
+        <div id="receiverCueHistoryStrip"></div>
+
+        <div class="replyGrid">
+            <button data-reply="👍" class="good replyThumb" aria-label="Thumbs up">👍</button>
+            <button data-reply="👎" class="danger replyThumb" aria-label="Thumbs down">👎</button>
+            <button data-reply="REPEAT?" class="warn">Repeat?</button>
+            <button data-reply="CAN'T SEE" class="danger">Can't See</button>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+            <label>Write back</label>
+            <input id="customReplyInput" placeholder="Type short reply...">
+        </div>
+
+        <div class="footerButtons">
+            <button id="sendCustomReplyBtn" class="primary">Send Reply</button>
+            <button id="flashToggleBtn" class="ghost">Flash On</button>
+        </div>
+    </div>
+
+    <div id="leaderCompactGrid">
+        <div class="panel">
+            <h3>Connected Band Mates</h3>
+            <div id="memberList" class="memberList"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Replies</h3>
+            <div id="replyList" class="replyList"></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h3>Cue History</h3>
+        <div id="historyList" class="history"></div>
+    </div>
+    </div><!-- closes bandCueView -->
+
+    <div id="visualCueView" class="hidden">
+        <div class="panel">
+            <h2 style="margin-top:0;">VisualCue</h2>
+
+            <div class="visualToolbar">
+                <div class="field">
+                    <label>PDF / chart</label>
+                    <button id="uploadPdfBtn" class="primary">Upload PDF</button>
+                    <input id="pdfUploadInput" type="file" accept="application/pdf,.pdf">
+                </div>
+
+                <div class="field">
+                    <label>Page</label>
+                    <div class="row">
+                        <button id="prevPdfPageBtn" class="ghost">−</button>
+                        <input id="pdfPageInput" value="1" inputmode="numeric" style="text-align:center;">
+                        <button id="nextPdfPageBtn" class="ghost">+</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Drawing</label>
+                    <div class="row">
+                        <button id="penToolBtn" class="active">Pen</button>
+                        <button id="eraserToolBtn" class="ghost">Eraser</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Actions</label>
+                    <div class="row">
+                        <button id="clearVisualBtn" class="ghost">Clear Drawing</button>
+                        <button id="blankVisualBtn" class="danger">Blank</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualToolRow">
+                <div class="colourSwatch" id="colourSwatch">
+                    <button data-colour="#38bdf8" class="active" style="background:#38bdf8;"></button>
+                    <button data-colour="#fbbf24" style="background:#fbbf24;"></button>
+                    <button data-colour="#f87171" style="background:#f87171;"></button>
+                    <button data-colour="#34d399" style="background:#34d399;"></button>
+                    <button data-colour="#ffffff" style="background:#ffffff;"></button>
+                    <button data-colour="#111827" style="background:#111827;"></button>
+                </div>
+
+                <button id="thinPenBtn" class="ghost">Thin</button>
+                <button id="mediumPenBtn" class="active">Medium</button>
+                <button id="thickPenBtn" class="ghost">Thick</button>
+            </div>
+
+            <div id="visualStatus">
+                Blank visual page. Draw here and it will appear live on every connected Band Mate screen.
+            </div>
+        </div>
+
+        <div id="visualStage" class="blank">
+            <canvas id="pdfCanvas"></canvas>
+            <canvas id="drawCanvas"></canvas>
+        </div>
+    </div>
+</div>
+
+<script type="module">
+const firebaseConfig = {
+    apiKey: "AIzaSyC7L7CCt8Pi2U9QyBFjGRU-USyEQdss3tA",
+    authDomain: "bandcue-cb805.firebaseapp.com",
+    databaseURL: "https://bandcue-cb805-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bandcue-cb805",
+    storageBucket: "bandcue-cb805.firebasestorage.app",
+    messagingSenderId: "843476594976",
+    appId: "1:843476594976:web:fbff30da3e12eafc402745"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+    getAuth,
+    signInAnonymously,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+    getDatabase,
+    ref,
+    set,
+    update,
+    push,
+    onValue,
+    onDisconnect,
+    serverTimestamp,
+    remove
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+const hasFirebaseConfig =
+    firebaseConfig.apiKey &&
+    !firebaseConfig.apiKey.includes("PASTE_");
+
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
+let pdfjsLib = null;
+
+if(hasFirebaseConfig){
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getDatabase(app);
+    storage = getStorage(app);
+}else{
+    document.getElementById("configWarning").classList.remove("hidden");
+}
+
+const state = {
+    mode:"leader",
+    uid:"",
+    sessionCode:"",
+    name:"",
+    instrument:"Leader",
+    latestCueId:"",
+    sessionData:null,
+    wakeLock:null,
+    unsubscribeSession:null,
+    flashOn:localStorage.getItem("bandCueFlashOn") !== "false",
+    activeTab:"bandcue",
+    visual:{
+        tool:"pen",
+        colour:"#38bdf8",
+        width:6,
+        strokes:{},
+        drawing:false,
+        currentStroke:null,
+        currentPdf:null,
+        pdfPage:1,
+        pdfPageCount:0,
+        pdfAspect:1.414
+    }
+};
+
+const $ = id => document.getElementById(id);
+
+const els = {
+    connectionBadge:$("connectionBadge"),
+    bandCueTab:$("bandCueTab"),
+    visualCueTab:$("visualCueTab"),
+    setupPanel:$("setupPanel"),
+    appPanel:$("appPanel"),
+    bandCueView:$("bandCueView"),
+    visualCueView:$("visualCueView"),
+    leaderModeBtn:$("leaderModeBtn"),
+    receiverModeBtn:$("receiverModeBtn"),
+    sessionCodeInput:$("sessionCodeInput"),
+    nameInput:$("nameInput"),
+    instrumentInput:$("instrumentInput"),
+    connectBtn:$("connectBtn"),
+    sessionCodeDisplay:$("sessionCodeDisplay"),
+    identityDisplay:$("identityDisplay"),
+    modeBadge:$("modeBadge"),
+    leaderPanel:$("leaderPanel"),
+    receiverPanel:$("receiverPanel"),
+    targetSelect:$("targetSelect"),
+    nextSongInput:$("nextSongInput"),
+    sendNextSongBtn:$("sendNextSongBtn"),
+    customCueInput:$("customCueInput"),
+    sendCustomCueBtn:$("sendCustomCueBtn"),
+    clearCueBtn:$("clearCueBtn"),
+    clearHistoryBtn:$("clearHistoryBtn"),
+    endSessionBtn:$("endSessionBtn"),
+    leaderCurrentCueBox:$("leaderCurrentCueBox"),
+    leaderCurrentCueText:$("leaderCurrentCueText"),
+    leaderCurrentCueMeta:$("leaderCurrentCueMeta"),
+    receiverIdentity:$("receiverIdentity"),
+    receiverCueBox:$("receiverCueBox"),
+    receiverCueText:$("receiverCueText"),
+    receiverCueMeta:$("receiverCueMeta"),
+    receiverCueHistoryStrip:$("receiverCueHistoryStrip"),
+    customReplyInput:$("customReplyInput"),
+    sendCustomReplyBtn:$("sendCustomReplyBtn"),
+    flashToggleBtn:$("flashToggleBtn"),
+    memberList:$("memberList"),
+    replyList:$("replyList"),
+    historyList:$("historyList"),
+    copyJoinLinkBtn:$("copyJoinLinkBtn"),
+    wakeLockBtn:$("wakeLockBtn"),
+    leaveBtn:$("leaveBtn"),
+    flashOverlay:$("flashOverlay"),
+    uploadPdfBtn:$("uploadPdfBtn"),
+    pdfUploadInput:$("pdfUploadInput"),
+    prevPdfPageBtn:$("prevPdfPageBtn"),
+    nextPdfPageBtn:$("nextPdfPageBtn"),
+    pdfPageInput:$("pdfPageInput"),
+    penToolBtn:$("penToolBtn"),
+    eraserToolBtn:$("eraserToolBtn"),
+    clearVisualBtn:$("clearVisualBtn"),
+    blankVisualBtn:$("blankVisualBtn"),
+    colourSwatch:$("colourSwatch"),
+    thinPenBtn:$("thinPenBtn"),
+    mediumPenBtn:$("mediumPenBtn"),
+    thickPenBtn:$("thickPenBtn"),
+    visualStatus:$("visualStatus"),
+    visualStage:$("visualStage"),
+    pdfCanvas:$("pdfCanvas"),
+    drawCanvas:$("drawCanvas")
+};
+
+function makeSessionCode(){
+    return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function cleanSessionCode(value){
+    return String(value || "")
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 10);
+}
+
+function cleanText(value){
+    return String(value || "")
+        .trim()
+        .replace(/\s+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .slice(0, 240);
+}
+
+function formatTime(timestamp){
+    if(!timestamp || typeof timestamp !== "number"){
+        return "";
+    }
+
+    return new Date(timestamp).toLocaleTimeString([], {
+        hour:"2-digit",
+        minute:"2-digit"
+    });
+}
+
+function getSessionRef(path = ""){
+    const base = `bandCueSessions/${state.sessionCode}`;
+
+    return ref(
+        db,
+        path ? `${base}/${path}` : base
+    );
+}
+
+function escapeHtml(value){
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function escapeAttr(value){
+    return escapeHtml(value).replace(/'/g, "&#039;");
+}
+
+function getCueKindFromText(text){
+    const t = String(text || "").toUpperCase();
+
+    if(t.includes("NEXT") || t.includes("STRAIGHT INTO")) return "next";
+    if(t.includes("VAMP") || t.includes("REPEAT")) return "vamp";
+    if(t.includes("CUT") || t.includes("SKIP") || t.includes("END")) return "cut";
+    if(t.includes("READY") || t.includes("👍")) return "ready";
+    if(t.includes("WATCH")) return "watch";
+
+    return "custom";
+}
+
+function cueKindClass(kind){
+    return {
+        next:"cue-next",
+        vamp:"cue-vamp",
+        cut:"cue-cut",
+        ready:"cue-ready",
+        watch:"cue-watch"
+    }[kind] || "";
+}
+
+function applyCueClass(box, kind){
+    if(!box) return;
+
+    box.classList.remove(
+        "cue-next",
+        "cue-vamp",
+        "cue-cut",
+        "cue-ready",
+        "cue-watch"
+    );
+
+    const cls = cueKindClass(kind);
+    if(cls){ box.classList.add(cls); }
+}
+
+function targetLabel(target, members){
+    if(!target || target === "all") return "Everyone";
+
+    if(target.startsWith("instrument:")){
+        return target.replace("instrument:", "") + " players";
+    }
+
+    const member = members && members[target];
+    if(member){
+        return `${member.name || "Band Mate"} (${member.instrument || "Other"})`;
+    }
+
+    return "One band mate";
+}
+
+function setMode(mode){
+    state.mode = mode;
+
+    els.leaderModeBtn.classList.toggle("active", mode === "leader");
+    els.receiverModeBtn.classList.toggle("active", mode === "receiver");
+
+    els.instrumentInput.value =
+        mode === "leader"
+            ? "Leader"
+            : (
+                els.instrumentInput.value === "Leader"
+                    ? "Guitar"
+                    : els.instrumentInput.value
+            );
+
+    els.connectBtn.innerText =
+        mode === "leader"
+            ? "Create Session"
+            : "Join Session";
+
+    if(mode === "leader" && !els.sessionCodeInput.value){
+        els.sessionCodeInput.value = makeSessionCode();
+    }
+}
+
+function updateConnectionBadge(text, online = false){
+    els.connectionBadge.innerText = text;
+    els.connectionBadge.classList.toggle("online", online);
+}
+
+async function ensureSignedIn(){
+    if(!hasFirebaseConfig){
+        throw new Error("Firebase config missing.");
+    }
+
+    if(state.uid){
+        return state.uid;
+    }
+
+    const credential = await signInAnonymously(auth);
+    state.uid = credential.user.uid;
+
+    return state.uid;
+}
+
+async function connect(){
+    try{
+        els.connectBtn.disabled = true;
+
+        await ensureSignedIn();
+
+        const requestedCode = cleanSessionCode(els.sessionCodeInput.value);
+
+        state.sessionCode = requestedCode || makeSessionCode();
+        state.name = cleanText(els.nameInput.value) || (state.mode === "leader" ? "Band Leader" : "Band Mate");
+        state.instrument = cleanText(els.instrumentInput.value) || (state.mode === "leader" ? "Leader" : "Other");
+
+        if(state.mode === "leader"){
+            await update(getSessionRef("meta"), {
+                createdAt:serverTimestamp(),
+                updatedAt:serverTimestamp(),
+                leaderId:state.uid,
+                leaderName:state.name,
+                active:true
+            });
+        }
+
+        await set(getSessionRef(`members/${state.uid}`), {
+            id:state.uid,
+            name:state.name,
+            instrument:state.instrument,
+            mode:state.mode,
+            online:true,
+            joinedAt:serverTimestamp(),
+            lastSeen:serverTimestamp()
+        });
+
+        onDisconnect(getSessionRef(`members/${state.uid}`))
+            .update({
+                online:false,
+                lastSeen:serverTimestamp()
+            });
+
+        showApp();
+        listenToSession();
+
+    }catch(err){
+        console.error(err);
+
+        alert(
+            "BandCue error:\n\n" +
+            (err.code ? err.code + "\n\n" : "") +
+            (err.message || String(err))
+        );
+
+    }finally{
+        els.connectBtn.disabled = false;
+    }
+}
+
+function showApp(){
+    els.setupPanel.classList.add("hidden");
+    els.appPanel.classList.remove("hidden");
+
+    document.body.classList.toggle("leaderView", state.mode === "leader");
+    document.body.classList.toggle("receiverView", state.mode === "receiver");
+
+    els.sessionCodeDisplay.innerText = state.sessionCode;
+
+    els.identityDisplay.innerHTML =
+        `<span class="receiverName">${escapeHtml(state.name)}</span><br>${escapeHtml(state.instrument)}`;
+
+    els.modeBadge.innerText = state.mode === "leader" ? "Leader" : "Band Mate";
+    els.modeBadge.classList.toggle("leader", state.mode === "leader");
+
+    els.leaderPanel.classList.toggle("hidden", state.mode !== "leader");
+    els.receiverPanel.classList.toggle("hidden", state.mode !== "receiver");
+
+    els.receiverIdentity.innerText = `${state.name} • ${state.instrument}`;
+
+    updateConnectionBadge("Connected", true);
+    updateFlashButton();
+    saveLocalIdentity();
+    updateUrl();
+    setActiveTab(state.activeTab || "bandcue");
+}
+
+function listenToSession(){
+    if(state.unsubscribeSession){
+        state.unsubscribeSession();
+    }
+
+    state.unsubscribeSession = onValue(getSessionRef(), snapshot => {
+        const data = snapshot.val() || {};
+
+        state.sessionData = data;
+
+        renderMembers(data.members || {});
+        renderTargetOptions(data.members || {});
+        renderCurrentCue(data.currentCue || null);
+        renderReplies(data);
+        renderHistory(data.cues || {}, data.members || {});
+        renderReceiverHistory(data.cues || {});
+        renderVisualCue(data.visual || {});
+    });
+}
+
+function renderMembers(members){
+    const list = Object.values(members || {})
+        .sort((a,b) => {
+            if(a.mode === "leader" && b.mode !== "leader") return -1;
+            if(a.mode !== "leader" && b.mode === "leader") return 1;
+            return String(a.name || "").localeCompare(String(b.name || ""));
+        });
+
+    if(!list.length){
+        els.memberList.innerHTML = `<div class="small">No band mates connected yet.</div>`;
+        return;
+    }
+
+    els.memberList.innerHTML = list.map(member => `
+        <div class="member ${member.online ? "" : "offline"}">
+            <div>
+                <div class="memberName">
+                    ${escapeHtml(member.name || "Unknown")}${member.mode === "leader" ? " ⭐" : ""}
+                </div>
+                <div class="memberMeta">${escapeHtml(member.instrument || "Other")}</div>
+            </div>
+            <span class="badge ${member.online ? "online" : ""}">
+                ${member.online ? "Online" : "Away"}
+            </span>
+        </div>
+    `).join("");
+}
+
+function renderTargetOptions(members){
+    if(state.mode !== "leader") return;
+
+    const current = els.targetSelect.value || "all";
+
+    const receivers = Object.values(members || {})
+        .filter(member => member.id !== state.uid)
+        .sort((a,b) => String(a.name || "").localeCompare(String(b.name || "")));
+
+    const instruments = [...new Set(
+        receivers
+            .map(member => String(member.instrument || "Other").trim())
+            .filter(Boolean)
+    )].sort();
+
+    els.targetSelect.innerHTML =
+        `<option value="all">Everyone</option>` +
+        instruments.map(instrument =>
+            `<option value="instrument:${escapeAttr(instrument)}">All ${escapeHtml(instrument)}</option>`
+        ).join("") +
+        receivers.map(member =>
+            `<option value="${escapeAttr(member.id)}">${escapeHtml(member.name || "Unknown")} — ${escapeHtml(member.instrument || "Other")}</option>`
+        ).join("");
+
+    const validTargets = [
+        "all",
+        ...instruments.map(i => `instrument:${i}`),
+        ...receivers.map(m => m.id)
+    ];
+
+    if(validTargets.includes(current)){
+        els.targetSelect.value = current;
+    }
+}
+
+function cueAppliesToMe(cue){
+    if(!cue) return false;
+
+    if(cue.target === "all" || cue.target === state.uid){
+        return true;
+    }
+
+    if(String(cue.target || "").startsWith("instrument:")){
+        const targetInstrument = String(cue.target).replace("instrument:", "");
+        return targetInstrument === state.instrument;
+    }
+
+    return false;
+}
+
+function renderCurrentCue(cue){
+    const members = state.sessionData && state.sessionData.members ? state.sessionData.members : {};
+
+    if(state.mode === "leader"){
+        if(!cue || !cue.text){
+            els.leaderCurrentCueText.innerText = "No cue sent";
+            els.leaderCurrentCueMeta.innerText = "Waiting";
+            applyCueClass(els.leaderCurrentCueBox, "");
+            return;
+        }
+
+        const kind = cue.kind || getCueKindFromText(cue.text);
+
+        els.leaderCurrentCueText.innerText = cue.text;
+        els.leaderCurrentCueMeta.innerText =
+            `Sent to ${targetLabel(cue.target, members)} • ${formatTime(cue.createdAtMs)}`;
+
+        applyCueClass(els.leaderCurrentCueBox, kind);
+
+        if(cue.id && cue.id !== state.latestCueId){
+            state.latestCueId = cue.id;
+            els.leaderCurrentCueBox.classList.remove("alert");
+            void els.leaderCurrentCueBox.offsetWidth;
+            els.leaderCurrentCueBox.classList.add("alert");
+        }
+
+        return;
+    }
+
+    if(state.mode !== "receiver") return;
+
+    if(!cue || !cue.text || !cueAppliesToMe(cue)){
+        els.receiverCueText.innerText = "Waiting";
+        els.receiverCueMeta.innerText = "No cue yet";
+        applyCueClass(els.receiverCueBox, "");
+        return;
+    }
+
+    const kind = cue.kind || getCueKindFromText(cue.text);
+
+    els.receiverCueText.innerText = cue.text;
+    els.receiverCueMeta.innerText = `${cue.fromName || "Leader"} • ${formatTime(cue.createdAtMs)}`;
+
+    applyCueClass(els.receiverCueBox, kind);
+
+    if(cue.id && cue.id !== state.latestCueId){
+        state.latestCueId = cue.id;
+        alertReceiverCue();
+    }
+}
+
+function alertReceiverCue(){
+    els.receiverCueBox.classList.remove("alert");
+    void els.receiverCueBox.offsetWidth;
+    els.receiverCueBox.classList.add("alert");
+
+    if(state.flashOn){
+        els.flashOverlay.classList.remove("flash");
+        void els.flashOverlay.offsetWidth;
+        els.flashOverlay.classList.add("flash");
+    }
+
+    if(navigator.vibrate){
+        navigator.vibrate([150,80,150]);
+    }
+}
+
+function getReplyClass(replyText){
+    const text = String(replyText || "").toUpperCase();
+
+    if(text.includes("👍")){
+        return "positive";
+    }
+
+    if(
+        text.includes("👎") ||
+        text.includes("CAN'T") ||
+        text.includes("CANT")
+    ){
+        return "negative";
+    }
+
+    return "neutral";
+}
+
+function renderReplies(data){
+    const cue = data.currentCue || null;
+
+    if(!cue || !cue.id){
+        els.replyList.innerHTML = `<div class="small">No active cue replies yet.</div>`;
+        return;
+    }
+
+    const replies = data.replies && data.replies[cue.id] ? data.replies[cue.id] : {};
+
+    const list = Object.values(replies)
+        .sort((a,b) => Number(a.createdAtMs || 0) - Number(b.createdAtMs || 0));
+
+    if(!list.length){
+        els.replyList.innerHTML = `<div class="small">No replies yet.</div>`;
+        return;
+    }
+
+    els.replyList.innerHTML = list.map(reply => `
+        <div class="replyItem">
+            <div>
+                <strong>${escapeHtml(reply.name || "Unknown")}</strong>
+                <div class="memberMeta">${escapeHtml(reply.instrument || "")}</div>
+            </div>
+            <div class="replyValue ${getReplyClass(reply.reply)}">${escapeHtml(reply.reply || "")}</div>
+        </div>
+    `).join("");
+}
+
+function renderHistory(cues, members){
+    const list = Object.values(cues || {})
+        .sort((a,b) => Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0))
+        .slice(0,30);
+
+    if(!list.length){
+        els.historyList.innerHTML = `<div class="small">No cues sent yet.</div>`;
+        return;
+    }
+
+    els.historyList.innerHTML = list.map(cue => `
+        <div class="historyItem">
+            <div class="historyText">${escapeHtml(cue.text || "")}</div>
+            <div class="historyMeta">
+                ${escapeHtml(cue.fromName || "Leader")}
+                → ${escapeHtml(targetLabel(cue.target, members))}
+                ${cue.createdAtMs ? " • " + formatTime(cue.createdAtMs) : ""}
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderReceiverHistory(cues){
+    if(state.mode !== "receiver") return;
+
+    const list = Object.values(cues || {})
+        .filter(cue => cueAppliesToMe(cue))
+        .sort((a,b) => Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0))
+        .slice(1,4);
+
+    if(!list.length){
+        els.receiverCueHistoryStrip.innerHTML = "";
+        return;
+    }
+
+    els.receiverCueHistoryStrip.innerHTML =
+        `<div class="small">Previous cues</div>` +
+        list.map(cue => `
+            <div class="receiverHistoryItem">
+                ${escapeHtml(cue.text || "")}
+            </div>
+        `).join("");
+}
+
+async function sendCue(text, kind = ""){
+    if(state.mode !== "leader") return;
+
+    text = cleanText(text);
+
+    if(!text){
+        alert("Enter a cue first.");
+        return;
+    }
+
+    const cueRef = push(getSessionRef("cues"));
+
+    const cue = {
+        id:cueRef.key,
+        text,
+        kind:kind || getCueKindFromText(text),
+        target:els.targetSelect.value || "all",
+        fromId:state.uid,
+        fromName:state.name,
+        createdAt:serverTimestamp(),
+        createdAtMs:Date.now()
+    };
+
+    await set(cueRef, cue);
+    await set(getSessionRef("currentCue"), cue);
+
+    els.customCueInput.value = "";
+}
+
+async function clearCue(){
+    if(state.mode !== "leader") return;
+    await remove(getSessionRef("currentCue"));
+}
+
+async function clearHistory(){
+    if(state.mode !== "leader") return;
+
+    const sure = confirm("Clear cue history and replies for this session?");
+    if(!sure) return;
+
+    await remove(getSessionRef("cues"));
+    await remove(getSessionRef("replies"));
+}
+
+async function endSession(){
+    if(state.mode !== "leader") return;
+
+    const sure = confirm(
+        "End this BandCue session?\n\n" +
+        "This clears the active cue, history, replies and connected band mates."
+    );
+
+    if(!sure) return;
+
+    await remove(getSessionRef());
+    localStorage.removeItem("bandCueLastSession");
+    location.href = location.pathname;
+}
+
+async function sendReply(replyText){
+    replyText = cleanText(replyText);
+    if(!replyText) return;
+
+    const cue = state.sessionData && state.sessionData.currentCue ? state.sessionData.currentCue : null;
+
+    if(!cue || !cue.id){
+        alert("No active cue to reply to.");
+        return;
+    }
+
+    await set(getSessionRef(`replies/${cue.id}/${state.uid}`), {
+        memberId:state.uid,
+        name:state.name,
+        instrument:state.instrument,
+        reply:replyText,
+        createdAt:serverTimestamp(),
+        createdAtMs:Date.now()
+    });
+
+    els.customReplyInput.value = "";
+}
+
+async function leaveSession(){
+    if(!state.sessionCode || !state.uid){
+        location.reload();
+        return;
+    }
+
+    try{
+        await update(getSessionRef(`members/${state.uid}`), {
+            online:false,
+            lastSeen:serverTimestamp()
+        });
+    }catch(e){}
+
+    localStorage.removeItem("bandCueLastSession");
+    location.href = location.pathname;
+}
+
+function saveLocalIdentity(){
+    localStorage.setItem("bandCueLastSession", JSON.stringify({
+        mode:state.mode,
+        sessionCode:state.sessionCode,
+        name:state.name,
+        instrument:state.instrument
+    }));
+}
+
+function restoreFromUrlOrStorage(){
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode");
+    const session = params.get("session");
+
+    if(mode === "leader" || mode === "receiver"){
+        setMode(mode);
+    }
+
+    if(session){
+        els.sessionCodeInput.value = cleanSessionCode(session);
+    }
+
+    try{
+        const saved = JSON.parse(localStorage.getItem("bandCueLastSession") || "null");
+
+        if(saved){
+            if(!mode && saved.mode){ setMode(saved.mode); }
+            if(!els.sessionCodeInput.value && saved.sessionCode){ els.sessionCodeInput.value = saved.sessionCode; }
+            if(saved.name){ els.nameInput.value = saved.name; }
+            if(saved.instrument){ els.instrumentInput.value = saved.instrument; }
+        }
+    }catch(e){}
+
+    if(!els.sessionCodeInput.value){
+        els.sessionCodeInput.value = makeSessionCode();
+    }
+}
+
+function updateUrl(){
+    const url = new URL(location.href);
+    url.searchParams.set("session", state.sessionCode);
+    url.searchParams.set("mode", state.mode);
+    history.replaceState(null, "", url.toString());
+}
+
+async function copyJoinLink(){
+    const url = new URL(location.href);
+    url.searchParams.set("session", state.sessionCode);
+    url.searchParams.set("mode", "receiver");
+
+    try{
+        await navigator.clipboard.writeText(url.toString());
+        alert("Band mate join link copied.");
+    }catch(e){
+        prompt("Copy this band mate join link:", url.toString());
+    }
+}
+
+async function toggleWakeLock(){
+    if(!("wakeLock" in navigator)){
+        alert("This browser does not support screen wake lock. On iPhone, set Auto-Lock to Never for best receiver use.");
+        return;
+    }
+
+    try{
+        if(state.wakeLock){
+            await state.wakeLock.release();
+            state.wakeLock = null;
+            els.wakeLockBtn.innerText = "Keep Screen Awake";
+            return;
+        }
+
+        state.wakeLock = await navigator.wakeLock.request("screen");
+
+        state.wakeLock.addEventListener("release", () => {
+            state.wakeLock = null;
+            els.wakeLockBtn.innerText = "Keep Screen Awake";
+        });
+
+        els.wakeLockBtn.innerText = "Screen Awake On";
+
+    }catch(err){
+        alert("Could not keep screen awake. Check browser support/settings.");
+    }
+}
+
+function updateFlashButton(){
+    if(!els.flashToggleBtn) return;
+    els.flashToggleBtn.innerText = state.flashOn ? "Flash On" : "Flash Off";
+    els.flashToggleBtn.classList.toggle("primary", state.flashOn);
+    els.flashToggleBtn.classList.toggle("ghost", !state.flashOn);
+}
+
+function toggleFlash(){
+    state.flashOn = !state.flashOn;
+    localStorage.setItem("bandCueFlashOn", state.flashOn ? "true" : "false");
+    updateFlashButton();
+}
+
+
+function setActiveTab(tab){
+    state.activeTab = tab;
+
+    els.bandCueTab.classList.toggle("active", tab === "bandcue");
+    els.visualCueTab.classList.toggle("active", tab === "visual");
+
+    if(els.appPanel.classList.contains("hidden")){
+        alert("Create or join a BandCue session first.");
+        els.bandCueTab.classList.add("active");
+        els.visualCueTab.classList.remove("active");
+        state.activeTab = "bandcue";
+        return;
+    }
+
+    els.bandCueView.classList.toggle("hidden", tab !== "bandcue");
+    els.visualCueView.classList.toggle("hidden", tab !== "visual");
+
+    if(tab === "visual"){
+        setTimeout(() => {
+            resizeVisualCanvases();
+            redrawVisual();
+        }, 50);
+    }
+}
+
+async function ensurePdfJs(){
+    if(pdfjsLib) return pdfjsLib;
+
+    pdfjsLib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.min.mjs");
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.worker.min.mjs";
+
+    return pdfjsLib;
+}
+
+function visualRef(path = ""){
+    return getSessionRef(path ? `visual/${path}` : "visual");
+}
+
+function setVisualStatus(text){
+    if(els.visualStatus){
+        els.visualStatus.innerText = text;
+    }
+}
+
+function resizeVisualCanvases(){
+    const stage = els.visualStage;
+    if(!stage) return;
+
+    const rect = stage.getBoundingClientRect();
+    const cssWidth = Math.max(320, Math.floor(rect.width));
+    const cssHeight = Math.max(320, Math.floor(rect.height));
+    const ratio = window.devicePixelRatio || 1;
+
+    [els.pdfCanvas, els.drawCanvas].forEach(canvas => {
+        canvas.width = Math.floor(cssWidth * ratio);
+        canvas.height = Math.floor(cssHeight * ratio);
+        canvas.style.width = cssWidth + "px";
+        canvas.style.height = cssHeight + "px";
+    });
+
+    renderPdfBackground();
+    redrawVisual();
+}
+
+function clearCanvas(canvas, transparent = true){
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if(!transparent){
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+async function renderPdfBackground(){
+    if(!els.pdfCanvas) return;
+
+    const ctx = els.pdfCanvas.getContext("2d");
+    clearCanvas(els.pdfCanvas, false);
+
+    const pdfInfo = state.visual.currentPdf;
+
+    if(!pdfInfo || !pdfInfo.url){
+        els.visualStage.classList.add("blank");
+        setVisualStatus("Blank visual page. Draw here and it will appear live on every connected Band Mate screen.");
+        return;
+    }
+
+    try{
+        els.visualStage.classList.remove("blank");
+        setVisualStatus("Loading PDF page...");
+
+        const pdfjs = await ensurePdfJs();
+        const pdf = await pdfjs.getDocument({ url:pdfInfo.url }).promise;
+        const pageNumber = Math.min(Math.max(1, Number(state.visual.pdfPage || 1)), pdf.numPages);
+        state.visual.pdfPageCount = pdf.numPages;
+        state.visual.pdfPage = pageNumber;
+        els.pdfPageInput.value = pageNumber;
+
+        const page = await pdf.getPage(pageNumber);
+        const unscaled = page.getViewport({ scale:1 });
+        const scale = Math.min(
+            els.pdfCanvas.width / unscaled.width,
+            els.pdfCanvas.height / unscaled.height
+        );
+        const viewport = page.getViewport({ scale });
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, els.pdfCanvas.width, els.pdfCanvas.height);
+
+        const offsetX = (els.pdfCanvas.width - viewport.width) / 2;
+        const offsetY = (els.pdfCanvas.height - viewport.height) / 2;
+
+        await page.render({
+            canvasContext:ctx,
+            viewport,
+            transform:[1,0,0,1,offsetX,offsetY]
+        }).promise;
+
+        setVisualStatus(
+            `${pdfInfo.name || "PDF"} • page ${pageNumber} of ${pdf.numPages}. Drawings sync live to all connected Band Mates.`
+        );
+
+    }catch(err){
+        console.error(err);
+        setVisualStatus("Could not load this PDF. The drawing layer still works.");
+    }
+}
+
+function renderVisualCue(visual){
+    state.visual.strokes = visual.strokes || {};
+
+    const pdf = visual.pdf || null;
+    const page = Number(visual.pdfPage || 1);
+    const changedPdf = JSON.stringify(pdf || {}) !== JSON.stringify(state.visual.currentPdf || {});
+    const changedPage = page !== state.visual.pdfPage;
+
+    state.visual.currentPdf = pdf;
+    state.visual.pdfPage = page;
+
+    if(changedPdf || changedPage){
+        renderPdfBackground();
+    }
+
+    redrawVisual();
+}
+
+function redrawVisual(){
+    if(!els.drawCanvas) return;
+
+    const ctx = els.drawCanvas.getContext("2d");
+    clearCanvas(els.drawCanvas, true);
+
+    const activePage = Number(state.visual.pdfPage || 1);
+
+    const strokes = Object.values(state.visual.strokes || {})
+        .filter(stroke => Number(stroke.page || 1) === activePage)
+        .sort((a,b) => Number(a.createdAtMs || 0) - Number(b.createdAtMs || 0));
+
+    strokes.forEach(stroke => drawStroke(ctx, stroke));
+}
+
+function drawStroke(ctx, stroke){
+    const points = stroke.points || [];
+    if(points.length < 2) return;
+
+    const w = els.drawCanvas.width;
+    const h = els.drawCanvas.height;
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = stroke.tool === "eraser" ? "rgba(0,0,0,1)" : (stroke.colour || "#38bdf8");
+    ctx.lineWidth = Number(stroke.width || 6) * (window.devicePixelRatio || 1);
+
+    if(stroke.tool === "eraser"){
+        ctx.globalCompositeOperation = "destination-out";
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x * w, points[0].y * h);
+
+    for(let i = 1; i < points.length; i++){
+        ctx.lineTo(points[i].x * w, points[i].y * h);
+    }
+
+    ctx.stroke();
+    ctx.restore();
+}
+
+function pointerToVisualPoint(event){
+    const rect = els.drawCanvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+
+    return {
+        x:Math.min(1, Math.max(0, x)),
+        y:Math.min(1, Math.max(0, y))
+    };
+}
+
+function beginVisualDraw(event){
+    if(els.visualCueView.classList.contains("hidden")) return;
+
+    event.preventDefault();
+    els.drawCanvas.setPointerCapture(event.pointerId);
+
+    state.visual.drawing = true;
+    state.visual.currentStroke = {
+        id:"local_" + Date.now(),
+        tool:state.visual.tool,
+        colour:state.visual.colour,
+        width:state.visual.width,
+        byId:state.uid,
+        byName:state.name,
+        page:Number(state.visual.pdfPage || 1),
+        points:[pointerToVisualPoint(event)],
+        createdAtMs:Date.now()
+    };
+}
+
+function moveVisualDraw(event){
+    if(!state.visual.drawing || !state.visual.currentStroke) return;
+
+    event.preventDefault();
+    const point = pointerToVisualPoint(event);
+    const points = state.visual.currentStroke.points;
+    const last = points[points.length - 1];
+
+    const dx = point.x - last.x;
+    const dy = point.y - last.y;
+
+    if(Math.sqrt(dx * dx + dy * dy) < 0.002){
+        return;
+    }
+
+    points.push(point);
+
+    const ctx = els.drawCanvas.getContext("2d");
+    drawStroke(ctx, {
+        ...state.visual.currentStroke,
+        points:[last, point]
+    });
+}
+
+async function endVisualDraw(event){
+    if(!state.visual.drawing || !state.visual.currentStroke) return;
+
+    event.preventDefault();
+    state.visual.drawing = false;
+
+    const stroke = state.visual.currentStroke;
+    state.visual.currentStroke = null;
+
+    if((stroke.points || []).length < 2){
+        return;
+    }
+
+    const newRef = push(visualRef("strokes"));
+    stroke.id = newRef.key;
+    stroke.createdAt = serverTimestamp();
+    stroke.createdAtMs = Date.now();
+
+    await set(newRef, stroke);
+}
+
+function setVisualTool(tool){
+    state.visual.tool = tool;
+    els.penToolBtn.classList.toggle("active", tool === "pen");
+    els.eraserToolBtn.classList.toggle("active", tool === "eraser");
+    els.penToolBtn.classList.toggle("ghost", tool !== "pen");
+    els.eraserToolBtn.classList.toggle("ghost", tool !== "eraser");
+}
+
+function setVisualWidth(width){
+    state.visual.width = width;
+    els.thinPenBtn.classList.toggle("active", width === 3);
+    els.mediumPenBtn.classList.toggle("active", width === 6);
+    els.thickPenBtn.classList.toggle("active", width === 12);
+    els.thinPenBtn.classList.toggle("ghost", width !== 3);
+    els.mediumPenBtn.classList.toggle("ghost", width !== 6);
+    els.thickPenBtn.classList.toggle("ghost", width !== 12);
+}
+
+async function uploadVisualPdf(file){
+    if(!file) return;
+
+    if(!storage){
+        alert("Firebase Storage is not available yet.");
+        return;
+    }
+
+    if(file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")){
+        alert("Please choose a PDF file.");
+        return;
+    }
+
+    try{
+        setVisualStatus("Uploading PDF...");
+
+        const safeName = file.name.replace(/[^a-z0-9._-]/gi, "_");
+        const path = `bandCueSessions/${state.sessionCode}/visual/${Date.now()}_${safeName}`;
+        const fileRef = storageRef(storage, path);
+
+        await uploadBytes(fileRef, file, {
+            contentType:"application/pdf"
+        });
+
+        const url = await getDownloadURL(fileRef);
+
+        await update(visualRef(), {
+            pdf:{
+                name:file.name,
+                url,
+                path,
+                uploadedBy:state.name,
+                uploadedAtMs:Date.now()
+            },
+            pdfPage:1
+        });
+
+        setVisualStatus("PDF uploaded. Loading page...");
+
+    }catch(err){
+        console.error(err);
+        alert(
+            "Could not upload PDF.\n\n" +
+            (err.code ? err.code + "\n\n" : "") +
+            (err.message || String(err))
+        );
+    }
+}
+
+async function setVisualPdfPage(page){
+    page = Math.max(1, Number(page || 1));
+
+    if(state.visual.pdfPageCount){
+        page = Math.min(page, state.visual.pdfPageCount);
+    }
+
+    await update(visualRef(), {
+        pdfPage:page
+    });
+}
+
+async function clearVisualDrawing(){
+    const page = Number(state.visual.pdfPage || 1);
+    const sure = confirm("Clear the VisualCue drawing layer on this page for everyone?");
+    if(!sure) return;
+
+    const strokes = state.visual.strokes || {};
+    const removals = Object.entries(strokes)
+        .filter(([key, stroke]) => Number(stroke.page || 1) === page)
+        .map(([key]) => remove(visualRef(`strokes/${key}`)));
+
+    await Promise.all(removals);
+}
+
+async function blankVisualPage(){
+    const sure = confirm("Clear the PDF and drawing layer for everyone?");
+    if(!sure) return;
+
+    await remove(visualRef());
+    state.visual.currentPdf = null;
+    state.visual.pdfPage = 1;
+    state.visual.pdfPageCount = 0;
+    state.visual.strokes = {};
+    renderPdfBackground();
+    redrawVisual();
+}
+
+
+els.bandCueTab.onclick = () => setActiveTab("bandcue");
+els.visualCueTab.onclick = () => setActiveTab("visual");
+
+els.uploadPdfBtn.onclick = () => els.pdfUploadInput.click();
+els.pdfUploadInput.onchange = e => uploadVisualPdf(e.target.files && e.target.files[0]);
+els.prevPdfPageBtn.onclick = () => setVisualPdfPage(Number(state.visual.pdfPage || 1) - 1);
+els.nextPdfPageBtn.onclick = () => setVisualPdfPage(Number(state.visual.pdfPage || 1) + 1);
+els.pdfPageInput.addEventListener("change", () => setVisualPdfPage(els.pdfPageInput.value));
+els.penToolBtn.onclick = () => setVisualTool("pen");
+els.eraserToolBtn.onclick = () => setVisualTool("eraser");
+els.thinPenBtn.onclick = () => setVisualWidth(3);
+els.mediumPenBtn.onclick = () => setVisualWidth(6);
+els.thickPenBtn.onclick = () => setVisualWidth(12);
+els.clearVisualBtn.onclick = clearVisualDrawing;
+els.blankVisualBtn.onclick = blankVisualPage;
+
+els.colourSwatch.querySelectorAll("button[data-colour]").forEach(button => {
+    button.onclick = () => {
+        state.visual.colour = button.dataset.colour;
+        els.colourSwatch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+        setVisualTool("pen");
+    };
+});
+
+els.drawCanvas.addEventListener("pointerdown", beginVisualDraw);
+els.drawCanvas.addEventListener("pointermove", moveVisualDraw);
+els.drawCanvas.addEventListener("pointerup", endVisualDraw);
+els.drawCanvas.addEventListener("pointercancel", endVisualDraw);
+window.addEventListener("resize", () => {
+    if(!els.visualCueView.classList.contains("hidden")){
+        resizeVisualCanvases();
+    }
+});
+
+els.leaderModeBtn.onclick = () => setMode("leader");
+els.receiverModeBtn.onclick = () => setMode("receiver");
+els.connectBtn.onclick = connect;
+
+els.sendCustomCueBtn.onclick = () => sendCue(els.customCueInput.value);
+els.clearCueBtn.onclick = clearCue;
+els.clearHistoryBtn.onclick = clearHistory;
+els.endSessionBtn.onclick = endSession;
+
+els.sendNextSongBtn.onclick = () => {
+    const song = cleanText(els.nextSongInput.value);
+
+    if(!song){
+        alert("Enter the next song first.");
+        return;
+    }
+
+    sendCue("NEXT:\n" + song, "next");
+    els.nextSongInput.value = "";
+};
+
+els.nextSongInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){
+        e.preventDefault();
+        els.sendNextSongBtn.click();
+    }
+});
+
+document.querySelectorAll("[data-cue]").forEach(button => {
+    button.onclick = () => sendCue(button.dataset.cue, button.dataset.kind || "");
+});
+
+document.querySelectorAll("[data-reply]").forEach(button => {
+    button.onclick = () => sendReply(button.dataset.reply);
+});
+
+els.sendCustomReplyBtn.onclick = () => sendReply(els.customReplyInput.value);
+
+els.customReplyInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){
+        e.preventDefault();
+        sendReply(els.customReplyInput.value);
+    }
+});
+
+els.copyJoinLinkBtn.onclick = copyJoinLink;
+els.wakeLockBtn.onclick = toggleWakeLock;
+els.leaveBtn.onclick = leaveSession;
+els.flashToggleBtn.onclick = toggleFlash;
+
+if(hasFirebaseConfig){
+    onAuthStateChanged(auth, user => {
+        if(user){
+            state.uid = user.uid;
+            updateConnectionBadge("Signed in", true);
+        }else{
+            updateConnectionBadge("Offline", false);
+        }
+    });
+}
+
+document.addEventListener("visibilitychange", async () => {
+    if(document.visibilityState === "visible" && state.uid && state.sessionCode){
+        try{
+            await update(getSessionRef(`members/${state.uid}`), {
+                online:true,
+                lastSeen:serverTimestamp()
+            });
+        }catch(e){}
+    }
+});
+
+restoreFromUrlOrStorage();
+updateFlashButton();
+</script>
+</body>
+</html>
