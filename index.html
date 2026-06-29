@@ -1640,6 +1640,7 @@ function normaliseSongForSongFinder(rawSong){
         String(
             getField(rawSong, [
                 "id",
+                "ID",
                 "SONG ID",
                 "Song ID",
                 "songId",
@@ -1778,6 +1779,7 @@ function getSongId(song){
 
     const stableId =
         song.id ||
+        song.ID ||
         song["SONG ID"] ||
         song["Song ID"] ||
         song.songId ||
@@ -1822,6 +1824,7 @@ function getImportedSongId(item){
 
     return String(
         item.id ||
+        item.ID ||
         item["SONG ID"] ||
         item["Song ID"] ||
         item.songId ||
@@ -1911,6 +1914,7 @@ function saveEventSelection(){
 
     return String(
         item.id ||
+        item.ID ||
         item["SONG ID"] ||
         item["Song ID"] ||
         item.songId ||
