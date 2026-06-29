@@ -4220,24 +4220,55 @@ function applyScale(){
     function applySubScale(){
     document.documentElement.style.setProperty("--subScale",subScale);
 }
-    function updateHeaderOffset(){
+   function updateHeaderOffset(){
 
     const header =
         document.querySelector(".header");
 
-    if(!header) return;
+    const results =
+        document.getElementById("results");
+
+    if(!header || !results){
+        return;
+    }
 
     const height =
         Math.ceil(
             header.getBoundingClientRect().height
         );
 
+    const offset =
+        Math.max(height, 120);
+
     document.documentElement.style.setProperty(
         "--headerOffset",
-        `${height}px`
+        `${offset}px`
     );
-}
 
+    results.style.marginTop =
+        `${offset}px`;
+}
+    function settleSongFinderLayout(){
+
+    updateHeaderOffset();
+    positionAlphabet();
+
+    requestAnimationFrame(() => {
+
+        updateHeaderOffset();
+        positionAlphabet();
+
+        setTimeout(() => {
+            updateHeaderOffset();
+            positionAlphabet();
+        }, 250);
+
+        setTimeout(() => {
+            updateHeaderOffset();
+            positionAlphabet();
+        }, 800);
+    });
+}
 function updateCount(count){
     document.getElementById("songCount").innerText = count + " songs";
 }
@@ -5865,10 +5896,9 @@ if(
 
         r.appendChild(div);
     });
-   updateClock();
+ updateClock();
 updateCount(filtered.length);
-updateHeaderOffset();
-positionAlphabet();
+settleSongFinderLayout();
 updateDecadeAvailability();
 updateDecadeChipColours();
 updateEventBanner();
@@ -6335,16 +6365,17 @@ window.addEventListener("scroll",()=>{
             );
         });
 });
-    window.addEventListener("resize", ()=>{
-    updateHeaderOffset();
-    positionAlphabet();
-});
+window.addEventListener("resize", settleSongFinderLayout);
+window.addEventListener("orientationchange", settleSongFinderLayout);
+window.addEventListener("pageshow", settleSongFinderLayout);
+
 document.addEventListener("visibilitychange", () => {
 
     if(document.hidden){
         pauseAutoScroll();
     }else{
         resumeAutoScroll();
+        settleSongFinderLayout();
     }
 });
 
@@ -6354,6 +6385,7 @@ window.addEventListener("blur", () => {
 
 window.addEventListener("focus", () => {
     resumeAutoScroll();
+    settleSongFinderLayout();
 });
 window.addEventListener("scroll", positionAlphabet);
 
@@ -7279,11 +7311,10 @@ load();
 applyScale();
 applySubScale();
 updateClock();
-updateHeaderOffset();
-positionAlphabet();
+settleSongFinderLayout();
 updateScrollSpeedDisplay();
 updateAutoScrollButton();
-    updateBirthdayDisplay();
+updateBirthdayDisplay();
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
         navigator.serviceWorker
