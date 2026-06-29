@@ -37,10 +37,104 @@ function makeSessionCode(){return String(Math.floor(1000+Math.random()*9000))}fu
 function setMode(mode){state.mode=mode;els.leaderModeBtn.classList.toggle("active",mode==="leader");els.receiverModeBtn.classList.toggle("active",mode==="receiver");els.instrumentInput.value=mode==="leader"?"Leader":(els.instrumentInput.value==="Leader"?"Guitar":els.instrumentInput.value);els.connectBtn.innerText=mode==="leader"?"Create Session":"Join Session";if(mode==="leader"&&!els.sessionCodeInput.value)els.sessionCodeInput.value=makeSessionCode()}function updateConnectionBadge(text,online=false){els.connectionBadge.innerText=text;els.connectionBadge.classList.toggle("online",online)}
 async function ensureSignedIn(){if(!hasFirebaseConfig)throw new Error("Firebase config missing.");if(state.uid)return state.uid;const credential=await signInAnonymously(auth);state.uid=credential.user.uid;return state.uid}
 async function connect(){
-    alert("Connect button pressed");
+    alert("1. Connect button pressed");
 
     try{
-        els.connectBtn.disabled = true;await ensureSignedIn();const requestedCode=cleanSessionCode(els.sessionCodeInput.value);state.sessionCode=requestedCode||makeSessionCode();state.name=cleanText(els.nameInput.value)||(state.mode==="leader"?"Band Leader":"Band Member");state.instrument=cleanText(els.instrumentInput.value)||(state.mode==="leader"?"Leader":"Other");if(state.mode==="leader")await update(getSessionRef("meta"),{createdAt:serverTimestamp(),updatedAt:serverTimestamp(),leaderId:state.uid,leaderName:state.name,active:true});await set(getSessionRef(`members/${state.uid}`),{id:state.uid,name:state.name,instrument:state.instrument,mode:state.mode,online:true,joinedAt:serverTimestamp(),lastSeen:serverTimestamp()});onDisconnect(getSessionRef(`members/${state.uid}`)).update({online:false,lastSeen:serverTimestamp()});showApp();listenToSession()}catch(err){console.error(err);alert(err.message||String(err))}finally{els.connectBtn.disabled=false}}
+        els.connectBtn.disabled = true;
+
+        alert("2. About to sign in");
+
+        await ensureSignedIn();
+
+        alert("3. Signed in OK. UID: " + state.uid);
+
+        const requestedCode =
+            cleanSessionCode(els.sessionCodeInput.value);
+
+        state.sessionCode =
+            requestedCode || makeSessionCode();
+
+        state.name =
+            cleanText(els.nameInput.value) ||
+            (
+                state.mode === "leader"
+                    ? "Band Leader"
+                    : "Band Member"
+            );
+
+        state.instrument =
+            cleanText(els.instrumentInput.value) ||
+            (
+                state.mode === "leader"
+                    ? "Leader"
+                    : "Other"
+            );
+
+        alert(
+            "4. Details ready\n\n" +
+            "Mode: " + state.mode + "\n" +
+            "Session: " + state.sessionCode + "\n" +
+            "Name: " + state.name + "\n" +
+            "Instrument: " + state.instrument
+        );
+
+        if(state.mode === "leader"){
+            alert("5. About to create leader session");
+
+            await update(getSessionRef("meta"), {
+                createdAt: serverTimestamp(),
+                updatedAt: serverTimestamp(),
+                leaderId: state.uid,
+                leaderName: state.name,
+                active: true
+            });
+
+            alert("6. Leader session created");
+        }
+
+        alert("7. About to add member");
+
+        await set(getSessionRef(`members/${state.uid}`), {
+            id: state.uid,
+            name: state.name,
+            instrument: state.instrument,
+            mode: state.mode,
+            online: true,
+            joinedAt: serverTimestamp(),
+            lastSeen: serverTimestamp()
+        });
+
+        alert("8. Member added");
+
+        onDisconnect(getSessionRef(`members/${state.uid}`))
+            .update({
+                online: false,
+                lastSeen: serverTimestamp()
+            });
+
+        alert("9. About to show app");
+
+        showApp();
+
+        alert("10. App shown");
+
+        listenToSession();
+
+        alert("11. Listening to session");
+
+    }catch(err){
+        console.error(err);
+
+        alert(
+            "BandCue error:\n\n" +
+            (err.code ? err.code + "\n\n" : "") +
+            (err.message || String(err))
+        );
+
+    }finally{
+        els.connectBtn.disabled = false;
+    }
+}
 function showApp(){els.setupPanel.classList.add("hidden");els.appPanel.classList.remove("hidden");els.sessionCodeDisplay.innerText=state.sessionCode;els.identityDisplay.innerHTML=`<span class="receiverName">${escapeHtml(state.name)}</span><br>${escapeHtml(state.instrument)}`;els.modeBadge.innerText=state.mode==="leader"?"Leader":"Receiver";els.modeBadge.classList.toggle("leader",state.mode==="leader");els.leaderPanel.classList.toggle("hidden",state.mode!=="leader");els.receiverPanel.classList.toggle("hidden",state.mode!=="receiver");els.receiverIdentity.innerText=`${state.name} • ${state.instrument}`;updateConnectionBadge("Connected",true);saveLocalIdentity();updateUrl()}function listenToSession(){if(state.unsubscribeSession)state.unsubscribeSession();state.unsubscribeSession=onValue(getSessionRef(),snap=>{const data=snap.val()||{};state.sessionData=data;renderMembers(data.members||{});renderTargetOptions(data.members||{});renderCurrentCue(data.currentCue||null);renderReplies(data);renderHistory(data.cues||{})})}
 function renderMembers(members){const list=Object.values(members||{}).sort((a,b)=>{if(a.mode==="leader"&&b.mode!=="leader")return-1;if(a.mode!=="leader"&&b.mode==="leader")return 1;return String(a.name||"").localeCompare(String(b.name||""))});if(!list.length){els.memberList.innerHTML=`<div class="small">No members connected yet.</div>`;return}els.memberList.innerHTML=list.map(m=>`<div class="member ${m.online?"":"offline"}"><div><div class="memberName">${escapeHtml(m.name||"Unknown")}${m.mode==="leader"?" ⭐":""}</div><div class="memberMeta">${escapeHtml(m.instrument||"Other")}</div></div><span class="badge ${m.online?"online":""}">${m.online?"Online":"Away"}</span></div>`).join("")}
 function renderTargetOptions(members){if(state.mode!=="leader")return;const current=els.targetSelect.value||"all";const receivers=Object.values(members||{}).filter(m=>m.id!==state.uid).sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));els.targetSelect.innerHTML=`<option value="all">Everyone</option>`+receivers.map(m=>`<option value="${escapeAttr(m.id)}">${escapeHtml(m.name||"Unknown")} — ${escapeHtml(m.instrument||"Other")}</option>`).join("");if(current==="all"||receivers.some(m=>m.id===current))els.targetSelect.value=current}
