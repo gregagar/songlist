@@ -1247,8 +1247,12 @@ a{
     Import Backup
 </button>
 
+<button id="loadClientSelection">
+    Load Client Selection
+</button>
+
 <button id="importEventSelection">
-    Import Event Selection
+    Import Event Selection File
 </button>
 
 <button id="clearEventSelection">
@@ -1271,10 +1275,9 @@ a{
     accept=".json"
     style="display:none;"
 >
-        <input
+       <input
     type="file"
     id="eventFile"
-    accept=".json"
     style="display:none;"
 >
 </div>
@@ -1466,6 +1469,8 @@ a{
 <script>
 
 let songs=[];
+    const CRM_CLIENT_SELECTION_URL =
+    "https://script.google.com/a/macros/someone-borrowed.co.uk/s/AKfycbx6lMRVknz2PHpO34VMT7ZNU8eLjLNfHoBX2flUewBl66vbQB2rZg4ebDl7OWxBUimSJQ/exec";
 let currentQuery="";
 let artistFilter = "";
 let genreFilter = "";
@@ -2253,7 +2258,130 @@ function extractEventSelectionItems(imported){
 
     return [];
 }
+    function normaliseIdArray(value) {
+    if(Array.isArray(value)){
+        return value
+            .map(id => String(id || "").trim())
+            .filter(Boolean);
+    }
+
+    if(typeof value === "string"){
+        try{
+            const parsed =
+                JSON.parse(value);
+
+            if(Array.isArray(parsed)){
+                return parsed
+                    .map(id => String(id || "").trim())
+                    .filter(Boolean);
+            }
+        }catch(e){}
+
+        return value
+            .split(",")
+            .map(id => String(id || "").trim())
+            .filter(Boolean);
+    }
+
+    return [];
+}
+
+function isCompactClientSelection(imported) {
+    return (
+        imported &&
+        typeof imported === "object" &&
+        (
+            Array.isArray(imported.selectedSongIds) ||
+            Array.isArray(imported.mustPlaySongIds) ||
+            Array.isArray(imported.likeSongIds) ||
+            Array.isArray(imported.doNotPlaySongIds)
+        )
+    );
+}
+
+function makeEventItemsFromIds(ids, status) {
+    return normaliseIdArray(ids).map(id => ({
+        id,
+        status
+    }));
+}
+
+function compactClientSelectionToEventImport(selection) {
+    const mustPlayIds =
+        normaliseIdArray(selection.mustPlaySongIds);
+
+    let likeIds =
+        normaliseIdArray(selection.likeSongIds);
+
+    const doNotPlayIds =
+        normaliseIdArray(selection.doNotPlaySongIds);
+
+    const selectedSongIds =
+        normaliseIdArray(selection.selectedSongIds);
+
+    if(likeIds.length === 0 && selectedSongIds.length > 0){
+        const mustSet =
+            new Set(mustPlayIds);
+
+        const noSet =
+            new Set(doNotPlayIds);
+
+        likeIds =
+            selectedSongIds.filter(id =>
+                !mustSet.has(id) &&
+                !noSet.has(id)
+            );
+    }
+
+    return {
+        type: "SongFinderClientSelection",
+        version: selection.version || 1,
+
+        token: selection.token || "",
+        eventId: selection.eventId || "",
+
+        eventName:
+            selection.coupleName ||
+            selection.eventName ||
+            selection.name ||
+            "Client Selection",
+
+        coupleName:
+            selection.coupleName ||
+            selection.eventName ||
+            "",
+
+        weddingDate:
+            selection.eventDate ||
+            selection.weddingDate ||
+            "",
+
+        selectedSongs: [
+            ...makeEventItemsFromIds(mustPlayIds, "mustPlay"),
+            ...makeEventItemsFromIds(likeIds, "like")
+        ],
+
+        doNotPlay:
+            makeEventItemsFromIds(doNotPlayIds, "doNotPlay"),
+
+        selections: {
+            mustPlay:
+                makeEventItemsFromIds(mustPlayIds, "mustPlay"),
+
+            like:
+                makeEventItemsFromIds(likeIds, "like"),
+
+            doNotPlay:
+                makeEventItemsFromIds(doNotPlayIds, "doNotPlay")
+        }
+    };
+}
 function importEventSelectionData(imported){
+
+    if(isCompactClientSelection(imported)){
+        imported =
+            compactClientSelectionToEventImport(imported);
+    }
 
     let mustPlayItems = [];
     let likeItems = [];
@@ -2389,6 +2517,189 @@ function importEventSelectionData(imported){
         `Like: ${likeIds.size}\n` +
         `Do Not Play: ${doNotPlayIds.size}`
     );
+}
+    function getTokenFromText(value) {
+    const text =
+        String(value || "").trim();
+
+    if(!text){
+        return "";
+    }
+
+    // Allows you to paste the whole client selector link.
+    try{
+        const url =
+            new URL(text);
+
+        const tokenFromUrl =
+            url.searchParams.get("token") ||
+            url.searchParams.get("selectionToken") ||
+            url.searchParams.get("clientToken") ||
+            "";
+
+        if(tokenFromUrl){
+            return tokenFromUrl.trim();
+        }
+    }catch(e){}
+
+    const tokenMatch =
+        text.match(/[?&](token|selectionToken|clientToken)=([^&]+)/i);
+
+    if(tokenMatch){
+        return decodeURIComponent(tokenMatch[2]).trim();
+    }
+
+    return text;
+}
+
+function getClientSelectionTokenFromCurrentUrl() {
+    const params =
+        new URLSearchParams(window.location.search);
+
+    return (
+        params.get("token") ||
+        params.get("selectionToken") ||
+        params.get("clientToken") ||
+        ""
+    ).trim();
+}
+
+function loadJsonp(url, timeoutMs = 15000) {
+    return new Promise((resolve, reject) => {
+        const callbackName =
+            "songFinderClientSelectionCallback_" +
+            Date.now() +
+            "_" +
+            Math.random().toString(36).slice(2);
+
+        const separator =
+            url.includes("?")
+                ? "&"
+                : "?";
+
+        const script =
+            document.createElement("script");
+
+        const timer =
+            setTimeout(() => {
+                cleanup();
+
+                reject(
+                    new Error("The request timed out.")
+                );
+            }, timeoutMs);
+
+        function cleanup() {
+            clearTimeout(timer);
+
+            try{
+                delete window[callbackName];
+            }catch(e){
+                window[callbackName] = undefined;
+            }
+
+            if(script.parentNode){
+                script.parentNode.removeChild(script);
+            }
+        }
+
+        window[callbackName] = data => {
+            cleanup();
+            resolve(data);
+        };
+
+        script.onerror = () => {
+            cleanup();
+
+            reject(
+                new Error("Could not contact the CRM web app.")
+            );
+        };
+
+        script.src =
+            url +
+            separator +
+            "callback=" +
+            encodeURIComponent(callbackName) +
+            "&cacheBust=" +
+            Date.now();
+
+        document.body.appendChild(script);
+    });
+}
+
+async function loadClientSelectionByToken(token) {
+    token =
+        getTokenFromText(token);
+
+    if(!token){
+        alert("Please enter a client selection token.");
+        return;
+    }
+
+    const url =
+        CRM_CLIENT_SELECTION_URL +
+        "?action=getClientSelection" +
+        "&token=" +
+        encodeURIComponent(token);
+
+    const data =
+        await loadJsonp(url);
+
+    if(!data || data.success !== true){
+        throw new Error(
+            data && data.error
+                ? data.error
+                : "Could not load this client selection."
+        );
+    }
+
+    if(!data.selection){
+        throw new Error("The CRM returned no selection data.");
+    }
+
+    importEventSelectionData(data.selection);
+}
+
+async function promptAndLoadClientSelection() {
+    const defaultToken =
+        getClientSelectionTokenFromCurrentUrl();
+
+    const entered =
+        prompt(
+            "Enter the client selection token, or paste the client selector link:",
+            defaultToken
+        );
+
+    if(!entered){
+        return;
+    }
+
+    const button =
+        document.getElementById("loadClientSelection");
+
+    if(button){
+        button.disabled = true;
+        button.innerText = "Loading...";
+    }
+
+    try{
+        await loadClientSelectionByToken(entered);
+
+    }catch(err){
+        console.error(err);
+
+        alert(
+            "Could not load client selection.\n\n" +
+            (err.message || String(err))
+        );
+
+    }finally{
+        if(button){
+            button.disabled = false;
+            button.innerText = "Load Client Selection";
+        }
+    }
 }
 function getEventClearSummary(){
 
@@ -6492,6 +6803,20 @@ document
 
     openNewSongPanel();
 };
+    const loadClientSelectionBtn =
+    document.getElementById("loadClientSelection");
+
+if(loadClientSelectionBtn){
+
+    loadClientSelectionBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        settingsMenu.classList.remove("open");
+
+        promptAndLoadClientSelection();
+    };
+}
 const importEventSelectionBtn =
     document.getElementById("importEventSelection");
 
