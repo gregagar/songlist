@@ -7284,7 +7284,18 @@ positionAlphabet();
 updateScrollSpeedDisplay();
 updateAutoScrollButton();
     updateBirthdayDisplay();
-
+if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+        navigator.serviceWorker
+            .register("./sw.js")
+            .then(() => {
+                console.log("Song Finder offline cache ready.");
+            })
+            .catch(err => {
+                console.warn("Service worker registration failed:", err);
+            });
+    });
+}
 </script>
 
 </body>
