@@ -734,11 +734,11 @@ a{
 }
 
 #settingsMenu{
+    position:fixed;
 
-    position:absolute;
-
-    top:48px;
-    right:0;
+    top:calc(env(safe-area-inset-top, 0px) + 110px);
+    right:12px;
+    bottom:calc(env(safe-area-inset-bottom, 0px) + 12px);
 
     display:none;
 
@@ -747,19 +747,31 @@ a{
 
     background:#0f172a;
 
-    padding:10px;
+    padding:10px 10px 22px;
 
     border-radius:12px;
 
+    width:min(280px, calc(100vw - 24px));
     min-width:220px;
-    max-height:70vh;
+    max-height:none;
+
     overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
+    touch-action:pan-y;
+
+    box-sizing:border-box;
 
     box-shadow:
         0 8px 24px rgba(0,0,0,.45);
 
     z-index:999999;
+}
+    #settingsMenu::after{
+    content:"";
+    display:block;
+    min-height:18px;
+    flex:0 0 18px;
 }
 
 #settingsMenu.open{
@@ -1261,6 +1273,10 @@ a{
 
 <button id="reloadMainSongs">
     Reload Main JSON
+</button>
+
+<button id="reloadApp">
+    Reload App
 </button>
 
 <button id="resetPlayed">
@@ -2012,13 +2028,22 @@ function resolveEventItemsToSongIds(items){
         const titleKey =
             normaliseEventText(title);
 
-        if(
-            importedIds.has(songId) ||
-            selectedKeys.has(fullKey) ||
-            titleOnlyKeys.has(titleKey)
-        ){
-            matchedIds.add(songId);
-        }
+        const normalisedSongId =
+    normaliseEventText(songId);
+
+const importedIdsNormalised =
+    new Set(
+        [...importedIds].map(id => normaliseEventText(id))
+    );
+
+if(
+    importedIds.has(songId) ||
+    importedIdsNormalised.has(normalisedSongId) ||
+    selectedKeys.has(fullKey) ||
+    titleOnlyKeys.has(titleKey)
+){
+    matchedIds.add(songId);
+}
     });
 
     return matchedIds;
@@ -2325,6 +2350,120 @@ function compactClientSelectionToEventImport(selection) {
 
         const noSet =
             new Set(doNotPlayIds);
+
+        likeIds =
+            selectedSongIds.filter(id =>
+                !mustSet.has(id) &&
+                !noSet.has(id)
+            );
+    }
+
+    return {
+        type: "SongFinderClientSelection",
+        version: selection.version || 1,
+
+        token: selection.token || "",
+        eventId: selection.eventId || "",
+
+        eventName:
+            selection.coupleName ||
+            selection.eventName ||
+            selection.name ||
+            "Client Selection",
+
+        coupleName:
+            selection.coupleName ||
+            selection.eventName ||
+            "",
+
+        weddingDate:
+            selection.eventDate ||
+            selection.weddingDate ||
+            "",
+
+        selectedSongs: [
+            ...makeEventItemsFromIds(mustPlayIds, "mustPlay"),
+            ...makeEventItemsFromIds(likeIds, "like")
+        ],
+
+        doNotPlay:
+            makeEventItemsFromIds(doNotPlayIds, "doNotPlay"),
+
+        selections: {
+            mustPlay:
+                makeEventItemsFromIds(mustPlayIds, "mustPlay"),
+
+            like:
+                makeEventItemsFromIds(likeIds, "like"),
+
+            doNotPlay:
+                makeEventItemsFromIds(doNotPlayIds, "doNotPlay")
+        }
+    };
+}
+    function normaliseIdArray(value) {
+    if(Array.isArray(value)){
+        return value
+            .map(id => String(id || "").trim())
+            .filter(Boolean);
+    }
+
+    if(typeof value === "string"){
+        try{
+            const parsed = JSON.parse(value);
+
+            if(Array.isArray(parsed)){
+                return parsed
+                    .map(id => String(id || "").trim())
+                    .filter(Boolean);
+            }
+        }catch(e){}
+
+        return value
+            .split(",")
+            .map(id => String(id || "").trim())
+            .filter(Boolean);
+    }
+
+    return [];
+}
+
+function isCompactClientSelection(imported) {
+    return (
+        imported &&
+        typeof imported === "object" &&
+        (
+            Array.isArray(imported.selectedSongIds) ||
+            Array.isArray(imported.mustPlaySongIds) ||
+            Array.isArray(imported.likeSongIds) ||
+            Array.isArray(imported.doNotPlaySongIds)
+        )
+    );
+}
+
+function makeEventItemsFromIds(ids, status) {
+    return normaliseIdArray(ids).map(id => ({
+        id,
+        status
+    }));
+}
+
+function compactClientSelectionToEventImport(selection) {
+    const mustPlayIds =
+        normaliseIdArray(selection.mustPlaySongIds);
+
+    let likeIds =
+        normaliseIdArray(selection.likeSongIds);
+
+    const doNotPlayIds =
+        normaliseIdArray(selection.doNotPlaySongIds);
+
+    const selectedSongIds =
+        normaliseIdArray(selection.selectedSongIds);
+
+    if(likeIds.length === 0 && selectedSongIds.length > 0){
+        const mustSet = new Set(mustPlayIds);
+        const noSet = new Set(doNotPlayIds);
 
         likeIds =
             selectedSongIds.filter(id =>
@@ -2857,6 +2996,43 @@ async function reloadMainSongList(){
             "Could not reload songs.json."
         );
     }
+}
+    async function hardReloadApp() {
+    const sure =
+        confirm(
+            "Reload the Song Finder app?\n\n" +
+            "This will force the page to reload with a fresh version. " +
+            "Your saved set lists, notes, event selection and local data should remain."
+        );
+
+    if(!sure){
+        return;
+    }
+
+    try{
+        if("caches" in window){
+            const cacheNames =
+                await caches.keys();
+
+            await Promise.all(
+                cacheNames.map(name => caches.delete(name))
+            );
+        }
+    }catch(err){
+        console.warn("Could not clear browser caches", err);
+    }
+
+    const url =
+        new URL(window.location.href);
+
+    url.searchParams.set(
+        "appReload",
+        Date.now().toString()
+    );
+
+    window.location.replace(
+        url.toString()
+    );
 }
     function createBlankSong(){
 
@@ -6760,6 +6936,17 @@ settingsBtn.onclick = e => {
 
     settingsMenu.classList.toggle("open");
 };
+    settingsMenu.addEventListener("click", e => {
+    e.stopPropagation();
+});
+
+settingsMenu.addEventListener("touchstart", e => {
+    e.stopPropagation();
+}, { passive:true });
+
+settingsMenu.addEventListener("touchmove", e => {
+    e.stopPropagation();
+}, { passive:true });
     document
 .getElementById("addNewSong")
 .onclick = e => {
@@ -6861,6 +7048,20 @@ if(reloadMainSongsBtn){
         settingsMenu.classList.remove("open");
 
         reloadMainSongList();
+    };
+}
+    const reloadAppBtn =
+    document.getElementById("reloadApp");
+
+if(reloadAppBtn){
+
+    reloadAppBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        settingsMenu.classList.remove("open");
+
+        hardReloadApp();
     };
 }
 
