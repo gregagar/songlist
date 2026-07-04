@@ -1154,6 +1154,25 @@ a{
     color:#fca5a5;
 }
 
+.chip.eventMustPlayFilterChip{
+    background:#422006;
+    color:#fde68a;
+    font-weight:800;
+
+    box-shadow:inset 0 0 0 1px #fbbf24;
+}
+
+.chip.eventMustPlayFilterChip::before{
+    content:"Must Play: ";
+    color:#fbbf24;
+}
+
+.chip.eventMustPlayFilterChip.active{
+    background:#fbbf24;
+    color:#111827;
+    box-shadow:inset 0 0 0 1px #f59e0b;
+}
+
 .card.eventMustPlay{
     box-shadow:
         inset 0 0 0 2px rgba(251,191,36,.75),
@@ -1838,6 +1857,9 @@ let eventSelectionIds = new Set();
 let eventSelectionMustIds = new Set();
 let eventSelectionDoNotPlayIds = new Set();
 
+let eventSelectionSource = "";
+let mustPlayOnlyActive = false;
+
 function normaliseEventText(value){
 
     return String(value || "")
@@ -1861,6 +1883,8 @@ function loadEventSelectionFromStorage(){
     eventSelectionIds = new Set();
     eventSelectionMustIds = new Set();
     eventSelectionDoNotPlayIds = new Set();
+    eventSelectionSource = "";
+    mustPlayOnlyActive = false;
 
     try{
 
@@ -1885,6 +1909,11 @@ function loadEventSelectionFromStorage(){
 
             eventSelectionDoNotPlayIds =
                 new Set(saved.doNotPlayIds || []);
+            eventSelectionSource =
+    saved.source || "";
+
+mustPlayOnlyActive =
+    saved.mustPlayOnlyActive === true;
         }
 
     }catch(e){
@@ -1900,6 +1929,12 @@ function saveEventSelection(){
         localStorage.removeItem("eventSelection");
         return;
     }
+
+    eventSelection.source =
+        eventSelectionSource || "";
+
+    eventSelection.mustPlayOnlyActive =
+        mustPlayOnlyActive === true;
 
     localStorage.setItem(
         "eventSelection",
@@ -2168,10 +2203,11 @@ function updateEventBanner(){
 
     if(!chipContainer) return;
 
-    [
-        "eventSelectionChip",
-        "eventDoNotPlayChip"
-    ].forEach(id => {
+   [
+    "eventSelectionChip",
+    "eventMustPlayFilterChip",
+    "eventDoNotPlayChip"
+].forEach(id => {
 
         const existing =
             document.getElementById(id);
@@ -2210,9 +2246,49 @@ function updateEventBanner(){
         confirmAndClearEventSelection();
     };
 
-    chipContainer.appendChild(eventChip);
+   chipContainer.appendChild(eventChip);
 
-    if(eventSelectionDoNotPlayIds.size > 0){
+if(
+    eventSelectionSource === "clientToken" &&
+    eventSelectionMustIds.size > 0
+){
+    const mustChip =
+        document.createElement("div");
+
+    mustChip.id =
+        "eventMustPlayFilterChip";
+
+    mustChip.className =
+        "chip eventMustPlayFilterChip";
+
+    if(mustPlayOnlyActive){
+        mustChip.classList.add("active");
+    }
+
+    mustChip.title =
+        "Tap to show only Must Play songs";
+
+    mustChip.innerText =
+        mustPlayOnlyActive
+        ? `${eventSelectionMustIds.size} only`
+        : `${eventSelectionMustIds.size}`;
+
+    mustChip.onclick = e => {
+
+        e.stopPropagation();
+
+        mustPlayOnlyActive =
+            !mustPlayOnlyActive;
+
+        saveEventSelection();
+
+        render();
+    };
+
+    chipContainer.appendChild(mustChip);
+}
+
+if(eventSelectionDoNotPlayIds.size > 0){
 
         const noChip =
             document.createElement("div");
@@ -2519,7 +2595,7 @@ function compactClientSelectionToEventImport(selection) {
         }
     };
 }
-function importEventSelectionData(imported){
+function importEventSelectionData(imported, source = "file"){
 
     if(isCompactClientSelection(imported)){
         imported =
@@ -2622,12 +2698,13 @@ function importEventSelectionData(imported){
             "Untitled Event";
     }
 
-    eventSelection = {
-        type:"SongFinderEventSelection",
-        eventName:eventName,
-        importedAt:new Date().toISOString(),
+ eventSelection = {
+    type:"SongFinderEventSelection",
+    source:source,
+    eventName:eventName,
+    importedAt:new Date().toISOString(),
 
-        totalPlayable:playableIds.size,
+    totalPlayable:playableIds.size,
         totalMustPlay:mustPlayIds.size,
         totalLike:likeIds.size,
         totalDoNotPlay:doNotPlayIds.size,
@@ -2643,10 +2720,16 @@ function importEventSelectionData(imported){
     eventSelectionMustIds =
         mustPlayIds;
 
-    eventSelectionDoNotPlayIds =
-        doNotPlayIds;
+   eventSelectionDoNotPlayIds =
+    doNotPlayIds;
 
-    saveEventSelection();
+eventSelectionSource =
+    source;
+
+mustPlayOnlyActive =
+    false;
+
+saveEventSelection();
 
     resetFiltersForEventSelection();
 
@@ -2801,7 +2884,7 @@ async function loadClientSelectionByToken(token) {
         throw new Error("The CRM returned no selection data.");
     }
 
-    importEventSelectionData(data.selection);
+    importEventSelectionData(data.selection, "clientToken");
 }
 
 async function promptAndLoadClientSelection() {
@@ -2905,6 +2988,8 @@ function clearEventSelection(){
     eventSelectionIds = new Set();
     eventSelectionMustIds = new Set();
     eventSelectionDoNotPlayIds = new Set();
+    eventSelectionSource = "";
+    mustPlayOnlyActive = false;
 
     localStorage.removeItem("eventSelection");
 
@@ -2914,7 +2999,9 @@ function clearEventSelection(){
 }
 
 function resetFiltersForEventSelection(){
-
+    
+mustPlayOnlyActive = false;
+    
     activeFilters.clear();
     activeDecades.clear();
 
@@ -5542,6 +5629,17 @@ let filtered =
     sourceSongs.filter(
         s => songMatches(s,currentQuery) && passesFilters(s)
     );
+
+if(
+    mustPlayOnlyActive &&
+    eventSelectionSource === "clientToken" &&
+    eventSelectionMustIds.size > 0
+){
+    filtered =
+        filtered.filter(song =>
+            eventSelectionMustIds.has(getSongId(song))
+        );
+}
 
 // APPLY SORT
 filtered = sortSongs(filtered);
