@@ -655,6 +655,8 @@ a{
     cursor:pointer;
     padding:1px 3px;
     border-radius:4px;
+    min-width:24px;
+    text-align:center;
 }
 
 .alphaLetter.active{
@@ -5227,49 +5229,144 @@ function getFlag(country){
         .filter(Boolean)
         .join("");
 }
+    function getSideNavKeyForSong(song){
+
+    if(sortKey === "artist"){
+
+        const text =
+            String(song["ARTIST"] || "").trim();
+
+        const clean =
+            text
+                .replace(/^[^A-Z0-9]+/i, "")
+                .charAt(0)
+                .toUpperCase();
+
+        return /[A-Z]/.test(clean)
+            ? clean
+            : "#";
+    }
+
+    if(sortKey === "title"){
+
+        const text =
+            String(song["SONG NAME"] || "").trim();
+
+        const clean =
+            text
+                .replace(/^[^A-Z0-9]+/i, "")
+                .charAt(0)
+                .toUpperCase();
+
+        return /[A-Z]/.test(clean)
+            ? clean
+            : "#";
+    }
+
+    if(sortKey === "bpm"){
+
+        const bpm =
+            Number(song.Tempo || song["Tempo"] || 0);
+
+        if(!bpm){
+            return "";
+        }
+
+        return String(
+            Math.floor(bpm / 10) * 10
+        );
+    }
+
+    return "";
+}
 function buildAlphabet(filtered){
 
-    const nav=document.getElementById("alphaNav");
+    const nav =
+        document.getElementById("alphaNav");
+
+    if(!nav) return;
 
     if(
-        sortKey!=="artist" &&
-        sortKey!=="title"
+        sortKey !== "artist" &&
+        sortKey !== "title" &&
+        sortKey !== "bpm"
     ){
-        nav.style.display="none";
+        nav.style.display = "none";
         return;
     }
 
-    nav.style.display="flex";
-    nav.innerHTML="";
+    nav.style.display = "flex";
+    nav.innerHTML = "";
 
-    const letters = [
-    "#",
-    ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-];
+    let items = [];
 
-    letters.forEach(letter=>{
+    if(
+        sortKey === "artist" ||
+        sortKey === "title"
+    ){
+        items = [
+            "#",
+            ..."ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        ];
+    }
 
-        const d=document.createElement("div");
-        d.className="alphaLetter";
-        d.innerText=letter;
+    if(sortKey === "bpm"){
 
-        d.onclick=()=>{
+        const bpmBuckets =
+            new Set();
 
-            const target=[...document.querySelectorAll(".card")]
-    .find(card =>
-        card.dataset.letter === letter &&
-        card.offsetParent !== null
-    );
+        filtered.forEach(song => {
+
+            const key =
+                getSideNavKeyForSong(song);
+
+            if(key){
+                bpmBuckets.add(key);
+            }
+        });
+
+        items =
+            [...bpmBuckets]
+                .map(Number)
+                .sort((a,b) =>
+                    sortDirection === 1
+                    ? a - b
+                    : b - a
+                )
+                .map(String);
+    }
+
+    items.forEach(item => {
+
+        const d =
+            document.createElement("div");
+
+        d.className =
+            "alphaLetter";
+
+        d.innerText =
+            item;
+
+        d.onclick = () => {
+
+            const target =
+                [...document.querySelectorAll(".card")]
+                    .find(card =>
+                        card.dataset.letter === item &&
+                        card.offsetParent !== null
+                    );
+
             if(target){
-                const y =
-    target.getBoundingClientRect().top +
-    window.scrollY -
-    10;
 
-window.scrollTo({
-    top:y,
-    behavior:"auto"
-});
+                const y =
+                    target.getBoundingClientRect().top +
+                    window.scrollY -
+                    10;
+
+                window.scrollTo({
+                    top:y,
+                    behavior:"auto"
+                });
             }
         };
 
@@ -5776,32 +5873,15 @@ const inSetlist =
     );
         const div=document.createElement("div");
 
-        let anchorText="";
-
-        if(sortKey==="artist"){
-    anchorText = String(song["ARTIST"] || "").trim();
-}
-else if(sortKey==="title"){
-    anchorText = String(song["SONG NAME"] || "").trim();
-}
-
-
-
-const firstLetter =
-    (anchorText.charAt(0) || "").toUpperCase();
-
-const rawLetter = firstLetter || "";
-
-const cleanLetter =
-    anchorText
-        .replace(/^[^A-Z0-9]+/i, "")
-        .charAt(0)
-        .toUpperCase();
-
-if(/[A-Z]/.test(cleanLetter)){
-    div.dataset.letter = cleanLetter;
+        if(
+    sortKey === "artist" ||
+    sortKey === "title" ||
+    sortKey === "bpm"
+){
+    div.dataset.letter =
+        getSideNavKeyForSong(song);
 }else{
-    div.dataset.letter = "#";
+    div.dataset.letter = "";
 }
 
         div.className="card";
@@ -6571,22 +6651,27 @@ render();
 window.addEventListener("scroll",()=>{
 
     if(
-        sortKey!=="artist" &&
-        sortKey!=="title"
+        sortKey !== "artist" &&
+        sortKey !== "title" &&
+        sortKey !== "bpm"
     ){
         return;
     }
 
-    const cards=[...document.querySelectorAll(".card")];
+    const cards =
+        [...document.querySelectorAll(".card")];
 
-    let currentLetter="A";
+    let currentKey =
+        "";
 
     for(const card of cards){
 
-        const rect=card.getBoundingClientRect();
+        const rect =
+            card.getBoundingClientRect();
 
-        if(rect.top<=150){
-            currentLetter=card.dataset.letter||currentLetter;
+        if(rect.top <= 150){
+            currentKey =
+                card.dataset.letter || currentKey;
         }else{
             break;
         }
@@ -6594,11 +6679,11 @@ window.addEventListener("scroll",()=>{
 
     document
         .querySelectorAll(".alphaLetter")
-        .forEach(el=>{
+        .forEach(el => {
 
             el.classList.toggle(
                 "active",
-                el.innerText===currentLetter
+                el.innerText === currentKey
             );
         });
 });
