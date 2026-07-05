@@ -5278,6 +5278,53 @@ function getYearDecadeLabel(decadeKey){
         "s"
     );
 }
+    function getYearDecadeKey(song){
+
+    const year =
+        Number(song.Year || song["Year"] || 0);
+
+    if(!year){
+        return "";
+    }
+
+    if(year < 1910){
+        return "#";
+    }
+
+    return String(
+        Math.floor(year / 10) * 10
+    );
+}
+
+function getYearDecadeLabel(decadeKey){
+
+    if(decadeKey === "#"){
+        return "#";
+    }
+
+    const decade =
+        Number(decadeKey);
+
+    if(!decade){
+        return "";
+    }
+
+    if(decade === 1910){
+        return "1910s";
+    }
+
+    if(decade === 2000){
+        return "2000s";
+    }
+
+    const shortNumber =
+        decade % 100;
+
+    return (
+        String(shortNumber).padStart(2, "0") +
+        "s"
+    );
+}
     function getSideNavKeyForSong(song){
 
     if(sortKey === "artist"){
@@ -5325,6 +5372,9 @@ function getYearDecadeLabel(decadeKey){
             Math.floor(bpm / 10) * 10
         );
     }
+        if(sortKey === "year"){
+    return getYearDecadeKey(song);
+}
         if(sortKey === "year"){
     return getYearDecadeKey(song);
 }
@@ -5390,7 +5440,7 @@ nav.innerHTML = "";
                 )
                 .map(String);
     }
-    if(sortKey === "year"){
+   if(sortKey === "year"){
 
     const yearBuckets =
         new Set();
@@ -5405,8 +5455,12 @@ nav.innerHTML = "";
         }
     });
 
-    items =
+    const hasPre1910 =
+        yearBuckets.has("#");
+
+    const decadeItems =
         [...yearBuckets]
+            .filter(key => key !== "#")
             .map(Number)
             .sort((a,b) =>
                 sortDirection === 1
@@ -5414,6 +5468,15 @@ nav.innerHTML = "";
                 : b - a
             )
             .map(String);
+
+    items =
+        hasPre1910
+        ? (
+            sortDirection === 1
+            ? ["#", ...decadeItems]
+            : [...decadeItems, "#"]
+        )
+        : decadeItems;
 }
 
     items.forEach(item => {
@@ -6770,7 +6833,7 @@ window.addEventListener("scroll",()=>{
 
             el.classList.toggle(
                 "active",
-                (el.dataset.key || el.innerText) === currentKey
+                (el.dataset.key || (el.dataset.key || el.innerText) === currentKey
             );
         });
 });
