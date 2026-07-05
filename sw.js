@@ -1,4 +1,4 @@
-const CACHE_NAME = "song-finder-app-v1";
+const CACHE_NAME = "song-finder-app-v2";
 
 const APP_SHELL = [
   "./",
