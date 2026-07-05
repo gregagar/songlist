@@ -1,7 +1,7 @@
 const CACHE_NAME = "song-finder-app-v2";
 
 const APP_SHELL = [
-  "./",
+  "./", 
   "./index.html",
   "./songs.json"
 ];
