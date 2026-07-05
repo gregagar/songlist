@@ -585,16 +585,22 @@ a{
 }
     #alphaNav{
     position:fixed;
-    left:4px;
+    left:6px;
     top:220px;
     bottom:20px;
+
+    width:34px;
 
     display:none;
     flex-direction:column;
     justify-content:space-between;
+    align-items:center;
 
     z-index:999;
     user-select:none;
+}
+    body.sideNavActive #results{
+    padding-left:52px;
 }
 .setlistItem{
     background:#1e293b;
@@ -653,10 +659,21 @@ a{
     font-size:11px;
     color:#94a3b8;
     cursor:pointer;
-    padding:1px 3px;
-    border-radius:4px;
-    min-width:24px;
+
+    width:32px;
+    min-height:16px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    padding:1px 0;
+    border-radius:5px;
+
     text-align:center;
+    box-sizing:border-box;
+
+    background:rgba(0,0,0,.35);
 }
 
 .alphaLetter.active{
@@ -5287,16 +5304,18 @@ function buildAlphabet(filtered){
     if(!nav) return;
 
     if(
-        sortKey !== "artist" &&
-        sortKey !== "title" &&
-        sortKey !== "bpm"
-    ){
-        nav.style.display = "none";
-        return;
-    }
+    sortKey !== "artist" &&
+    sortKey !== "title" &&
+    sortKey !== "bpm"
+){
+    nav.style.display = "none";
+    document.body.classList.remove("sideNavActive");
+    return;
+}
 
-    nav.style.display = "flex";
-    nav.innerHTML = "";
+nav.style.display = "flex";
+document.body.classList.add("sideNavActive");
+nav.innerHTML = "";
 
     let items = [];
 
