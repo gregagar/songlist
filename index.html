@@ -5247,6 +5247,37 @@ function getFlag(country){
         .filter(Boolean)
         .join("");
 }
+    function getYearDecadeKey(song){
+
+    const year =
+        Number(song.Year || song["Year"] || 0);
+
+    if(!year){
+        return "";
+    }
+
+    return String(
+        Math.floor(year / 10) * 10
+    );
+}
+
+function getYearDecadeLabel(decadeKey){
+
+    const decade =
+        Number(decadeKey);
+
+    if(!decade){
+        return "";
+    }
+
+    const shortNumber =
+        decade % 100;
+
+    return (
+        String(shortNumber).padStart(2, "0") +
+        "s"
+    );
+}
     function getSideNavKeyForSong(song){
 
     if(sortKey === "artist"){
@@ -5294,6 +5325,9 @@ function getFlag(country){
             Math.floor(bpm / 10) * 10
         );
     }
+        if(sortKey === "year"){
+    return getYearDecadeKey(song);
+}
 
     return "";
 }
@@ -5307,7 +5341,8 @@ function buildAlphabet(filtered){
     if(
     sortKey !== "artist" &&
     sortKey !== "title" &&
-    sortKey !== "bpm"
+    sortKey !== "bpm" &&
+    sortKey !== "year"
 ){
     nav.style.display = "none";
     document.body.classList.remove("sideNavActive");
@@ -5355,6 +5390,31 @@ nav.innerHTML = "";
                 )
                 .map(String);
     }
+    if(sortKey === "year"){
+
+    const yearBuckets =
+        new Set();
+
+    filtered.forEach(song => {
+
+        const key =
+            getSideNavKeyForSong(song);
+
+        if(key){
+            yearBuckets.add(key);
+        }
+    });
+
+    items =
+        [...yearBuckets]
+            .map(Number)
+            .sort((a,b) =>
+                sortDirection === 1
+                ? a - b
+                : b - a
+            )
+            .map(String);
+}
 
     items.forEach(item => {
 
@@ -5364,8 +5424,13 @@ nav.innerHTML = "";
         d.className =
             "alphaLetter";
 
-        d.innerText =
-            item;
+        d.dataset.key =
+    item;
+
+d.innerText =
+    sortKey === "year"
+    ? getYearDecadeLabel(item)
+    : item;
 
         d.onclick = () => {
 
@@ -5893,10 +5958,11 @@ const inSetlist =
     );
         const div=document.createElement("div");
 
-        if(
+      if(
     sortKey === "artist" ||
     sortKey === "title" ||
-    sortKey === "bpm"
+    sortKey === "bpm" ||
+    sortKey === "year"
 ){
     div.dataset.letter =
         getSideNavKeyForSong(song);
@@ -6673,7 +6739,8 @@ window.addEventListener("scroll",()=>{
     if(
         sortKey !== "artist" &&
         sortKey !== "title" &&
-        sortKey !== "bpm"
+        sortKey !== "bpm" &&
+        sortKey !== "year"
     ){
         return;
     }
@@ -6703,7 +6770,7 @@ window.addEventListener("scroll",()=>{
 
             el.classList.toggle(
                 "active",
-                el.innerText === currentKey
+                (el.dataset.key || el.innerText) === currentKey
             );
         });
 });
