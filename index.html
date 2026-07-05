@@ -4774,103 +4774,116 @@ function positionAlphabet(){
 }
 function buildChips(){
 
-    const c=document.getElementById("chipContainer");
-    c.innerHTML="";
+    const c = document.getElementById("chipContainer");
+    c.innerHTML = "";
+
     // Existing filters
-    filters.forEach(f=>{
+    filters.forEach(f => {
 
-        const d=document.createElement("div");
-        d.className="chip";
-        d.innerText=f;
+        const d = document.createElement("div");
+        d.className = "chip";
+        d.innerText = f;
 
-        d.onclick=()=>{
+        d.onclick = () => {
 
-            if(activeFilters.has(f))
+            if(activeFilters.has(f)){
                 activeFilters.delete(f);
-            else
+            }else{
                 activeFilters.add(f);
+            }
 
             d.classList.toggle("active");
 
             render();
         };
 
-       c.appendChild(d);
+        c.appendChild(d);
     });
+
     const spacer = document.createElement("div");
-spacer.style.flexBasis = "100%";
-c.appendChild(spacer);
+    spacer.style.flexBasis = "100%";
+    c.appendChild(spacer);
 
-   // Decade filters
-decadeFilters.forEach(decade=>{
+    // Decade filters
+    decadeFilters.forEach(decade => {
 
-    const d=document.createElement("div");
+        const d = document.createElement("div");
 
-    d.className="chip decadeChip";
-    d.innerText=decade;
-    d.style.background = getDecadeColor(decade);
-
-    if(activeDecades.has(decade)){
-        d.classList.add("decade-active");
-    }
-
-    d.onclick=()=>{
+        d.className = "chip decadeChip";
+        d.innerText = decade;
+        d.style.background = getDecadeColor(decade);
 
         if(activeDecades.has(decade)){
-
-            activeDecades.delete(decade);
-            d.classList.remove("decade-active");
-
-        }else{
-
-            activeDecades.add(decade);
             d.classList.add("decade-active");
         }
 
+        d.onclick = () => {
+
+            if(activeDecades.has(decade)){
+
+                activeDecades.delete(decade);
+                d.classList.remove("decade-active");
+
+            }else{
+
+                activeDecades.add(decade);
+                d.classList.add("decade-active");
+            }
+
+            updateDecadeChipColours();
+
+            render();
+        };
+
+        c.appendChild(d);
+    });
+
+    // Clear button
+    const clear = document.createElement("div");
+    clear.className = "chip";
+    clear.innerText = "✕";
+
+    clear.onclick = () => {
+
+        activeFilters.clear();
+        activeDecades.clear();
+
+        artistFilter = "";
+        genreFilter = "";
+        syncGenreDropdown();
+        countryFilter = "";
+        yearFilter = "";
+        bpmFilter = null;
+
+        clearBirthdayFilter(true);
+
+        currentQuery = "";
+
+        const search =
+            document.getElementById("search");
+
+        if(search){
+            search.value = "";
+        }
+
+        document
+            .querySelectorAll(".chip")
+            .forEach(chip => {
+
+                chip.classList.remove("active");
+                chip.classList.remove("decade-active");
+
+                if(!chip.classList.contains("decadeChip")){
+                    chip.style.background = "";
+                }
+            });
+
         updateDecadeChipColours();
+
         render();
     };
 
-    c.appendChild(d);
-});
-
-    // Clear button
-    const clear=document.createElement("div");
-    clear.className="chip";
-    clear.innerText="✕";
-
-    clear.onclick=()=>{
-
-    activeFilters.clear();
-    activeDecades.clear();
-
-    artistFilter = "";
-    genreFilter = "";
-    syncGenreDropdown();
-    countryFilter = "";
-    yearFilter = "";
-    bpmFilter = null;
-
-    clearBirthdayFilter(true);
-
-    currentQuery = "";
-    document.getElementById("search").value = "";
-
-    document
-    .querySelectorAll(".chip")
-    .forEach(chip=>{
-        chip.classList.remove("active");
-        chip.classList.remove("decade-active");
-
-        if(!chip.classList.contains("decadeChip")){
-            chip.style.background = "";
-        }
-    });
-
-updateDecadeChipColours();
-
-render();
-   c.appendChild(clear);
+    c.appendChild(clear);
 }
 function buildGenreDropdown(){
 
