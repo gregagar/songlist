@@ -518,11 +518,17 @@ button{
     align-items:center;
     justify-content:center;
 
-    font-size:24px;
-    font-weight:900;
+    border-radius:8px;
+    border:1px solid #334155;
 
+    background:#0f172a;
     color:#94a3b8;
-    opacity:.28;
+
+    font-size:14px;
+    font-weight:900;
+    letter-spacing:.5px;
+
+    opacity:.35;
 
     cursor:pointer;
     padding:0;
@@ -533,13 +539,17 @@ button{
     transition:
         opacity .15s ease,
         transform .15s ease,
-        color .15s ease;
+        color .15s ease,
+        background .15s ease,
+        border-color .15s ease;
 }
 
 .playedBtn.active{
+    background:#334155;
     color:#38bdf8;
+    border-color:#38bdf8;
     opacity:1;
-    transform:scale(1.15);
+    transform:scale(1.08);
 }
 .card.played{
     background:#475569 !important;
@@ -5871,7 +5881,7 @@ align-items:flex-start;
     class="playedBtn ${playedSongs.has(songId) ? "active" : ""}"
     data-songid="${songId}"
 >
-    ✓
+    P
 </div>
 
     <div
@@ -5962,14 +5972,14 @@ if(playedSongs.has(songId)){
     playedSongs.delete(songId);
     div.classList.remove("played");
     playedBtn.classList.remove("active");
-    playedBtn.innerText = "✓";
+    playedBtn.innerText = "P";
 
 }else{
 
     playedSongs.add(songId);
     div.classList.add("played");
     playedBtn.classList.add("active");
-    playedBtn.innerText = "✓";
+    playedBtn.innerText = "P";
 }
 };
 const artistLink =
