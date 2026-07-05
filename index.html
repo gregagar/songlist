@@ -412,9 +412,20 @@ button{
     color:black;
     font-weight:600;
 }
-    .chip.decade-active{
+.chip.decadeChip{
     color:#fff;
-    font-weight:600;
+    font-weight:700;
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+}
+
+.chip.decade-active{
+    color:#fff;
+    font-weight:900;
+    border-color:rgba(255,255,255,.75);
+    box-shadow:
+        inset 0 0 0 2px rgba(255,255,255,.7),
+        0 0 12px rgba(255,255,255,.22);
 }
     .chip.unavailable{
     opacity:.28;
@@ -3052,14 +3063,19 @@ mustPlayOnlyActive = false;
         search.value = "";
     }
 
-    document
-        .querySelectorAll(".chip")
-        .forEach(chip => {
+   document
+    .querySelectorAll(".chip")
+    .forEach(chip => {
 
-            chip.classList.remove("active");
-            chip.classList.remove("decade-active");
+        chip.classList.remove("active");
+        chip.classList.remove("decade-active");
+
+        if(!chip.classList.contains("decadeChip")){
             chip.style.background = "";
-        });
+        }
+    });
+
+updateDecadeChipColours();
 
     syncGenreDropdown();
 }
@@ -4785,35 +4801,38 @@ function buildChips(){
 spacer.style.flexBasis = "100%";
 c.appendChild(spacer);
 
-    // Decade filters
-    decadeFilters.forEach(decade=>{
+   // Decade filters
+decadeFilters.forEach(decade=>{
 
-        const d=document.createElement("div");
-        d.className="chip";
-        d.innerText=decade;
+    const d=document.createElement("div");
 
-        d.onclick=()=>{
-
-            if(activeDecades.has(decade)){
-
-    activeDecades.delete(decade);
-
-    d.classList.remove("decade-active");
-    d.style.background = "";
-
-}else{
-
-    activeDecades.add(decade);
-
-    d.classList.add("decade-active");
+    d.className="chip decadeChip";
+    d.innerText=decade;
     d.style.background = getDecadeColor(decade);
-}
 
-            render();
-        };
+    if(activeDecades.has(decade)){
+        d.classList.add("decade-active");
+    }
 
-        c.appendChild(d);
-    });
+    d.onclick=()=>{
+
+        if(activeDecades.has(decade)){
+
+            activeDecades.delete(decade);
+            d.classList.remove("decade-active");
+
+        }else{
+
+            activeDecades.add(decade);
+            d.classList.add("decade-active");
+        }
+
+        updateDecadeChipColours();
+        render();
+    };
+
+    c.appendChild(d);
+});
 
     // Clear button
     const clear=document.createElement("div");
@@ -4838,16 +4857,19 @@ c.appendChild(spacer);
     document.getElementById("search").value = "";
 
     document
-        .querySelectorAll(".chip")
-        .forEach(chip=>{
-            chip.classList.remove("active");
-            chip.classList.remove("decade-active");
+    .querySelectorAll(".chip")
+    .forEach(chip=>{
+        chip.classList.remove("active");
+        chip.classList.remove("decade-active");
+
+        if(!chip.classList.contains("decadeChip")){
             chip.style.background = "";
-        });
+        }
+    });
 
-    render();
-    };
+updateDecadeChipColours();
 
+render();
    c.appendChild(clear);
 }
 function buildGenreDropdown(){
@@ -5039,15 +5061,29 @@ function updateDecadeChipColours(){
     .forEach(chip => {
 
         const decade =
-            chip.innerText;
+            chip.innerText.trim();
 
         if(!decadeFilters.includes(decade)){
             return;
         }
 
+        chip.classList.add("decadeChip");
+
+        chip.style.background =
+            getDecadeColor(decade);
+
+        chip.style.color =
+            "#fff";
+
         if(chip.classList.contains("decade-active")){
-            chip.style.background =
-                getDecadeColor(decade);
+
+            chip.style.fontWeight =
+                "900";
+
+        }else{
+
+            chip.style.fontWeight =
+                "700";
         }
     });
 }
