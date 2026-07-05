@@ -1199,12 +1199,13 @@ a{
             
             <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
 
-            <button id="sortArtist">Artist</button>
-            <button id="sortTitle">Title</button>
-            <button id="sortBpm">BPM</button>
-            <button id="sortOrder">A-Z</button>
-            <button id="sortRandom">Random</button>
-            <button id="autoScrollBtn" class="autoScrollBtn">
+<button id="sortArtist">Artist</button>
+<button id="sortTitle">Title</button>
+<button id="sortBpm">BPM</button>
+<button id="sortYear">Year</button>
+<button id="sortOrder">A-Z</button>
+<button id="sortRandom">Random</button>
+<button id="autoScrollBtn" class="autoScrollBtn">
     Auto Scroll
 </button>
 
@@ -1591,6 +1592,35 @@ let sortKey = "artist";
 let sortDirection = 1; // 1 = A-Z, -1 = Z-A
 let randomMode = false;
 let randomOrder = [];
+    function updateSortOrderButton(){
+    const btn =
+        document.getElementById("sortOrder");
+
+    if(!btn) return;
+
+    if(sortKey === "year"){
+        btn.innerText =
+            sortDirection === 1
+            ? "Old-New"
+            : "New-Old";
+
+        return;
+    }
+
+    if(sortKey === "bpm"){
+        btn.innerText =
+            sortDirection === 1
+            ? "Low-High"
+            : "High-Low";
+
+        return;
+    }
+
+    btn.innerText =
+        sortDirection === 1
+        ? "A-Z"
+        : "Z-A";
+}
 
 function getSongTitle(song){
     return String(
@@ -4695,9 +4725,14 @@ function sortSongs(arr){
                 break;
 
             case "bpm":
-                x = Number(a["Tempo"] || 0);
-                y = Number(b["Tempo"] || 0);
-                break;
+    x = Number(a["Tempo"] || 0);
+    y = Number(b["Tempo"] || 0);
+    break;
+
+case "year":
+    x = Number(a["Year"] || a.Year || 0);
+    y = Number(b["Year"] || b.Year || 0);
+    break;
         }
 
         if(x > y) return sortDirection;
@@ -6088,6 +6123,8 @@ document
 document.getElementById("sortArtist").onclick = () => {
     randomMode = false;
     sortKey = "artist";
+    sortDirection = 1;
+    updateSortOrderButton();
     render();
 };
 
@@ -6095,25 +6132,35 @@ document.getElementById("sortTitle").onclick = () => {
     randomMode = false;
     sortKey = "title";
     sortDirection = 1;
+    updateSortOrderButton();
     render();
 };
+
 document.getElementById("sortBpm").onclick = () => {
     randomMode = false;
     sortKey = "bpm";
+    sortDirection = 1;
+    updateSortOrderButton();
     render();
 };
+
+document.getElementById("sortYear").onclick = () => {
+    randomMode = false;
+    sortKey = "year";
+    sortDirection = 1;
+    updateSortOrderButton();
+    render();
+};
+
 document.getElementById("sortOrder").onclick = () => {
+    randomMode = false;
 
     sortDirection *= -1;
 
-    const btn = document.getElementById("sortOrder");
-
-    btn.innerText =
-        sortDirection === 1 ? "A-Z" : "Z-A";
+    updateSortOrderButton();
 
     render();
-};
-document
+};document
 .getElementById("birthdayBtn")
 .onclick = e => {
 
@@ -6192,6 +6239,13 @@ document
 document.getElementById("sortRandom").onclick = () => {
 
     randomMode = true;
+
+    const btn =
+        document.getElementById("sortOrder");
+
+    if(btn){
+        btn.innerText = "Random";
+    }
 
     randomOrder = [...songs]
         .map(getSongId)
@@ -7413,6 +7467,7 @@ settleSongFinderLayout();
 updateScrollSpeedDisplay();
 updateAutoScrollButton();
 updateBirthdayDisplay();
+updateSortOrderButton();
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
         navigator.serviceWorker
