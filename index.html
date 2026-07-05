@@ -602,7 +602,7 @@ a{
     body.sideNavActive #results{
     padding-left:40px;
 }
-}
+
 .setlistItem{
     background:#1e293b;
     padding:12px;
@@ -5256,37 +5256,6 @@ function getFlag(country){
         return "";
     }
 
-    return String(
-        Math.floor(year / 10) * 10
-    );
-}
-
-function getYearDecadeLabel(decadeKey){
-
-    const decade =
-        Number(decadeKey);
-
-    if(!decade){
-        return "";
-    }
-
-    const shortNumber =
-        decade % 100;
-
-    return (
-        String(shortNumber).padStart(2, "0") +
-        "s"
-    );
-}
-    function getYearDecadeKey(song){
-
-    const year =
-        Number(song.Year || song["Year"] || 0);
-
-    if(!year){
-        return "";
-    }
-
     if(year < 1910){
         return "#";
     }
@@ -5372,9 +5341,6 @@ function getYearDecadeLabel(decadeKey){
             Math.floor(bpm / 10) * 10
         );
     }
-        if(sortKey === "year"){
-    return getYearDecadeKey(song);
-}
         if(sortKey === "year"){
     return getYearDecadeKey(song);
 }
@@ -6833,7 +6799,7 @@ window.addEventListener("scroll",()=>{
 
             el.classList.toggle(
                 "active",
-                (el.dataset.key || (el.dataset.key || el.innerText) === currentKey
+                (el.dataset.key || el.innerText) === currentKey
             );
         });
 });
