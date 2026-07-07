@@ -783,6 +783,104 @@ a{
     width:100%;
     color:#fca5a5;
 }
+    #filterColoursOverlay{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .2s ease;
+
+    z-index:100001;
+}
+
+#filterColoursOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#filterColoursPanel{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+
+    width:min(92%, 420px);
+    max-height:75vh;
+
+    background:#0f172a;
+    border-radius:16px;
+
+    padding:18px;
+    box-sizing:border-box;
+
+    display:none;
+
+    z-index:100002;
+
+    box-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+
+#filterColoursPanel.open{
+    display:block;
+}
+
+#filterColoursHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:14px;
+}
+
+#filterColoursList{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+
+    max-height:55vh;
+    overflow-y:auto;
+
+    margin-bottom:14px;
+}
+
+.filterColourRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+
+    background:#1e293b;
+
+    padding:10px 12px;
+    border-radius:12px;
+}
+
+.filterColourName{
+    font-weight:700;
+    color:#e2e8f0;
+}
+
+.filterColourInput{
+    width:52px;
+    height:36px;
+
+    border:none;
+    border-radius:8px;
+
+    background:transparent;
+    padding:0;
+
+    cursor:pointer;
+}
+
+#resetFilterColours{
+    width:100%;
+    color:#fca5a5;
+}
 #settingsBtn{
 
     width:42px;
@@ -1484,6 +1582,35 @@ body.theme-day #scrollSpeedValue{
     color:#334155;
     font-weight:800;
 }
+    /* Filter Colours theme overrides */
+
+#filterColoursPanel{
+    background:var(--theme-panel);
+    color:var(--theme-text);
+}
+
+.filterColourRow{
+    background:var(--theme-card);
+}
+
+.filterColourName{
+    color:var(--theme-text);
+}
+
+/* Day Mode filter colour panel tweaks */
+
+body.theme-day #filterColoursPanel{
+    background:var(--theme-panel);
+    color:var(--theme-text);
+}
+
+body.theme-day .filterColourRow{
+    background:rgba(30,41,59,.82);
+}
+
+body.theme-day .filterColourName{
+    color:#ffffff;
+}
 </style>
 </head>
 
@@ -1594,6 +1721,9 @@ body.theme-day #scrollSpeedValue{
 </button>
         <button id="decadeColoursBtn">
     Decade Colours
+</button>
+        <button id="filterColoursBtn">
+    Filter Colours
 </button>
 
 <button id="undoBtn">
@@ -1764,6 +1894,23 @@ body.theme-day #scrollSpeedValue{
     <div id="decadeColoursList"></div>
 
     <button id="resetDecadeColours">
+        Reset Colours
+    </button>
+</div>
+    <div id="filterColoursOverlay"></div>
+
+<div id="filterColoursPanel">
+    <div id="filterColoursHeader">
+        <strong>Filter Colours</strong>
+
+        <button id="closeFilterColours">
+            ✕
+        </button>
+    </div>
+
+    <div id="filterColoursList"></div>
+
+    <button id="resetFilterColours">
         Reset Colours
     </button>
 </div>
@@ -3466,13 +3613,17 @@ async function reloadMainSongList(){
 
         clearEventSelection();
 applyTheme(currentTheme);
-        buildGenreDropdown();
+       buildGenreDropdown();
 
-        if(typeof buildDecadeColourPanel === "function"){
-            buildDecadeColourPanel();
-        }
+if(typeof buildDecadeColourPanel === "function"){
+    buildDecadeColourPanel();
+}
 
-        render();
+if(typeof buildFilterColourPanel === "function"){
+    buildFilterColourPanel();
+}
+
+render();
 
         alert(
             "Main songs.json reloaded."
@@ -5132,8 +5283,11 @@ function buildChips(){
     filters.forEach(f => {
 
         const d = document.createElement("div");
-        d.className = "chip";
-        d.innerText = f;
+d.className = "chip filterChip";
+d.dataset.filter = f;
+d.innerText = f;
+
+applyFilterChipStyle(d, f);
 
         d.onclick = () => {
 
@@ -5145,7 +5299,9 @@ function buildChips(){
 
             d.classList.toggle("active");
 
-            render();
+applyFilterChipStyle(d, f);
+
+render();
         };
 
         c.appendChild(d);
@@ -5217,21 +5373,25 @@ function buildChips(){
             search.value = "";
         }
 
-        document
-            .querySelectorAll(".chip")
-            .forEach(chip => {
+       document
+    .querySelectorAll(".chip")
+    .forEach(chip => {
 
-                chip.classList.remove("active");
-                chip.classList.remove("decade-active");
+        chip.classList.remove("active");
+        chip.classList.remove("decade-active");
 
-                if(!chip.classList.contains("decadeChip")){
-                    chip.style.background = "";
-                }
-            });
+        if(
+            !chip.classList.contains("decadeChip") &&
+            !chip.classList.contains("filterChip")
+        ){
+            chip.style.background = "";
+        }
+    });
 
-        updateDecadeChipColours();
+updateFilterChipColours();
+updateDecadeChipColours();
 
-        render();
+render();
     };
 
     c.appendChild(clear);
@@ -5288,6 +5448,217 @@ function syncGenreDropdown(){
         "active",
         !!genreFilter
     );
+}
+    const defaultFilterColours = {
+    "Favourites":"#f59e0b",
+    "Upbeat":"#22c55e",
+    "Dancefloor":"#ec4899",
+    "Sing-a-Long":"#38bdf8",
+    "Happy":"#eab308",
+    "Easy To Sing":"#a78bfa",
+    "Romantic":"#fb7185",
+    "Showcase":"#f97316"
+};
+
+function getSavedFilterColours(){
+
+    try{
+
+        const saved =
+            JSON.parse(
+                localStorage.getItem("filterColours") || "{}"
+            );
+
+        return {
+            ...defaultFilterColours,
+            ...saved
+        };
+
+    }catch(e){
+
+        return {
+            ...defaultFilterColours
+        };
+    }
+}
+
+function saveFilterColours(colours){
+
+    localStorage.setItem(
+        "filterColours",
+        JSON.stringify(colours)
+    );
+}
+
+function getFilterColour(filter){
+
+    const colours =
+        getSavedFilterColours();
+
+    return colours[filter] || "#38bdf8";
+}
+
+function hexToRgba(hex, alpha){
+
+    const clean =
+        String(hex || "")
+            .replace("#", "")
+            .trim();
+
+    if(clean.length !== 6){
+        return `rgba(56,189,248,${alpha})`;
+    }
+
+    const r =
+        parseInt(clean.slice(0,2), 16);
+
+    const g =
+        parseInt(clean.slice(2,4), 16);
+
+    const b =
+        parseInt(clean.slice(4,6), 16);
+
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function applyFilterChipStyle(chip, filter){
+
+    const colour =
+        getFilterColour(filter);
+
+    chip.classList.add("filterChip");
+
+    chip.style.color =
+        "#ffffff";
+
+    chip.style.border =
+        `1px solid ${hexToRgba(colour, .55)}`;
+
+    chip.style.boxShadow =
+        activeFilters.has(filter)
+        ? `inset 0 0 0 1px rgba(255,255,255,.55), 0 0 12px ${hexToRgba(colour, .25)}`
+        : `inset 0 0 0 1px ${hexToRgba(colour, .18)}`;
+
+    chip.style.background =
+        activeFilters.has(filter)
+        ? colour
+        : hexToRgba(colour, .32);
+
+    chip.style.fontWeight =
+        activeFilters.has(filter)
+        ? "800"
+        : "700";
+}
+
+function updateFilterChipColours(){
+
+    document
+        .querySelectorAll(".chip.filterChip")
+        .forEach(chip => {
+
+            const filter =
+                chip.dataset.filter ||
+                chip.innerText.trim();
+
+            if(!filters.includes(filter)){
+                return;
+            }
+
+            applyFilterChipStyle(chip, filter);
+        });
+}
+
+function buildFilterColourPanel(){
+
+    const container =
+        document.getElementById("filterColoursList");
+
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    const colours =
+        getSavedFilterColours();
+
+    filters.forEach(filter => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "filterColourRow";
+
+        row.innerHTML = `
+            <div class="filterColourName">
+                ${filter}
+            </div>
+
+            <input
+                class="filterColourInput"
+                type="color"
+                value="${colours[filter]}"
+                data-filter="${filter}"
+            >
+        `;
+
+        const input =
+            row.querySelector(".filterColourInput");
+
+        input.oninput = e => {
+
+            const saved =
+                getSavedFilterColours();
+
+            saved[filter] =
+                e.target.value;
+
+            saveFilterColours(saved);
+
+            updateFilterChipColours();
+        };
+
+        container.appendChild(row);
+    });
+}
+
+function openFilterColoursPanel(){
+
+    buildFilterColourPanel();
+
+    document
+        .getElementById("filterColoursOverlay")
+        .classList.add("open");
+
+    document
+        .getElementById("filterColoursPanel")
+        .classList.add("open");
+}
+
+function closeFilterColoursPanel(){
+
+    document
+        .getElementById("filterColoursOverlay")
+        .classList.remove("open");
+
+    document
+        .getElementById("filterColoursPanel")
+        .classList.remove("open");
+}
+
+function resetFilterColours(){
+
+    const sure =
+        confirm("Reset filter colours?");
+
+    if(!sure){
+        return;
+    }
+
+    localStorage.removeItem("filterColours");
+
+    buildFilterColourPanel();
+
+    updateFilterChipColours();
 }
 const defaultDecadeColours = {
     "30s":"#331f1e",
@@ -7761,7 +8132,28 @@ document
 document
 .getElementById("resetDecadeColours")
 .onclick = resetDecadeColours;
-    
+    document
+.getElementById("filterColoursBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    settingsMenu.classList.remove("open");
+
+    openFilterColoursPanel();
+};
+
+document
+.getElementById("closeFilterColours")
+.onclick = closeFilterColoursPanel;
+
+document
+.getElementById("filterColoursOverlay")
+.onclick = closeFilterColoursPanel;
+
+document
+.getElementById("resetFilterColours")
+.onclick = resetFilterColours;
     document
 .getElementById("addNewSong")
 .onclick = e => {
