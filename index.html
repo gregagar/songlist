@@ -3568,14 +3568,18 @@ mustPlayOnlyActive = false;
         chip.classList.remove("active");
         chip.classList.remove("decade-active");
 
-        if(!chip.classList.contains("decadeChip")){
+        if(
+            !chip.classList.contains("decadeChip") &&
+            !chip.classList.contains("filterChip")
+        ){
             chip.style.background = "";
         }
     });
 
+updateFilterChipColours();
 updateDecadeChipColours();
 
-    syncGenreDropdown();
+syncGenreDropdown();
 }
 
 async function reloadMainSongList(){
