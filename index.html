@@ -3816,6 +3816,225 @@ const decadeFilters=[
 
 const activeFilters=new Set();
 const activeDecades=new Set();
+    const defaultFilterColours = {
+    "Favourites":"#f59e0b",
+    "Upbeat":"#22c55e",
+    "Dancefloor":"#ec4899",
+    "Sing-a-Long":"#38bdf8",
+    "Happy":"#eab308",
+    "Easy To Sing":"#a78bfa",
+    "Romantic":"#fb7185",
+    "Showcase":"#f97316"
+};
+
+function getSavedFilterColours(){
+
+    try{
+
+        const saved =
+            JSON.parse(
+                localStorage.getItem("filterColours") || "{}"
+            );
+
+        return {
+            ...defaultFilterColours,
+            ...saved
+        };
+
+    }catch(e){
+
+        return {
+            ...defaultFilterColours
+        };
+    }
+}
+
+function saveFilterColours(colours){
+
+    localStorage.setItem(
+        "filterColours",
+        JSON.stringify(colours)
+    );
+}
+
+function getFilterColour(filter){
+
+    const colours =
+        getSavedFilterColours();
+
+    return colours[filter] || "#38bdf8";
+}
+
+function hexToRgba(hex, alpha){
+
+    const clean =
+        String(hex || "")
+            .replace("#", "")
+            .trim();
+
+    if(clean.length !== 6){
+        return `rgba(56,189,248,${alpha})`;
+    }
+
+    const r =
+        parseInt(clean.slice(0,2), 16);
+
+    const g =
+        parseInt(clean.slice(2,4), 16);
+
+    const b =
+        parseInt(clean.slice(4,6), 16);
+
+    return `rgba(${r},${g},${b},${alpha})`;
+}
+
+function applyFilterChipStyle(chip, filter){
+
+    if(!chip || !filter){
+        return;
+    }
+
+    const colour =
+        getFilterColour(filter);
+
+    const isActive =
+        activeFilters &&
+        activeFilters.has(filter);
+
+    chip.classList.add("filterChip");
+
+    chip.style.border =
+        `1px solid ${hexToRgba(colour, .55)}`;
+
+    chip.style.boxShadow =
+        isActive
+        ? `inset 0 0 0 1px rgba(255,255,255,.55), 0 0 12px ${hexToRgba(colour, .25)}`
+        : `inset 0 0 0 1px ${hexToRgba(colour, .18)}`;
+
+    chip.style.background =
+        isActive
+        ? colour
+        : hexToRgba(colour, .32);
+
+    chip.style.color =
+        "#ffffff";
+
+    chip.style.fontWeight =
+        isActive
+        ? "800"
+        : "700";
+}
+function updateFilterChipColours(){
+
+    document
+        .querySelectorAll(".chip.filterChip")
+        .forEach(chip => {
+
+            const filter =
+                chip.dataset.filter ||
+                chip.innerText.trim();
+
+            if(!filters.includes(filter)){
+                return;
+            }
+
+            applyFilterChipStyle(chip, filter);
+        });
+}
+
+function buildFilterColourPanel(){
+
+    const container =
+        document.getElementById("filterColoursList");
+
+    if(!container) return;
+
+    container.innerHTML = "";
+
+    const colours =
+        getSavedFilterColours();
+
+    filters.forEach(filter => {
+
+        const row =
+            document.createElement("div");
+
+        row.className =
+            "filterColourRow";
+
+        row.innerHTML = `
+            <div class="filterColourName">
+                ${filter}
+            </div>
+
+            <input
+                class="filterColourInput"
+                type="color"
+                value="${colours[filter]}"
+                data-filter="${filter}"
+            >
+        `;
+
+        const input =
+            row.querySelector(".filterColourInput");
+
+        input.oninput = e => {
+
+            const saved =
+                getSavedFilterColours();
+
+            saved[filter] =
+                e.target.value;
+
+            saveFilterColours(saved);
+
+            updateFilterChipColours();
+        };
+
+        container.appendChild(row);
+    });
+}
+
+function openFilterColoursPanel(){
+
+    buildFilterColourPanel();
+
+    document
+        .getElementById("filterColoursOverlay")
+        .classList.add("open");
+
+    document
+        .getElementById("filterColoursPanel")
+        .classList.add("open");
+}
+
+function closeFilterColoursPanel(){
+
+    document
+        .getElementById("filterColoursOverlay")
+        .classList.remove("open");
+
+    document
+        .getElementById("filterColoursPanel")
+        .classList.remove("open");
+}
+
+function resetFilterColours(){
+
+    const sure =
+        confirm("Reset filter colours?");
+
+    if(!sure){
+        return;
+    }
+
+    localStorage.removeItem("filterColours");
+
+    buildFilterColourPanel();
+
+    updateFilterChipColours();
+}
+
 const playedSongs = new Set();
 let draggedSongId = null;
 let setlist =
@@ -5449,225 +5668,7 @@ function syncGenreDropdown(){
         !!genreFilter
     );
 }
-    const defaultFilterColours = {
-    "Favourites":"#f59e0b",
-    "Upbeat":"#22c55e",
-    "Dancefloor":"#ec4899",
-    "Sing-a-Long":"#38bdf8",
-    "Happy":"#eab308",
-    "Easy To Sing":"#a78bfa",
-    "Romantic":"#fb7185",
-    "Showcase":"#f97316"
-};
-
-function getSavedFilterColours(){
-
-    try{
-
-        const saved =
-            JSON.parse(
-                localStorage.getItem("filterColours") || "{}"
-            );
-
-        return {
-            ...defaultFilterColours,
-            ...saved
-        };
-
-    }catch(e){
-
-        return {
-            ...defaultFilterColours
-        };
-    }
-}
-
-function saveFilterColours(colours){
-
-    localStorage.setItem(
-        "filterColours",
-        JSON.stringify(colours)
-    );
-}
-
-function getFilterColour(filter){
-
-    const colours =
-        getSavedFilterColours();
-
-    return colours[filter] || "#38bdf8";
-}
-
-function hexToRgba(hex, alpha){
-
-    const clean =
-        String(hex || "")
-            .replace("#", "")
-            .trim();
-
-    if(clean.length !== 6){
-        return `rgba(56,189,248,${alpha})`;
-    }
-
-    const r =
-        parseInt(clean.slice(0,2), 16);
-
-    const g =
-        parseInt(clean.slice(2,4), 16);
-
-    const b =
-        parseInt(clean.slice(4,6), 16);
-
-    return `rgba(${r},${g},${b},${alpha})`;
-}
-
-function applyFilterChipStyle(chip, filter){
-
-    if(!chip || !filter){
-        return;
-    }
-
-    const colour =
-        getFilterColour(filter);
-
-    const isActive =
-        activeFilters &&
-        activeFilters.has(filter);
-
-    chip.classList.add("filterChip");
-
-    chip.style.border =
-        `1px solid ${hexToRgba(colour, .55)}`;
-
-    chip.style.boxShadow =
-        isActive
-        ? `inset 0 0 0 1px rgba(255,255,255,.55), 0 0 12px ${hexToRgba(colour, .25)}`
-        : `inset 0 0 0 1px ${hexToRgba(colour, .18)}`;
-
-    chip.style.background =
-        isActive
-        ? colour
-        : hexToRgba(colour, .32);
-
-    chip.style.color =
-        "#ffffff";
-
-    chip.style.fontWeight =
-        isActive
-        ? "800"
-        : "700";
-}
-function updateFilterChipColours(){
-
-    document
-        .querySelectorAll(".chip.filterChip")
-        .forEach(chip => {
-
-            const filter =
-                chip.dataset.filter ||
-                chip.innerText.trim();
-
-            if(!filters.includes(filter)){
-                return;
-            }
-
-            applyFilterChipStyle(chip, filter);
-        });
-}
-
-function buildFilterColourPanel(){
-
-    const container =
-        document.getElementById("filterColoursList");
-
-    if(!container) return;
-
-    container.innerHTML = "";
-
-    const colours =
-        getSavedFilterColours();
-
-    filters.forEach(filter => {
-
-        const row =
-            document.createElement("div");
-
-        row.className =
-            "filterColourRow";
-
-        row.innerHTML = `
-            <div class="filterColourName">
-                ${filter}
-            </div>
-
-            <input
-                class="filterColourInput"
-                type="color"
-                value="${colours[filter]}"
-                data-filter="${filter}"
-            >
-        `;
-
-        const input =
-            row.querySelector(".filterColourInput");
-
-        input.oninput = e => {
-
-            const saved =
-                getSavedFilterColours();
-
-            saved[filter] =
-                e.target.value;
-
-            saveFilterColours(saved);
-
-            updateFilterChipColours();
-        };
-
-        container.appendChild(row);
-    });
-}
-
-function openFilterColoursPanel(){
-
-    buildFilterColourPanel();
-
-    document
-        .getElementById("filterColoursOverlay")
-        .classList.add("open");
-
-    document
-        .getElementById("filterColoursPanel")
-        .classList.add("open");
-}
-
-function closeFilterColoursPanel(){
-
-    document
-        .getElementById("filterColoursOverlay")
-        .classList.remove("open");
-
-    document
-        .getElementById("filterColoursPanel")
-        .classList.remove("open");
-}
-
-function resetFilterColours(){
-
-    const sure =
-        confirm("Reset filter colours?");
-
-    if(!sure){
-        return;
-    }
-
-    localStorage.removeItem("filterColours");
-
-    buildFilterColourPanel();
-
-    updateFilterChipColours();
-}
-    const defaultFilterColours = {
+        const defaultFilterColours = {
     "Favourites":"#f59e0b",
     "Upbeat":"#22c55e",
     "Dancefloor":"#ec4899",
