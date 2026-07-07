@@ -4301,6 +4301,10 @@ function makeSnapshot(label = "Change"){
             localStorage.getItem("decadeColours") || "{}",
             {}
         ),
+        filterColours:safeJsonParse(
+    localStorage.getItem("filterColours") || "{}",
+    {}
+),
         notes:
             localStorage.getItem("songFinderNotes") || "",
         autoScrollSpeed,
@@ -4380,7 +4384,10 @@ pushUndo("Reset Played");
         "decadeColours",
         JSON.stringify(snapshot.decadeColours || {})
     );
-
+localStorage.setItem(
+    "filterColours",
+    JSON.stringify(snapshot.filterColours || {})
+);
     localStorage.setItem(
         "songFinderNotes",
         snapshot.notes || ""
@@ -4470,7 +4477,11 @@ function exportFullBackup(){
                     localStorage.getItem("decadeColours") || "{}",
                     {}
                 ),
-
+filterColours:
+    safeJsonParse(
+        localStorage.getItem("filterColours") || "{}",
+        {}
+    ),
             notes:
                 localStorage.getItem("songFinderNotes") || "",
 
@@ -4564,7 +4575,10 @@ function restoreFullBackup(imported){
         "decadeColours",
         JSON.stringify(data.decadeColours || {})
     );
-
+localStorage.setItem(
+    "filterColours",
+    JSON.stringify(data.filterColours || {})
+);
     localStorage.setItem(
         "songFinderNotes",
         data.notes || ""
@@ -4600,7 +4614,9 @@ function restoreFullBackup(imported){
     if(typeof buildDecadeColourPanel === "function"){
         buildDecadeColourPanel();
     }
-
+if(typeof buildFilterColourPanel === "function"){
+    buildFilterColourPanel();
+}
     updateScrollSpeedDisplay();
 
     render();
