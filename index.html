@@ -1438,6 +1438,43 @@ body.theme-day .card a{
     backdrop-filter:blur(8px);
     -webkit-backdrop-filter:blur(8px);
 }
+    /* Day Mode control tweaks */
+
+body.theme-day #chipContainer .chip:not(.decadeChip):not(.eventSelectionChip):not(.eventMustPlayFilterChip):not(.eventDoNotPlayChip){
+    background:rgba(30,41,59,.82);
+    color:#ffffff;
+    font-weight:700;
+    box-shadow:0 2px 8px rgba(15,23,42,.14);
+}
+
+body.theme-day #chipContainer .chip.active{
+    background:#2563eb;
+    color:#ffffff;
+    font-weight:800;
+}
+
+body.theme-day #controls button,
+body.theme-day #openSetlist,
+body.theme-day #settingsBtn{
+    background:rgba(30,41,59,.82);
+    color:#ffffff;
+    font-weight:700;
+    border:1px solid rgba(15,23,42,.22);
+    box-shadow:0 2px 8px rgba(15,23,42,.14);
+}
+
+body.theme-day #controls button.active,
+body.theme-day #autoScrollBtn.active,
+body.theme-day #birthdayBtn.active{
+    background:#2563eb;
+    color:#ffffff;
+    border-color:#1d4ed8;
+}
+
+body.theme-day #settingsMenu .settingsLabel{
+    color:#334155;
+    font-weight:700;
+}
 </style>
 </head>
 
