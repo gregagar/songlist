@@ -1268,19 +1268,23 @@ body{
 }
 
 body.theme-day{
-    --theme-bg:#f4f7fb;
-    --theme-header:#e8eef7;
+    --theme-bg:#eef3f8;
+    --theme-header:#e2eaf3;
     --theme-panel:#ffffff;
-    --theme-card:#ffffff;
-    --theme-card-played:#d1d5db;
+
+    --theme-card:rgba(30,41,59,.72);
+    --theme-card-played:rgba(71,85,105,.48);
+
     --theme-input:#ffffff;
     --theme-input-text:#111827;
+
     --theme-button:#dbeafe;
     --theme-button-text:#0f172a;
+
     --theme-text:#111827;
-    --theme-muted:#475569;
+    --theme-muted:#dbeafe;
     --theme-border:#94a3b8;
-    --theme-accent:#2563eb;
+    --theme-accent:#38bdf8;
     --theme-danger:#b91c1c;
     --theme-shadow:rgba(15,23,42,.18);
 }
@@ -1413,6 +1417,22 @@ a,
     background:var(--theme-accent) !important;
     color:#020617 !important;
     font-weight:800;
+}
+    body.theme-day .card{
+    color:#f8fafc;
+    box-shadow:0 6px 16px rgba(15,23,42,.16);
+}
+
+body.theme-day .card .title{
+    color:#ffffff;
+}
+
+body.theme-day .card .meta{
+    color:#dbeafe;
+}
+
+body.theme-day .card a{
+    color:#7dd3fc;
 }
 </style>
 </head>
