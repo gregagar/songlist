@@ -5523,33 +5523,40 @@ function hexToRgba(hex, alpha){
 
 function applyFilterChipStyle(chip, filter){
 
+    if(!chip || !filter){
+        return;
+    }
+
     const colour =
         getFilterColour(filter);
 
-    chip.classList.add("filterChip");
+    const isActive =
+        activeFilters &&
+        activeFilters.has(filter);
 
-    chip.style.color =
-        "#ffffff";
+    chip.classList.add("filterChip");
 
     chip.style.border =
         `1px solid ${hexToRgba(colour, .55)}`;
 
     chip.style.boxShadow =
-        activeFilters.has(filter)
+        isActive
         ? `inset 0 0 0 1px rgba(255,255,255,.55), 0 0 12px ${hexToRgba(colour, .25)}`
         : `inset 0 0 0 1px ${hexToRgba(colour, .18)}`;
 
     chip.style.background =
-        activeFilters.has(filter)
+        isActive
         ? colour
         : hexToRgba(colour, .32);
 
+    chip.style.color =
+        "#ffffff";
+
     chip.style.fontWeight =
-        activeFilters.has(filter)
+        isActive
         ? "800"
         : "700";
 }
-
 function updateFilterChipColours(){
 
     document
@@ -7638,6 +7645,10 @@ if(typeof buildGenreDropdown === "function"){
 
 if(typeof buildDecadeColourPanel === "function"){
     buildDecadeColourPanel();
+}
+
+if(typeof buildFilterColourPanel === "function"){
+    buildFilterColourPanel();
 }
 
 render();
