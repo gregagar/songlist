@@ -1245,6 +1245,175 @@ a{
         inset 0 0 0 2px rgba(251,191,36,.75),
         0 0 0 1px rgba(251,191,36,.15);
 }
+/* =========================
+   COLOUR MODES
+   ========================= */
+
+body{
+    --theme-bg:#000000;
+    --theme-header:#000000;
+    --theme-panel:#0f172a;
+    --theme-card:#1e293b;
+    --theme-card-played:#475569;
+    --theme-input:#ffffff;
+    --theme-input-text:#111827;
+    --theme-button:#1e293b;
+    --theme-button-text:#e2e8f0;
+    --theme-text:#e2e8f0;
+    --theme-muted:#94a3b8;
+    --theme-border:#334155;
+    --theme-accent:#38bdf8;
+    --theme-danger:#fca5a5;
+    --theme-shadow:rgba(0,0,0,.45);
+}
+
+body.theme-day{
+    --theme-bg:#f4f7fb;
+    --theme-header:#e8eef7;
+    --theme-panel:#ffffff;
+    --theme-card:#ffffff;
+    --theme-card-played:#d1d5db;
+    --theme-input:#ffffff;
+    --theme-input-text:#111827;
+    --theme-button:#dbeafe;
+    --theme-button-text:#0f172a;
+    --theme-text:#111827;
+    --theme-muted:#475569;
+    --theme-border:#94a3b8;
+    --theme-accent:#2563eb;
+    --theme-danger:#b91c1c;
+    --theme-shadow:rgba(15,23,42,.18);
+}
+
+body.theme-contrast{
+    --theme-bg:#000000;
+    --theme-header:#000000;
+    --theme-panel:#020617;
+    --theme-card:#020617;
+    --theme-card-played:#334155;
+    --theme-input:#ffffff;
+    --theme-input-text:#000000;
+    --theme-button:#111827;
+    --theme-button-text:#ffffff;
+    --theme-text:#ffffff;
+    --theme-muted:#cbd5e1;
+    --theme-border:#ffffff;
+    --theme-accent:#22d3ee;
+    --theme-danger:#fca5a5;
+    --theme-shadow:rgba(0,0,0,.75);
+}
+
+body.theme-warm{
+    --theme-bg:#120d08;
+    --theme-header:#120d08;
+    --theme-panel:#20160f;
+    --theme-card:#2a1c12;
+    --theme-card-played:#5a4638;
+    --theme-input:#fff7ed;
+    --theme-input-text:#1c1208;
+    --theme-button:#3b2618;
+    --theme-button-text:#fdebd3;
+    --theme-text:#fdebd3;
+    --theme-muted:#d6b48f;
+    --theme-border:#7c4a2d;
+    --theme-accent:#f59e0b;
+    --theme-danger:#fca5a5;
+    --theme-shadow:rgba(0,0,0,.5);
+}
+
+/* Apply theme colours */
+
+html,
+body{
+    background:var(--theme-bg);
+    color:var(--theme-text);
+}
+
+.header{
+    background:var(--theme-header);
+    box-shadow:0 8px 18px var(--theme-shadow);
+}
+
+#results{
+    background:var(--theme-bg);
+}
+
+.card,
+.setlistItem,
+.savedSetlistRow,
+.decadeColourRow{
+    background:var(--theme-card);
+    color:var(--theme-text);
+}
+
+.card.played,
+.setlistItem.played{
+    background:var(--theme-card-played) !important;
+}
+
+#settingsMenu,
+#setlistPanel,
+#editPanel,
+#birthdayPanel,
+#savedSetlistsPanel,
+#decadeColoursPanel,
+#notesDrawer.open{
+    background:var(--theme-panel);
+    color:var(--theme-text);
+}
+
+button,
+.chip{
+    background:var(--theme-button);
+    color:var(--theme-button-text);
+    border-color:var(--theme-border);
+}
+
+#search,
+.birthdayRow input,
+#notesText,
+#editForm input,
+#editForm select,
+.placeMarkerInput{
+    background:var(--theme-input);
+    color:var(--theme-input-text);
+}
+
+.meta,
+.settingsLabel,
+#songCount,
+#clearSearch,
+.alphaLetter,
+.savedSetlistMeta,
+#fontLabel{
+    color:var(--theme-muted);
+}
+
+a,
+.plusBtn,
+.playedBtn,
+.autoScrollBtn,
+.alphaLetter.active{
+    color:var(--theme-accent);
+}
+
+#clockBox,
+.title,
+.savedSetlistName,
+.decadeColourName{
+    color:var(--theme-text);
+}
+
+#settingsMenu button.themeBtn{
+    text-align:center !important;
+    font-size:14px;
+}
+
+.themeBtn.active{
+    background:var(--theme-accent) !important;
+    color:#020617 !important;
+    font-weight:800;
+}
 </style>
 </head>
 
@@ -1325,6 +1494,29 @@ a{
         </span>
 
         <button id="scrollSpeedPlus">+</button>
+    </div>
+</div>
+        <div class="settingsSection">
+    <div class="settingsLabel">Colour Mode</div>
+
+    <div class="settingsRow themeRow">
+        <button id="themeDark" class="themeBtn" data-theme="dark">
+            Dark
+        </button>
+
+        <button id="themeDay" class="themeBtn" data-theme="day">
+            Day
+        </button>
+    </div>
+
+    <div class="settingsRow themeRow">
+        <button id="themeContrast" class="themeBtn" data-theme="contrast">
+            Contrast
+        </button>
+
+        <button id="themeWarm" class="themeBtn" data-theme="warm">
+            Warm
+        </button>
     </div>
 </div>
 <button id="addNewSong">
@@ -1585,7 +1777,40 @@ let birthdayBirthYear = null;
 let birthdayStartYear = null;
 let birthdayEndYear = null;
 let birthdayInputLock = false;
+let currentTheme =
+    localStorage.getItem("songFinderTheme") || "dark";
 
+function applyTheme(theme){
+
+    currentTheme =
+        theme || "dark";
+
+    document.body.classList.remove(
+        "theme-dark",
+        "theme-day",
+        "theme-contrast",
+        "theme-warm"
+    );
+
+    document.body.classList.add(
+        "theme-" + currentTheme
+    );
+
+    localStorage.setItem(
+        "songFinderTheme",
+        currentTheme
+    );
+
+    document
+        .querySelectorAll(".themeBtn")
+        .forEach(btn => {
+
+            btn.classList.toggle(
+                "active",
+                btn.dataset.theme === currentTheme
+            );
+        });
+}
 let scale=1;
 let subScale=1;
 let autoScrollActive = false;
@@ -3170,7 +3395,7 @@ async function reloadMainSongList(){
         );
 
         clearEventSelection();
-
+applyTheme(currentTheme);
         buildGenreDropdown();
 
         if(typeof buildDecadeColourPanel === "function"){
@@ -7421,6 +7646,19 @@ settingsMenu.addEventListener("touchstart", e => {
 settingsMenu.addEventListener("touchmove", e => {
     e.stopPropagation();
 }, { passive:true });
+    document
+    .querySelectorAll(".themeBtn")
+    .forEach(btn => {
+
+        btn.onclick = e => {
+
+            e.stopPropagation();
+
+            applyTheme(
+                btn.dataset.theme || "dark"
+            );
+        };
+    });
     document
 .getElementById("addNewSong")
 .onclick = e => {
