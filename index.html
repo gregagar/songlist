@@ -6666,13 +6666,7 @@ function closeSetlist(){
 
     return sortSongs(filtered);
 }
-function render(){
-    const r=document.getElementById("results");
-    r.innerHTML="";
-
-    document.getElementById("clearSearch").style.display =
-        currentQuery ? "flex" : "none";
-function getSongListExportStamp(){
+    function getSongListExportStamp(){
 
     const now =
         new Date();
@@ -7038,6 +7032,13 @@ function exportFilteredSongList(){
 
     alert("Please enter PDF or JSON.");
 }
+function render(){
+    const r=document.getElementById("results");
+    r.innerHTML="";
+
+    document.getElementById("clearSearch").style.display =
+        currentQuery ? "flex" : "none";
+
 let filtered =
     getCurrentFilteredSongList();
 
