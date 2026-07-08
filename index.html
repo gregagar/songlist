@@ -1729,7 +1729,9 @@ body.theme-day .filterColourName{
 <button id="undoBtn">
     Undo
 </button>
-
+<button id="exportSongList">
+    Export Song List
+</button>
 <button id="exportBackup">
     Export Full Backup
 </button>
@@ -6641,34 +6643,403 @@ function closeSetlist(){
 
     resumeAutoScroll();
 }
+    function getCurrentFilteredSongList(){
+
+    const sourceSongs =
+        getBaseSongsForView();
+
+    let filtered =
+        sourceSongs.filter(
+            s => songMatches(s, currentQuery) && passesFilters(s)
+        );
+
+    if(
+        mustPlayOnlyActive &&
+        eventSelectionSource === "clientToken" &&
+        eventSelectionMustIds.size > 0
+    ){
+        filtered =
+            filtered.filter(song =>
+                eventSelectionMustIds.has(getSongId(song))
+            );
+    }
+
+    return sortSongs(filtered);
+}
 function render(){
     const r=document.getElementById("results");
     r.innerHTML="";
 
     document.getElementById("clearSearch").style.display =
         currentQuery ? "flex" : "none";
+function getSongListExportStamp(){
 
- const sourceSongs =
-    getBaseSongsForView();
+    const now =
+        new Date();
 
-let filtered =
-    sourceSongs.filter(
-        s => songMatches(s,currentQuery) && passesFilters(s)
+    return (
+        String(now.getDate()).padStart(2,"0") + "-" +
+        String(now.getMonth()+1).padStart(2,"0") + "-" +
+        now.getFullYear() + "_" +
+        String(now.getHours()).padStart(2,"0") + "-" +
+        String(now.getMinutes()).padStart(2,"0")
     );
-
-if(
-    mustPlayOnlyActive &&
-    eventSelectionSource === "clientToken" &&
-    eventSelectionMustIds.size > 0
-){
-    filtered =
-        filtered.filter(song =>
-            eventSelectionMustIds.has(getSongId(song))
-        );
 }
 
-// APPLY SORT
-filtered = sortSongs(filtered);
+function downloadSongListFile(content, filename, type){
+
+    const blob =
+        new Blob(
+            [content],
+            { type:type }
+        );
+
+    const a =
+        document.createElement("a");
+
+    a.href =
+        URL.createObjectURL(blob);
+
+    a.download =
+        filename;
+
+    document.body.appendChild(a);
+
+    a.click();
+
+    document.body.removeChild(a);
+
+    setTimeout(() => {
+        URL.revokeObjectURL(a.href);
+    }, 1000);
+}
+
+function cleanSongListPdfText(text){
+
+    return String(text || "")
+        .replace(/[‘’]/g, "'")
+        .replace(/[“”]/g, '"')
+        .replace(/–/g, "-")
+        .replace(/—/g, "-")
+        .replace(/…/g, "...")
+        .replace(/[^\x20-\x7E]/g, "");
+}
+
+function escapeSongListPdfText(text){
+
+    return cleanSongListPdfText(text)
+        .replace(/\\/g, "\\\\")
+        .replace(/\(/g, "\\(")
+        .replace(/\)/g, "\\)");
+}
+
+function wrapSongListLine(text, maxChars){
+
+    const words =
+        cleanSongListPdfText(text).split(" ");
+
+    const lines = [];
+    let line = "";
+
+    words.forEach(word => {
+
+        const test =
+            line
+            ? line + " " + word
+            : word;
+
+        if(test.length > maxChars){
+
+            if(line){
+                lines.push(line);
+            }
+
+            line = word;
+
+        }else{
+
+            line = test;
+        }
+    });
+
+    if(line){
+        lines.push(line);
+    }
+
+    return lines;
+}
+
+function exportFilteredSongListAsJson(filteredSongs){
+
+    const stamp =
+        getSongListExportStamp();
+
+    downloadSongListFile(
+        JSON.stringify(filteredSongs, null, 2),
+        `SongList_${filteredSongs.length}_songs_${stamp}.json`,
+        "application/json"
+    );
+}
+
+function exportFilteredSongListAsPdf(filteredSongs){
+
+    const stamp =
+        getSongListExportStamp();
+
+    const displayStamp =
+        stamp.replace("_", " ").replaceAll("-", "/");
+
+    const rawLines =
+        filteredSongs.map((song, index) => {
+
+            const title =
+                getSongTitle(song) || "Untitled";
+
+            const artist =
+                getSongArtist(song);
+
+            const details = [];
+
+            if(song.Year){
+                details.push(song.Year);
+            }
+
+            if(song.Genre){
+                details.push(song.Genre);
+            }
+
+            if(song.Tempo){
+                details.push(`${song.Tempo} bpm`);
+            }
+
+            return (
+                `${index + 1}. ` +
+                title +
+                (
+                    artist
+                    ? ` - ${artist}`
+                    : ""
+                ) +
+                (
+                    details.length
+                    ? ` (${details.join(" • ")})`
+                    : ""
+                )
+            );
+        });
+
+    const allLines = [];
+
+    rawLines.forEach(line => {
+
+        wrapSongListLine(line, 82).forEach(wrapped => {
+            allLines.push(wrapped);
+        });
+
+        allLines.push("");
+    });
+
+    const pages = [];
+    const linesPerPage = 38;
+
+    for(
+        let i = 0;
+        i < allLines.length;
+        i += linesPerPage
+    ){
+        pages.push(
+            allLines.slice(
+                i,
+                i + linesPerPage
+            )
+        );
+    }
+
+    if(pages.length === 0){
+        pages.push([]);
+    }
+
+    const objects = [];
+
+    function addObject(content){
+
+        objects.push(content);
+
+        return objects.length;
+    }
+
+    const catalogObj = addObject("");
+    const pagesObj = addObject("");
+
+    const fontObj = addObject(
+        "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>"
+    );
+
+    const pageRefs = [];
+
+    pages.forEach((pageLines, pageIndex) => {
+
+        const streamParts = [];
+
+        streamParts.push("BT");
+        streamParts.push("/F1 22 Tf");
+        streamParts.push("50 790 Td");
+        streamParts.push("(Filtered Song List) Tj");
+
+        streamParts.push("/F1 10 Tf");
+        streamParts.push("0 -22 Td");
+        streamParts.push(
+            `(${escapeSongListPdfText(`${filteredSongs.length} songs • ${displayStamp}`)}) Tj`
+        );
+
+        if(pages.length > 1){
+
+            streamParts.push("0 -16 Td");
+            streamParts.push(
+                `(Page ${pageIndex + 1} of ${pages.length}) Tj`
+            );
+
+            streamParts.push("0 -28 Td");
+
+        }else{
+
+            streamParts.push("0 -36 Td");
+        }
+
+        streamParts.push("/F1 10 Tf");
+
+        pageLines.forEach((line, lineIndex) => {
+
+            if(lineIndex > 0){
+                streamParts.push("0 -16 Td");
+            }
+
+            streamParts.push(
+                `(${escapeSongListPdfText(line)}) Tj`
+            );
+        });
+
+        streamParts.push("ET");
+
+        const stream =
+            streamParts.join("\n");
+
+        const contentObj = addObject(
+            "<< /Length " + stream.length + " >>\n" +
+            "stream\n" +
+            stream + "\n" +
+            "endstream"
+        );
+
+        const pageObj = addObject(
+            "<< /Type /Page " +
+            "/Parent " + pagesObj + " 0 R " +
+            "/MediaBox [0 0 595 842] " +
+            "/Resources << /Font << /F1 " + fontObj + " 0 R >> >> " +
+            "/Contents " + contentObj + " 0 R " +
+            ">>"
+        );
+
+        pageRefs.push(
+            pageObj + " 0 R"
+        );
+    });
+
+    objects[catalogObj - 1] =
+        "<< /Type /Catalog /Pages " + pagesObj + " 0 R >>";
+
+    objects[pagesObj - 1] =
+        "<< /Type /Pages /Kids [" +
+        pageRefs.join(" ") +
+        "] /Count " +
+        pages.length +
+        " >>";
+
+    let pdf = "%PDF-1.4\n";
+    const offsets = [0];
+
+    objects.forEach((object, index) => {
+
+        offsets.push(pdf.length);
+
+        pdf += `${index + 1} 0 obj\n`;
+        pdf += object + "\n";
+        pdf += "endobj\n";
+    });
+
+    const xrefStart =
+        pdf.length;
+
+    pdf += "xref\n";
+    pdf += "0 " + (objects.length + 1) + "\n";
+    pdf += "0000000000 65535 f \n";
+
+    for(let i = 1; i < offsets.length; i++){
+
+        pdf +=
+            String(offsets[i]).padStart(10, "0") +
+            " 00000 n \n";
+    }
+
+    pdf += "trailer\n";
+    pdf +=
+        "<< /Size " +
+        (objects.length + 1) +
+        " /Root " +
+        catalogObj +
+        " 0 R >>\n";
+
+    pdf += "startxref\n";
+    pdf += xrefStart + "\n";
+    pdf += "%%EOF";
+
+    downloadSongListFile(
+        pdf,
+        `SongList_${filteredSongs.length}_songs_${stamp}.pdf`,
+        "application/pdf"
+    );
+}
+
+function exportFilteredSongList(){
+
+    const filteredSongs =
+        getCurrentFilteredSongList();
+
+    if(filteredSongs.length === 0){
+
+        alert("There are no songs to export.");
+        return;
+    }
+
+    const choice =
+        prompt(
+            `Export ${filteredSongs.length} songs as:\n\nPDF or JSON`,
+            "PDF"
+        );
+
+    if(!choice){
+        return;
+    }
+
+    const type =
+        choice.trim().toLowerCase();
+
+    if(type === "pdf"){
+
+        exportFilteredSongListAsPdf(filteredSongs);
+        return;
+    }
+
+    if(type === "json"){
+
+        exportFilteredSongListAsJson(filteredSongs);
+        return;
+    }
+
+    alert("Please enter PDF or JSON.");
+}
+let filtered =
+    getCurrentFilteredSongList();
 
 buildAlphabet(filtered);
 
@@ -7925,6 +8296,16 @@ pushUndo("Clear Setlist");
 document
 .getElementById("setlistOverlay")
 .onclick = closeSetlist;
+document
+.getElementById("exportSongList")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    settingsMenu.classList.remove("open");
+
+    exportFilteredSongList();
+};
     document
 .getElementById("exportBackup")
 .onclick = () => {
