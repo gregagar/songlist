@@ -1611,6 +1611,80 @@ body.theme-day .filterColourRow{
 body.theme-day .filterColourName{
     color:#ffffff;
 }
+    #songListExportOverlay{
+    position:fixed;
+    inset:0;
+
+    background:rgba(0,0,0,.45);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .2s ease;
+
+    z-index:100001;
+}
+
+#songListExportOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#songListExportPanel{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+
+    width:min(92%, 360px);
+
+    background:var(--theme-panel);
+    color:var(--theme-text);
+
+    border-radius:16px;
+
+    padding:18px;
+    box-sizing:border-box;
+
+    display:none;
+
+    z-index:100002;
+
+    box-shadow:0 12px 32px rgba(0,0,0,.5);
+}
+
+#songListExportPanel.open{
+    display:block;
+}
+
+#songListExportHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin-bottom:14px;
+}
+
+#songListExportCount{
+    color:var(--theme-muted);
+    font-size:14px;
+    font-weight:700;
+
+    margin-bottom:14px;
+}
+
+#songListExportOptions{
+    display:flex;
+    gap:10px;
+}
+
+#songListExportOptions button{
+    flex:1;
+    text-align:center !important;
+    font-size:18px;
+    font-weight:800;
+    padding:14px 10px;
+}
 </style>
 </head>
 
@@ -1909,7 +1983,31 @@ body.theme-day .filterColourName{
             ✕
         </button>
     </div>
+<div id="songListExportOverlay"></div>
 
+<div id="songListExportPanel">
+    <div id="songListExportHeader">
+        <strong>Export Song List</strong>
+
+        <button id="closeSongListExport">
+            ✕
+        </button>
+    </div>
+
+    <div id="songListExportCount">
+        Choose file type
+    </div>
+
+    <div id="songListExportOptions">
+        <button id="exportSongListPdf">
+            PDF
+        </button>
+
+        <button id="exportSongListJson">
+            JSON
+        </button>
+    </div>
+</div>
     <div id="filterColoursList"></div>
 
     <button id="resetFilterColours">
@@ -6783,44 +6881,25 @@ function exportFilteredSongListAsPdf(filteredSongs){
     const displayStamp =
         stamp.replace("_", " ").replaceAll("-", "/");
 
-    const rawLines =
-        filteredSongs.map((song, index) => {
+   const rawLines =
+    filteredSongs.map((song, index) => {
 
-            const title =
-                getSongTitle(song) || "Untitled";
+        const title =
+            getSongTitle(song) || "Untitled";
 
-            const artist =
-                getSongArtist(song);
+        const artist =
+            getSongArtist(song);
 
-            const details = [];
-
-            if(song.Year){
-                details.push(song.Year);
-            }
-
-            if(song.Genre){
-                details.push(song.Genre);
-            }
-
-            if(song.Tempo){
-                details.push(`${song.Tempo} bpm`);
-            }
-
-            return (
-                `${index + 1}. ` +
-                title +
-                (
-                    artist
-                    ? ` - ${artist}`
-                    : ""
-                ) +
-                (
-                    details.length
-                    ? ` (${details.join(" • ")})`
-                    : ""
-                )
-            );
-        });
+        return (
+            `${index + 1}. ` +
+            title +
+            (
+                artist
+                ? ` - ${artist}`
+                : ""
+            )
+        );
+    });
 
     const allLines = [];
 
@@ -6994,6 +7073,36 @@ function exportFilteredSongListAsPdf(filteredSongs){
     );
 }
 
+function openSongListExportPanel(count){
+
+    const label =
+        document.getElementById("songListExportCount");
+
+    if(label){
+        label.innerText =
+            `Choose file type for ${count} songs`;
+    }
+
+    document
+        .getElementById("songListExportOverlay")
+        .classList.add("open");
+
+    document
+        .getElementById("songListExportPanel")
+        .classList.add("open");
+}
+
+function closeSongListExportPanel(){
+
+    document
+        .getElementById("songListExportOverlay")
+        .classList.remove("open");
+
+    document
+        .getElementById("songListExportPanel")
+        .classList.remove("open");
+}
+
 function exportFilteredSongList(){
 
     const filteredSongs =
@@ -7005,32 +7114,9 @@ function exportFilteredSongList(){
         return;
     }
 
-    const choice =
-        prompt(
-            `Export ${filteredSongs.length} songs as:\n\nPDF or JSON`,
-            "PDF"
-        );
-
-    if(!choice){
-        return;
-    }
-
-    const type =
-        choice.trim().toLowerCase();
-
-    if(type === "pdf"){
-
-        exportFilteredSongListAsPdf(filteredSongs);
-        return;
-    }
-
-    if(type === "json"){
-
-        exportFilteredSongListAsJson(filteredSongs);
-        return;
-    }
-
-    alert("Please enter PDF or JSON.");
+    openSongListExportPanel(
+        filteredSongs.length
+    );
 }
 function render(){
     const r=document.getElementById("results");
@@ -8306,6 +8392,41 @@ document
     settingsMenu.classList.remove("open");
 
     exportFilteredSongList();
+};
+    document
+.getElementById("closeSongListExport")
+.onclick = closeSongListExportPanel;
+
+document
+.getElementById("songListExportOverlay")
+.onclick = closeSongListExportPanel;
+
+document
+.getElementById("exportSongListPdf")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    const filteredSongs =
+        getCurrentFilteredSongList();
+
+    closeSongListExportPanel();
+
+    exportFilteredSongListAsPdf(filteredSongs);
+};
+
+document
+.getElementById("exportSongListJson")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    const filteredSongs =
+        getCurrentFilteredSongList();
+
+    closeSongListExportPanel();
+
+    exportFilteredSongListAsJson(filteredSongs);
 };
     document
 .getElementById("exportBackup")
