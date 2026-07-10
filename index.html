@@ -7084,18 +7084,24 @@ function openSongListExportPanel(count){
     const label =
         document.getElementById("songListExportCount");
 
+    const overlay =
+        document.getElementById("songListExportOverlay");
+
+    const panel =
+        document.getElementById("songListExportPanel");
+
+    if(!overlay || !panel){
+        alert("Export panel HTML is missing.");
+        return;
+    }
+
     if(label){
         label.innerText =
             `Choose file type for ${count} songs`;
     }
 
-    document
-        .getElementById("songListExportOverlay")
-        .classList.add("open");
-
-    document
-        .getElementById("songListExportPanel")
-        .classList.add("open");
+    overlay.classList.add("open");
+    panel.classList.add("open");
 }
 
 function closeSongListExportPanel(){
@@ -7125,46 +7131,6 @@ function exportFilteredSongList(){
     );
 }
 
-    function closeExportChooser(){
-
-        overlay.remove();
-        panel.remove();
-    }
-
-    overlay.onclick =
-        closeExportChooser;
-
-    document
-        .getElementById("closeSongListExport")
-        .onclick = e => {
-
-            e.stopPropagation();
-
-            closeExportChooser();
-        };
-
-    document
-        .getElementById("exportSongListPdf")
-        .onclick = e => {
-
-            e.stopPropagation();
-
-            closeExportChooser();
-
-            exportFilteredSongListAsPdf(filteredSongs);
-        };
-
-    document
-        .getElementById("exportSongListJson")
-        .onclick = e => {
-
-            e.stopPropagation();
-
-            closeExportChooser();
-
-            exportFilteredSongListAsJson(filteredSongs);
-        };
-}
 function render(){
     const r=document.getElementById("results");
     r.innerHTML="";
