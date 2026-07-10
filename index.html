@@ -1983,7 +1983,14 @@ body.theme-day .filterColourName{
             ✕
         </button>
     </div>
-<div id="songListExportOverlay"></div>
+
+    <div id="filterColoursList"></div>
+
+    <button id="resetFilterColours">
+        Reset Colours
+    </button>
+</div>
+    <div id="songListExportOverlay"></div>
 
 <div id="songListExportPanel">
     <div id="songListExportHeader">
@@ -2007,12 +2014,6 @@ body.theme-day .filterColourName{
             JSON
         </button>
     </div>
-</div>
-    <div id="filterColoursList"></div>
-
-    <button id="resetFilterColours">
-        Reset Colours
-    </button>
 </div>
 <div id="editOverlay"></div>
 
@@ -7117,6 +7118,47 @@ function exportFilteredSongList(){
     openSongListExportPanel(
         filteredSongs.length
     );
+}
+
+    function closeExportChooser(){
+
+        overlay.remove();
+        panel.remove();
+    }
+
+    overlay.onclick =
+        closeExportChooser;
+
+    document
+        .getElementById("closeSongListExport")
+        .onclick = e => {
+
+            e.stopPropagation();
+
+            closeExportChooser();
+        };
+
+    document
+        .getElementById("exportSongListPdf")
+        .onclick = e => {
+
+            e.stopPropagation();
+
+            closeExportChooser();
+
+            exportFilteredSongListAsPdf(filteredSongs);
+        };
+
+    document
+        .getElementById("exportSongListJson")
+        .onclick = e => {
+
+            e.stopPropagation();
+
+            closeExportChooser();
+
+            exportFilteredSongListAsJson(filteredSongs);
+        };
 }
 function render(){
     const r=document.getElementById("results");
