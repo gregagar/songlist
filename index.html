@@ -2058,26 +2058,64 @@ body.theme-day .setlistItem{
 <div id="statusRight">
     <div id="songCount"></div>
 
-    <div id="clockRow">
+   <div id="clockRow">
+
+    <div id="visualMetronome">
 
         <button
-            id="tapTempoBtn"
+            id="metroMinus"
+            class="metroAdjust"
             type="button"
-            aria-label="Tap tempo"
+            aria-label="Decrease metronome tempo"
         >
-            <span id="tapTempoLabel">
-                TAP
+            −
+        </button>
+
+        <button
+            id="metroToggle"
+            type="button"
+            aria-label="Turn visual metronome on or off"
+            aria-pressed="false"
+        >
+            <span id="metroLight"></span>
+
+            <span id="metroBpm">
+                120 BPM
             </span>
 
-            <span id="tapTempoBpm">
-                — BPM
+            <span id="metroState">
+                OFF
             </span>
         </button>
 
-        <div id="clockBox"></div>
+        <button
+            id="metroPlus"
+            class="metroAdjust"
+            type="button"
+            aria-label="Increase metronome tempo"
+        >
+            +
+        </button>
 
     </div>
 
+    <button
+        id="tapTempoBtn"
+        type="button"
+        aria-label="Tap tempo"
+    >
+        <span id="tapTempoLabel">
+            TAP
+        </span>
+
+        <span id="tapTempoBpm">
+            — BPM
+        </span>
+    </button>
+
+    <div id="clockBox"></div>
+
+</div>
     <button id="openSetlist">
     <span>+ Set List</span>
     <span id="setlistButtonCount">0</span>
@@ -8198,6 +8236,250 @@ window.addEventListener("focus", () => {
     settleSongFinderLayout();
 });
 window.addEventListener("scroll", positionAlphabet);
+    /* =========================
+   VISUAL METRONOME
+   ========================= */
+
+let visualMetronomeBpm =
+    Number(
+        localStorage.getItem(
+            "visualMetronomeBpm"
+        ) || 120
+    );
+
+if(
+    !Number.isFinite(visualMetronomeBpm)
+){
+    visualMetronomeBpm = 120;
+}
+
+visualMetronomeBpm =
+    Math.min(
+        300,
+        Math.max(
+            30,
+            Math.round(
+                visualMetronomeBpm
+            )
+        )
+    );
+
+let visualMetronomeRunning = false;
+let visualMetronomeTimer = null;
+let visualMetronomePulseTimer = null;
+let visualMetronomeNextBeat = 0;
+
+function renderVisualMetronome(){
+
+    const control =
+        document.getElementById(
+            "visualMetronome"
+        );
+
+    const toggle =
+        document.getElementById(
+            "metroToggle"
+        );
+
+    const bpmDisplay =
+        document.getElementById(
+            "metroBpm"
+        );
+
+    const stateDisplay =
+        document.getElementById(
+            "metroState"
+        );
+
+    bpmDisplay.innerText =
+        `${visualMetronomeBpm} BPM`;
+
+    stateDisplay.innerText =
+        visualMetronomeRunning
+        ? "ON"
+        : "OFF";
+
+    control.classList.toggle(
+        "running",
+        visualMetronomeRunning
+    );
+
+    toggle.setAttribute(
+        "aria-pressed",
+        visualMetronomeRunning
+            ? "true"
+            : "false"
+    );
+}
+
+function pulseVisualMetronome(){
+
+    const light =
+        document.getElementById(
+            "metroLight"
+        );
+
+    clearTimeout(
+        visualMetronomePulseTimer
+    );
+
+    light.classList.add("beat");
+
+    visualMetronomePulseTimer =
+        setTimeout(() => {
+
+            light.classList.remove(
+                "beat"
+            );
+
+        }, 110);
+}
+
+function scheduleVisualMetronomeBeat(){
+
+    if(!visualMetronomeRunning){
+        return;
+    }
+
+    pulseVisualMetronome();
+
+    const beatLength =
+        60000 /
+        visualMetronomeBpm;
+
+    visualMetronomeNextBeat +=
+        beatLength;
+
+    const delay =
+        Math.max(
+            0,
+            visualMetronomeNextBeat -
+            performance.now()
+        );
+
+    visualMetronomeTimer =
+        setTimeout(
+            scheduleVisualMetronomeBeat,
+            delay
+        );
+}
+
+function startVisualMetronome(){
+
+    if(visualMetronomeRunning){
+        return;
+    }
+
+    visualMetronomeRunning = true;
+
+    visualMetronomeNextBeat =
+        performance.now();
+
+    renderVisualMetronome();
+    scheduleVisualMetronomeBeat();
+}
+
+function stopVisualMetronome(){
+
+    visualMetronomeRunning = false;
+
+    clearTimeout(
+        visualMetronomeTimer
+    );
+
+    clearTimeout(
+        visualMetronomePulseTimer
+    );
+
+    document
+        .getElementById("metroLight")
+        .classList
+        .remove("beat");
+
+    renderVisualMetronome();
+}
+
+function toggleVisualMetronome(){
+
+    if(visualMetronomeRunning){
+        stopVisualMetronome();
+    }else{
+        startVisualMetronome();
+    }
+}
+
+function setVisualMetronomeBpm(value){
+
+    const nextBpm =
+        Math.min(
+            300,
+            Math.max(
+                30,
+                Math.round(value)
+            )
+        );
+
+    visualMetronomeBpm =
+        nextBpm;
+
+    localStorage.setItem(
+        "visualMetronomeBpm",
+        String(
+            visualMetronomeBpm
+        )
+    );
+
+    renderVisualMetronome();
+
+    /*
+    Restart the beat timing immediately
+    when the tempo changes while running.
+    */
+    if(visualMetronomeRunning){
+
+        clearTimeout(
+            visualMetronomeTimer
+        );
+
+        visualMetronomeNextBeat =
+            performance.now();
+
+        scheduleVisualMetronomeBeat();
+    }
+}
+
+document
+    .getElementById("metroToggle")
+    .addEventListener(
+        "click",
+        toggleVisualMetronome
+    );
+
+document
+    .getElementById("metroMinus")
+    .addEventListener(
+        "click",
+        () => {
+
+            setVisualMetronomeBpm(
+                visualMetronomeBpm - 1
+            );
+        }
+    );
+
+document
+    .getElementById("metroPlus")
+    .addEventListener(
+        "click",
+        () => {
+
+            setVisualMetronomeBpm(
+                visualMetronomeBpm + 1
+            );
+        }
+    );
+
+renderVisualMetronome();
 /* =========================
    TAP TEMPO
    ========================= */
@@ -8308,6 +8590,7 @@ function handleTapTempo(){
             60000 /
             averageInterval
         );
+    setVisualMetronomeBpm(bpm);
 
     document
         .getElementById("tapTempoLabel")
