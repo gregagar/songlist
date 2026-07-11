@@ -125,6 +125,78 @@ html, body{
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
 }
+    #clockRow{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:10px;
+
+    width:100%;
+    white-space:nowrap;
+}
+
+#tapTempoBtn{
+    width:88px;
+    min-height:50px;
+
+    padding:5px 8px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1px;
+
+    background:var(--theme-button);
+    color:var(--theme-button-text);
+
+    border:
+        1px solid var(--theme-border);
+
+    box-shadow:
+        0 6px 16px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.08);
+
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:manipulation;
+}
+
+#tapTempoLabel{
+    color:var(--theme-muted);
+
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    line-height:1;
+}
+
+#tapTempoBpm{
+    color:var(--theme-text);
+
+    font-size:17px;
+    font-weight:900;
+    line-height:1.25;
+
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+}
+
+#tapTempoBtn.measured{
+    border-color:var(--theme-accent);
+
+    box-shadow:
+        0 6px 18px rgba(56,189,248,.20),
+        inset 0 1px 0 rgba(255,255,255,.16);
+}
+
+#tapTempoBtn.measured #tapTempoBpm{
+    color:var(--theme-accent);
+}
+
+#tapTempoBtn:active{
+    transform:scale(.96);
+}
     #setlistOverlay{
 
     position:fixed;
@@ -1983,9 +2055,28 @@ body.theme-day .setlistItem{
 
     </div>
     
-    <div id="statusRight">
+<div id="statusRight">
     <div id="songCount"></div>
-    <div id="clockBox"></div>
+
+    <div id="clockRow">
+
+        <button
+            id="tapTempoBtn"
+            type="button"
+            aria-label="Tap tempo"
+        >
+            <span id="tapTempoLabel">
+                TAP
+            </span>
+
+            <span id="tapTempoBpm">
+                — BPM
+            </span>
+        </button>
+
+        <div id="clockBox"></div>
+
+    </div>
 
     <button id="openSetlist">
     <span>+ Set List</span>
@@ -8107,7 +8198,132 @@ window.addEventListener("focus", () => {
     settleSongFinderLayout();
 });
 window.addEventListener("scroll", positionAlphabet);
+/* =========================
+   TAP TEMPO
+   ========================= */
 
+let tapTempoTimes = [];
+
+const TAP_TEMPO_RESET_MS =
+    2500;
+
+const TAP_TEMPO_MAX_TAPS =
+    8;
+
+function handleTapTempo(){
+
+    const now =
+        performance.now();
+
+    const previousTap =
+        tapTempoTimes[
+            tapTempoTimes.length - 1
+        ];
+
+    /*
+    Start a fresh reading when this is
+    the first tap or there has been a pause.
+    */
+    if(
+        !previousTap ||
+        now - previousTap >
+            TAP_TEMPO_RESET_MS
+    ){
+        tapTempoTimes = [now];
+
+        document
+            .getElementById(
+                "tapTempoLabel"
+            )
+            .innerText =
+                "TAP AGAIN";
+
+        document
+            .getElementById(
+                "tapTempoBpm"
+            )
+            .innerText =
+                "— BPM";
+
+        document
+            .getElementById(
+                "tapTempoBtn"
+            )
+            .classList
+            .remove("measured");
+
+        return;
+    }
+
+    tapTempoTimes.push(now);
+
+    /*
+    Keep only the most recent taps so the
+    result responds when the tempo changes.
+    */
+    if(
+        tapTempoTimes.length >
+        TAP_TEMPO_MAX_TAPS
+    ){
+        tapTempoTimes.shift();
+    }
+
+    const intervals = [];
+
+    for(
+        let i = 1;
+        i < tapTempoTimes.length;
+        i++
+    ){
+        intervals.push(
+            tapTempoTimes[i] -
+            tapTempoTimes[i - 1]
+        );
+    }
+
+    const averageInterval =
+        intervals.reduce(
+            (total, interval) =>
+                total + interval,
+            0
+        ) / intervals.length;
+
+    const bpm =
+        Math.round(
+            60000 /
+            averageInterval
+        );
+
+    document
+        .getElementById(
+            "tapTempoLabel"
+        )
+        .innerText =
+            "TAP";
+
+    document
+        .getElementById(
+            "tapTempoBpm"
+        )
+        .innerText =
+            `${bpm} BPM`;
+
+    document
+        .getElementById(
+            "tapTempoBtn"
+        )
+        .classList
+        .add("measured");
+}
+
+document
+    .getElementById(
+        "tapTempoBtn"
+    )
+    .addEventListener(
+        "click",
+        handleTapTempo
+    );
 setInterval(updateClock,1000);
 document.getElementById("clearSearch").style.display = "none";
 document
