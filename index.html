@@ -8203,12 +8203,41 @@ window.addEventListener("scroll", positionAlphabet);
    ========================= */
 
 let tapTempoTimes = [];
+let tapTempoResetTimer = null;
 
-const TAP_TEMPO_RESET_MS =
-    2500;
+const TAP_TEMPO_RESET_MS = 4000;
+const TAP_TEMPO_MAX_TAPS = 8;
 
-const TAP_TEMPO_MAX_TAPS =
-    8;
+function resetTapTempo(){
+
+    tapTempoTimes = [];
+
+    document
+        .getElementById("tapTempoLabel")
+        .innerText = "TAP";
+
+    document
+        .getElementById("tapTempoBpm")
+        .innerText = "— BPM";
+
+    document
+        .getElementById("tapTempoBtn")
+        .classList
+        .remove("measured");
+}
+
+function scheduleTapTempoReset(){
+
+    clearTimeout(
+        tapTempoResetTimer
+    );
+
+    tapTempoResetTimer =
+        setTimeout(
+            resetTapTempo,
+            TAP_TEMPO_RESET_MS
+        );
+}
 
 function handleTapTempo(){
 
@@ -8220,10 +8249,6 @@ function handleTapTempo(){
             tapTempoTimes.length - 1
         ];
 
-    /*
-    Start a fresh reading when this is
-    the first tap or there has been a pause.
-    */
     if(
         !previousTap ||
         now - previousTap >
@@ -8232,35 +8257,25 @@ function handleTapTempo(){
         tapTempoTimes = [now];
 
         document
-            .getElementById(
-                "tapTempoLabel"
-            )
-            .innerText =
-                "TAP AGAIN";
+            .getElementById("tapTempoLabel")
+            .innerText = "TAP AGAIN";
 
         document
-            .getElementById(
-                "tapTempoBpm"
-            )
-            .innerText =
-                "— BPM";
+            .getElementById("tapTempoBpm")
+            .innerText = "— BPM";
 
         document
-            .getElementById(
-                "tapTempoBtn"
-            )
+            .getElementById("tapTempoBtn")
             .classList
             .remove("measured");
+
+        scheduleTapTempoReset();
 
         return;
     }
 
     tapTempoTimes.push(now);
 
-    /*
-    Keep only the most recent taps so the
-    result responds when the tempo changes.
-    */
     if(
         tapTempoTimes.length >
         TAP_TEMPO_MAX_TAPS
@@ -8295,31 +8310,24 @@ function handleTapTempo(){
         );
 
     document
-        .getElementById(
-            "tapTempoLabel"
-        )
-        .innerText =
-            "TAP";
+        .getElementById("tapTempoLabel")
+        .innerText = "TAP";
 
     document
-        .getElementById(
-            "tapTempoBpm"
-        )
+        .getElementById("tapTempoBpm")
         .innerText =
             `${bpm} BPM`;
 
     document
-        .getElementById(
-            "tapTempoBtn"
-        )
+        .getElementById("tapTempoBtn")
         .classList
         .add("measured");
+
+    scheduleTapTempoReset();
 }
 
 document
-    .getElementById(
-        "tapTempoBtn"
-    )
+    .getElementById("tapTempoBtn")
     .addEventListener(
         "click",
         handleTapTempo
