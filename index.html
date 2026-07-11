@@ -487,15 +487,43 @@ button{
 @media(min-width:1100px){ #results{grid-template-columns:repeat(4,1fr);} }
 
 .card{
-    background:#1e293b;
-    border-radius:16px;
+    position:relative;
+
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.14) 0%,
+            rgba(255,255,255,.045) 42%,
+            rgba(0,0,0,.12) 100%
+        ),
+        var(--card-colour, var(--theme-card));
+
+    border:1px solid rgba(255,255,255,.10);
+    border-radius:18px;
+
     padding:calc(14px * var(--scale));
+
     display:flex;
     flex-direction:column;
     gap:6px;
+
     font-size:calc(16px * var(--scale));
+
     user-select:none;
-    
+    overflow:hidden;
+
+    box-shadow:
+        0 10px 24px rgba(0,0,0,.25),
+        inset 0 1px 0 rgba(255,255,255,.13);
+
+    transition:
+        transform .14s ease,
+        box-shadow .16s ease,
+        border-color .16s ease;
+}
+
+.card:active{
+    transform:scale(.985);
 }
 .plusBtn{
     font-size:26px;
@@ -555,8 +583,15 @@ button{
 }
 
 .card.played{
-    background:#475569 !important;
-    opacity:0.45;
+    background:
+        linear-gradient(
+            145deg,
+            rgba(255,255,255,.08),
+            rgba(255,255,255,.02)
+        ),
+        var(--theme-card-played) !important;
+
+    opacity:.45;
 }
 
 .card.played .playedBtn{
@@ -627,10 +662,6 @@ a{
 .setlistItem.dragging{
     opacity:.4;
 }
-  .placeMarkerItem{
-    background:#1e293b;
-    border:none;
-}
 
 .placeMarkerInput{
     flex:1;
@@ -641,14 +672,20 @@ a{
     border:none;
     border-radius:0;
 
-    background:transparent;
-    color:#e2e8f0;
+    background:transparent !important;
+    color:inherit !important;
 
-    font-size:calc(18px * var(--scale));
+    font-size:inherit;
     font-weight:700;
     font-family:inherit;
+    line-height:1.35;
 
     outline:none;
+}
+
+.placeMarkerInput::placeholder{
+    color:var(--theme-muted);
+    font-weight:700;
 }
 
 .placeMarkerInput::placeholder{
@@ -1433,7 +1470,18 @@ body{
 
 .header{
     background:var(--theme-header);
-    box-shadow:0 8px 18px var(--theme-shadow);
+
+    border-bottom:
+        1px solid rgba(255,255,255,.07);
+
+    box-shadow:
+        0 1px 0 rgba(255,255,255,.04),
+        0 14px 32px var(--theme-shadow);
+}
+
+body.theme-day .header{
+    border-bottom-color:
+        rgba(15,23,42,.12);
 }
 
 #results{
@@ -1476,7 +1524,6 @@ button,
 #notesText,
 #editForm input,
 #editForm select,
-.placeMarkerInput{
     background:var(--theme-input);
     color:var(--theme-input-text);
 }
@@ -1516,9 +1563,12 @@ a,
     color:#020617 !important;
     font-weight:800;
 }
-    body.theme-day .card{
+   body.theme-day .card{
     color:#f8fafc;
-    box-shadow:0 6px 16px rgba(15,23,42,.16);
+
+    box-shadow:
+        0 10px 24px rgba(15,23,42,.18),
+        inset 0 1px 0 rgba(255,255,255,.20);
 }
 
 body.theme-day .card .title{
@@ -1684,6 +1734,63 @@ body.theme-day .filterColourName{
     font-size:18px;
     font-weight:800;
     padding:14px 10px;
+}
+    #setlistPanel{
+    border-left:
+        1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+        -18px 0 44px rgba(0,0,0,.48);
+}
+
+#settingsMenu{
+    border:
+        1px solid rgba(255,255,255,.08);
+
+    box-shadow:
+        0 18px 45px rgba(0,0,0,.48);
+}
+
+#notesDrawer.open{
+    box-shadow:
+        0 -16px 38px rgba(0,0,0,.44);
+}
+
+#search{
+    border:
+        1px solid rgba(148,163,184,.20);
+
+    box-shadow:
+        0 7px 20px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.45);
+}
+
+button,
+.chip{
+    transition:
+        transform .12s ease,
+        box-shadow .15s ease,
+        filter .15s ease;
+}
+
+button:active,
+.chip:active{
+    transform:
+        translateY(1px)
+        scale(.98);
+}
+    #controls button.sortActive{
+    background:var(--theme-accent);
+    color:#03131d;
+
+    font-weight:800;
+
+    border-color:
+        rgba(255,255,255,.32);
+
+    box-shadow:
+        0 6px 18px rgba(56,189,248,.22),
+        inset 0 1px 0 rgba(255,255,255,.38);
 }
 </style>
 </head>
@@ -2015,11 +2122,7 @@ body.theme-day .filterColourName{
         </button>
     </div>
 </div>
-    <div id="songListExportOverlay"></div>
-
-<div id="songListExportPanel">
-    <div id="songListExportHeader">
-        
+    
 <div id="editOverlay"></div>
 
 <div id="editPanel">
@@ -2235,6 +2338,40 @@ if(sortKey === "bpm"){
         sortDirection === 1
         ? "A-Z"
         : "Z-A";
+}
+    function updateSortButtonStates(){
+
+    const buttons = {
+        artist:"sortArtist",
+        title:"sortTitle",
+        bpm:"sortBpm",
+        year:"sortYear"
+    };
+
+    Object.entries(buttons)
+    .forEach(([key, id]) => {
+
+        const button =
+            document.getElementById(id);
+
+        if(button){
+            button.classList.toggle(
+                "sortActive",
+                !randomMode &&
+                sortKey === key
+            );
+        }
+    });
+
+    const randomButton =
+        document.getElementById("sortRandom");
+
+    if(randomButton){
+        randomButton.classList.toggle(
+            "sortActive",
+            randomMode
+        );
+    }
 }
 
 function getSongTitle(song){
@@ -2928,6 +3065,7 @@ if(
         saveEventSelection();
 
         render();
+        updateSortButtonStates();
     };
 
     chipContainer.appendChild(mustChip);
@@ -7166,7 +7304,13 @@ const inSetlist =
 }
 
         div.className="card";
-        div.style.background=getDecadeColor(song.Decade);
+        div.style.setProperty(
+    "--card-colour",
+    hexToRgba(
+        getDecadeColor(song.Decade),
+        .82
+    )
+);
     let pressTimer;
 
 div.addEventListener("pointerdown", () => {
@@ -7688,16 +7832,28 @@ document.getElementById("sortRandom").onclick = () => {
 
     randomMode = true;
 
-    const btn =
-        document.getElementById("sortOrder");
+    randomOrder =
+        songs.map(getSongId);
 
-    if(btn){
-        btn.innerText = "Random";
+    // Fisher-Yates shuffle
+    for(
+        let i = randomOrder.length - 1;
+        i > 0;
+        i--
+    ){
+        const j =
+            Math.floor(
+                Math.random() * (i + 1)
+            );
+
+        [
+            randomOrder[i],
+            randomOrder[j]
+        ] = [
+            randomOrder[j],
+            randomOrder[i]
+        ];
     }
-
-    randomOrder = [...songs]
-        .map(getSongId)
-        .sort(() => Math.random() - 0.5);
 
     render();
 };
