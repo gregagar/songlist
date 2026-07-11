@@ -137,6 +137,11 @@ html, body{
 
 #tapTempoBtn{
     width:88px;
+    min-width:88px;
+    max-width:88px;
+    flex:0 0 88px;
+    box-sizing:border-box;
+
     min-height:50px;
 
     padding:5px 8px;
@@ -150,8 +155,7 @@ html, body{
     background:var(--theme-button);
     color:var(--theme-button-text);
 
-    border:
-        1px solid var(--theme-border);
+    border:1px solid var(--theme-border);
 
     box-shadow:
         0 6px 16px rgba(0,0,0,.20),
@@ -172,14 +176,36 @@ html, body{
 }
 
 #tapTempoBpm{
+    display:block;
+
+    width:100%;
+    min-width:0;
+
     color:var(--theme-text);
 
     font-size:17px;
     font-weight:900;
     line-height:1.25;
 
+    text-align:center;
+    white-space:nowrap;
+
     font-variant-numeric:tabular-nums;
     font-feature-settings:"tnum";
+}
+    #tapTempoLabel{
+    display:block;
+    width:100%;
+
+    color:var(--theme-muted);
+
+    font-size:10px;
+    font-weight:900;
+    letter-spacing:1.5px;
+    line-height:1;
+
+    text-align:center;
+    white-space:nowrap;
 }
 
 #tapTempoBtn.measured{
@@ -2018,7 +2044,13 @@ body.theme-day .setlistItem{
    ========================= */
 
 #visualMetronome{
+    width:132px;
+    min-width:132px;
+    max-width:132px;
+    flex:0 0 132px;
+
     height:50px;
+    box-sizing:border-box;
 
     display:flex;
     align-items:stretch;
@@ -2061,6 +2093,8 @@ body.theme-day .setlistItem{
 #metroToggle{
     width:72px;
     min-width:72px;
+    max-width:72px;
+    flex:0 0 72px;
 
     display:flex;
     flex-direction:column;
@@ -2076,20 +2110,29 @@ body.theme-day .setlistItem{
 
     touch-action:manipulation;
 }
+#metroLights{
+    height:12px;
 
-#metroLight{
-    display:block;
-
-    width:9px;
-    height:9px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:10px;
 
     margin-bottom:1px;
+}
+
+.metroLight{
+    display:block;
+
+    width:8px;
+    height:8px;
+    flex:0 0 8px;
 
     border-radius:50%;
 
     background:var(--theme-muted);
 
-    opacity:.35;
+    opacity:.28;
     transform:scale(1);
 
     transition:
@@ -2099,23 +2142,30 @@ body.theme-day .setlistItem{
         box-shadow .08s ease;
 }
 
-#metroLight.beat{
+.metroLight.beat{
     background:var(--theme-accent);
 
     opacity:1;
 
-    transform:scale(2);
+    transform:scale(1.8);
 
     box-shadow:
-        0 0 16px 4px var(--theme-accent);
+        0 0 14px 3px var(--theme-accent);
 }
-
 #metroBpm{
+    display:block;
+
+    width:100%;
+    min-width:0;
+
     color:var(--theme-text);
 
     font-size:12px;
     font-weight:900;
     line-height:1.1;
+
+    text-align:center;
+    white-space:nowrap;
 
     font-variant-numeric:tabular-nums;
     font-feature-settings:"tnum";
@@ -2208,7 +2258,17 @@ body.theme-day .setlistItem{
             aria-label="Turn visual metronome on or off"
             aria-pressed="false"
         >
-            <span id="metroLight"></span>
+            <div id="metroLights" aria-hidden="true">
+    <span
+        id="metroLightLeft"
+        class="metroLight"
+    ></span>
+
+    <span
+        id="metroLightRight"
+        class="metroLight"
+    ></span>
+</div>
 
             <span id="metroBpm">
                 120 BPM
@@ -8399,6 +8459,7 @@ let visualMetronomeRunning = false;
 let visualMetronomeTimer = null;
 let visualMetronomePulseTimer = null;
 let visualMetronomeNextBeat = 0;
+let visualMetronomeLightIndex = 0;
 
 function renderVisualMetronome(){
 
@@ -8443,23 +8504,58 @@ function renderVisualMetronome(){
     );
 }
 
+function clearVisualMetronomeLights(){
+
+    document
+        .querySelectorAll(
+            "#metroLights .metroLight"
+        )
+        .forEach(light => {
+
+            light.classList.remove(
+                "beat"
+            );
+        });
+}
+
 function pulseVisualMetronome(){
 
-    const light =
-        document.getElementById(
-            "metroLight"
+    const lights =
+        Array.from(
+            document.querySelectorAll(
+                "#metroLights .metroLight"
+            )
         );
+
+    if(lights.length === 0){
+        return;
+    }
 
     clearTimeout(
         visualMetronomePulseTimer
     );
 
-    light.classList.add("beat");
+    clearVisualMetronomeLights();
+
+    const activeLight =
+        lights[
+            visualMetronomeLightIndex %
+            lights.length
+        ];
+
+    visualMetronomeLightIndex =
+        (
+            visualMetronomeLightIndex + 1
+        ) % lights.length;
+
+    activeLight.classList.add(
+        "beat"
+    );
 
     visualMetronomePulseTimer =
         setTimeout(() => {
 
-            light.classList.remove(
+            activeLight.classList.remove(
                 "beat"
             );
 
@@ -8501,10 +8597,12 @@ function startVisualMetronome(){
         return;
     }
 
-    visualMetronomeRunning = true;
+   visualMetronomeRunning = true;
 
-    visualMetronomeNextBeat =
-        performance.now();
+visualMetronomeLightIndex = 0;
+
+visualMetronomeNextBeat =
+    performance.now();
 
     renderVisualMetronome();
     scheduleVisualMetronomeBeat();
@@ -8522,10 +8620,9 @@ function stopVisualMetronome(){
         visualMetronomePulseTimer
     );
 
-    document
-        .getElementById("metroLight")
-        .classList
-        .remove("beat");
+   clearVisualMetronomeLights();
+
+visualMetronomeLightIndex = 0;
 
     renderVisualMetronome();
 }
