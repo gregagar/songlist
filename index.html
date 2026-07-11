@@ -2170,6 +2170,16 @@ body.theme-day .setlistItem{
     font-variant-numeric:tabular-nums;
     font-feature-settings:"tnum";
 }
+    #metroBpm{
+    cursor:text;
+    user-select:none;
+    -webkit-user-select:none;
+    touch-action:manipulation;
+}
+
+#metroBpm:active{
+    opacity:.65;
+}
 
 #metroState{
     color:var(--theme-muted);
@@ -8706,7 +8716,80 @@ document
             );
         }
     );
+let metroBpmLastTap = 0;
 
+const metroBpmDisplay =
+    document.getElementById("metroBpm");
+
+/*
+Stop tapping the BPM number from also
+turning the metronome on or off.
+*/
+metroBpmDisplay.addEventListener(
+    "click",
+    event => {
+        event.stopPropagation();
+    }
+);
+
+metroBpmDisplay.addEventListener(
+    "pointerup",
+    event => {
+
+        event.stopPropagation();
+        event.preventDefault();
+
+        const now =
+            performance.now();
+
+        const timeSinceLastTap =
+            now - metroBpmLastTap;
+
+        metroBpmLastTap = now;
+
+        if(
+            timeSinceLastTap > 400
+        ){
+            return;
+        }
+
+        metroBpmLastTap = 0;
+
+        const enteredTempo =
+            prompt(
+                "Enter metronome tempo:",
+                String(
+                    visualMetronomeBpm
+                )
+            );
+
+        if(enteredTempo === null){
+            return;
+        }
+
+        const bpm =
+            Number(
+                String(enteredTempo)
+                    .trim()
+            );
+
+        if(
+            !Number.isFinite(bpm) ||
+            bpm < 30 ||
+            bpm > 300
+        ){
+            alert(
+                "Enter a tempo between 30 and 300 BPM."
+            );
+
+            return;
+        }
+
+        setVisualMetronomeBpm(
+            bpm
+        );
+    }
+);
 renderVisualMetronome();
 /* =========================
    TAP TEMPO
