@@ -8896,12 +8896,11 @@ function handleTapTempo(){
             0
         ) / intervals.length;
 
-    const bpm =
-        Math.round(
-            60000 /
-            averageInterval
-        );
-    setVisualMetronomeBpm(bpm);
+   const bpm =
+    Math.round(
+        60000 /
+        averageInterval
+    );
 
     document
         .getElementById("tapTempoLabel")
