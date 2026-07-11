@@ -2013,6 +2013,137 @@ body.theme-day .setlistItem{
         0 8px 18px rgba(15,23,42,.12),
         inset 0 1px 0 rgba(255,255,255,.30);
 }
+    /* =========================
+   VISUAL METRONOME
+   ========================= */
+
+#visualMetronome{
+    height:50px;
+
+    display:flex;
+    align-items:stretch;
+
+    border:1px solid var(--theme-border);
+    border-radius:var(--radius-control);
+
+    background:var(--theme-button);
+
+    overflow:hidden;
+
+    box-shadow:
+        0 6px 16px rgba(0,0,0,.20),
+        inset 0 1px 0 rgba(255,255,255,.08);
+}
+
+#visualMetronome button{
+    border:none;
+    border-radius:0;
+    box-shadow:none;
+
+    background:transparent;
+    padding:0;
+}
+
+.metroAdjust{
+    width:29px;
+    min-width:29px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    color:var(--theme-muted);
+
+    font-size:20px;
+    font-weight:800;
+}
+
+#metroToggle{
+    width:72px;
+    min-width:72px;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    gap:1px;
+
+    border-left:
+        1px solid rgba(148,163,184,.14) !important;
+
+    border-right:
+        1px solid rgba(148,163,184,.14) !important;
+
+    touch-action:manipulation;
+}
+
+#metroLight{
+    display:block;
+
+    width:9px;
+    height:9px;
+
+    margin-bottom:1px;
+
+    border-radius:50%;
+
+    background:var(--theme-muted);
+
+    opacity:.35;
+    transform:scale(1);
+
+    transition:
+        transform .08s ease,
+        opacity .08s ease,
+        background .08s ease,
+        box-shadow .08s ease;
+}
+
+#metroLight.beat{
+    background:var(--theme-accent);
+
+    opacity:1;
+
+    transform:scale(2);
+
+    box-shadow:
+        0 0 16px 4px var(--theme-accent);
+}
+
+#metroBpm{
+    color:var(--theme-text);
+
+    font-size:12px;
+    font-weight:900;
+    line-height:1.1;
+
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
+}
+
+#metroState{
+    color:var(--theme-muted);
+
+    font-size:9px;
+    font-weight:900;
+    letter-spacing:1px;
+    line-height:1;
+}
+
+#visualMetronome.running{
+    border-color:var(--theme-accent);
+}
+
+#visualMetronome.running #metroState,
+#visualMetronome.running #metroBpm{
+    color:var(--theme-accent);
+}
+
+.metroAdjust:active,
+#metroToggle:active{
+    background:rgba(148,163,184,.14);
+    transform:none;
+}
 </style>
 </head>
 
