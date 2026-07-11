@@ -210,24 +210,6 @@ html, body{
     color:white;
     box-sizing:border-box;
 }
-    #editOverlay{
-    position:fixed;
-    inset:0;
-
-    background:rgba(0,0,0,.4);
-
-    opacity:0;
-    pointer-events:none;
-
-    transition:opacity .25s ease;
-
-    z-index:99999;
-}
-
-#editOverlay.open{
-    opacity:1;
-    pointer-events:auto;
-}
 
 #saveSongBtn{
     margin-top:20px;
@@ -712,11 +694,6 @@ a{
 
 .placeMarkerInput::placeholder{
     color:var(--theme-muted);
-    font-weight:700;
-}
-
-.placeMarkerInput::placeholder{
-    color:#94a3b8;
     font-weight:700;
 }
 
@@ -1522,7 +1499,6 @@ body.theme-day .header{
     color:var(--theme-text);
 }
 
-.card.played,
 .setlistItem.played{
     background:var(--theme-card-played) !important;
 }
@@ -1549,7 +1525,7 @@ button,
 .birthdayRow input,
 #notesText,
 #editForm input,
-#editForm select,
+#editForm select{
     background:var(--theme-input);
     color:var(--theme-input-text);
 }
@@ -1608,10 +1584,7 @@ body.theme-day .card .meta{
 body.theme-day .card a{
     color:#7dd3fc;
 }
-    body.theme-day .card{
-    backdrop-filter:blur(8px);
-    -webkit-backdrop-filter:blur(8px);
-}
+
     /* Day Mode control tweaks */
 
 body.theme-day #chipContainer .chip:not(.active):not(.decadeChip):not(.eventSelectionChip):not(.eventMustPlayFilterChip):not(.eventDoNotPlayChip){
@@ -1638,11 +1611,16 @@ body.theme-day #settingsBtn{
 }
 
 body.theme-day #controls button.active,
+body.theme-day #controls button.sortActive,
 body.theme-day #autoScrollBtn.active,
 body.theme-day #birthdayBtn.active{
     background:#2563eb;
     color:#ffffff;
     border-color:#1d4ed8;
+
+    box-shadow:
+        0 6px 18px rgba(37,99,235,.24),
+        inset 0 1px 0 rgba(255,255,255,.30);
 }
 
 body.theme-day #settingsMenu .settingsLabel{
@@ -3239,7 +3217,6 @@ if(
         saveEventSelection();
 
         render();
-        updateSortButtonStates();
     };
 
     chipContainer.appendChild(mustChip);
@@ -3438,120 +3415,7 @@ function compactClientSelectionToEventImport(selection) {
         }
     };
 }
-    function normaliseIdArray(value) {
-    if(Array.isArray(value)){
-        return value
-            .map(id => String(id || "").trim())
-            .filter(Boolean);
-    }
-
-    if(typeof value === "string"){
-        try{
-            const parsed = JSON.parse(value);
-
-            if(Array.isArray(parsed)){
-                return parsed
-                    .map(id => String(id || "").trim())
-                    .filter(Boolean);
-            }
-        }catch(e){}
-
-        return value
-            .split(",")
-            .map(id => String(id || "").trim())
-            .filter(Boolean);
-    }
-
-    return [];
-}
-
-function isCompactClientSelection(imported) {
-    return (
-        imported &&
-        typeof imported === "object" &&
-        (
-            Array.isArray(imported.selectedSongIds) ||
-            Array.isArray(imported.mustPlaySongIds) ||
-            Array.isArray(imported.likeSongIds) ||
-            Array.isArray(imported.doNotPlaySongIds)
-        )
-    );
-}
-
-function makeEventItemsFromIds(ids, status) {
-    return normaliseIdArray(ids).map(id => ({
-        id,
-        status
-    }));
-}
-
-function compactClientSelectionToEventImport(selection) {
-    const mustPlayIds =
-        normaliseIdArray(selection.mustPlaySongIds);
-
-    let likeIds =
-        normaliseIdArray(selection.likeSongIds);
-
-    const doNotPlayIds =
-        normaliseIdArray(selection.doNotPlaySongIds);
-
-    const selectedSongIds =
-        normaliseIdArray(selection.selectedSongIds);
-
-    if(likeIds.length === 0 && selectedSongIds.length > 0){
-        const mustSet = new Set(mustPlayIds);
-        const noSet = new Set(doNotPlayIds);
-
-        likeIds =
-            selectedSongIds.filter(id =>
-                !mustSet.has(id) &&
-                !noSet.has(id)
-            );
-    }
-
-    return {
-        type: "SongFinderClientSelection",
-        version: selection.version || 1,
-
-        token: selection.token || "",
-        eventId: selection.eventId || "",
-
-        eventName:
-            selection.coupleName ||
-            selection.eventName ||
-            selection.name ||
-            "Client Selection",
-
-        coupleName:
-            selection.coupleName ||
-            selection.eventName ||
-            "",
-
-        weddingDate:
-            selection.eventDate ||
-            selection.weddingDate ||
-            "",
-
-        selectedSongs: [
-            ...makeEventItemsFromIds(mustPlayIds, "mustPlay"),
-            ...makeEventItemsFromIds(likeIds, "like")
-        ],
-
-        doNotPlay:
-            makeEventItemsFromIds(doNotPlayIds, "doNotPlay"),
-
-        selections: {
-            mustPlay:
-                makeEventItemsFromIds(mustPlayIds, "mustPlay"),
-
-            like:
-                makeEventItemsFromIds(likeIds, "like"),
-
-            doNotPlay:
-                makeEventItemsFromIds(doNotPlayIds, "doNotPlay")
-        }
-    };
-}
+   
 function importEventSelectionData(imported, source = "file"){
 
     if(isCompactClientSelection(imported)){
@@ -3884,61 +3748,7 @@ async function promptAndLoadClientSelection() {
         }
     }
 }
-function getEventClearSummary(){
 
-    const eventName =
-        eventSelection && eventSelection.eventName
-        ? eventSelection.eventName
-        : "this event selection";
-
-    const playableCount =
-        eventSelectionIds instanceof Set
-        ? eventSelectionIds.size
-        : 0;
-
-    const mustPlayCount =
-        eventSelectionMustIds instanceof Set
-        ? eventSelectionMustIds.size
-        : 0;
-
-    const doNotPlayCount =
-        eventSelectionDoNotPlayIds instanceof Set
-        ? eventSelectionDoNotPlayIds.size
-        : 0;
-
-    const likeCount =
-        Math.max(
-            playableCount - mustPlayCount,
-            0
-        );
-
-    return (
-        `Clear ${eventName}?\n\n` +
-        `Playable: ${playableCount}\n` +
-        `Must Play: ${mustPlayCount}\n` +
-        `Like: ${likeCount}\n` +
-        `Do Not Play: ${doNotPlayCount}`
-    );
-}
-
-function confirmAndClearEventSelection(){
-
-    if(!eventSelection){
-        alert("No event selection is currently active.");
-        return;
-    }
-
-    const sure =
-        confirm(
-            getEventClearSummary()
-        );
-
-    if(!sure){
-        return;
-    }
-
-    clearEventSelection();
-}
 function clearEventSelection(){
 
     eventSelection = null;
@@ -4155,66 +3965,7 @@ function openNewSongPanel(){
 
     openEditPanel(blankSong);
 }
-    function createBlankSong(){
-
-    const fallback = {
-        "ARTIST":"",
-        "SONG NAME":"",
-        "Year":"",
-        "Decade":"",
-        "Genre":"",
-        "Tempo":"",
-        "Country of Origin":"",
-        "Link":"",
-        "Upbeat":false,
-        "Favourites":false,
-        "Dancefloor":false,
-        "Sing-a-Long":false,
-        "Happy":false,
-        "Easy to Sing":false,
-        "Romantic":false,
-        "Showcase":false,
-        "Tags":"",
-        "Wiki":""
-    };
-
-    const template =
-        songs[0] || fallback;
-
-    const blank = {};
-
-    Object.keys(template).forEach(key => {
-
-        blank[key] =
-            booleanFields.includes(key)
-            ? false
-            : "";
-    });
-
-    return blank;
-}
-
-function closeEditPanel(){
-
-    document
-        .getElementById("editPanel")
-        .classList.remove("open");
-
-    document
-        .getElementById("editOverlay")
-        .classList.remove("open");
-
-    editingSong = null;
-    editingSongIndex = -1;
-}
-
-function openNewSongPanel(){
-
-    const blankSong =
-        createBlankSong();
-
-    openEditPanel(blankSong);
-}
+    
 const filters=[
     "Favourites",
     "Upbeat",
@@ -4773,7 +4524,7 @@ function restoreSnapshot(snapshot){
         Array.isArray(snapshot.setlist)
         ? [...snapshot.setlist]
         : [];
-pushUndo("Reset Played");
+    
     playedSongs.clear();
 
     if(Array.isArray(snapshot.playedSongs)){
@@ -7822,6 +7573,7 @@ updateFilterChipColours();
 updateDecadeAvailability();
 updateDecadeChipColours();
 updateEventBanner();
+updateSortButtonStates();
 updateSetlistCounts();
 
 }
@@ -8059,13 +7811,18 @@ document.getElementById("sortRandom").onclick = () => {
 
     toggleAutoScroll();
 };
-    document.getElementById("resetPlayed").onclick=()=>{
+document.getElementById("resetPlayed").onclick = () => {
+
+    if(playedSongs.size === 0){
+        return;
+    }
+
+    pushUndo("Reset Played");
 
     playedSongs.clear();
 
-    document
-        .querySelectorAll(".card")
-        .forEach(card=>card.classList.remove("played"));
+    render();
+    renderSetlist();
 };
 function openEditPanel(song){
 
@@ -9057,16 +8814,7 @@ document
 document
 .getElementById("resetFilterColours")
 .onclick = resetFilterColours;
-    document
-.getElementById("addNewSong")
-.onclick = e => {
-
-    e.stopPropagation();
-
-    settingsMenu.classList.remove("open");
-
-    openNewSongPanel();
-};
+   
     const loadClientSelectionBtn =
     document.getElementById("loadClientSelection");
 
@@ -9348,6 +9096,7 @@ if(backToTopBtn){
         });
     };
 }
+applyTheme(currentTheme);
 load();
 applyScale();
 applySubScale();
