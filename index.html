@@ -123,14 +123,16 @@ min-width:0;
 #clockBox{
     width:100%;
     min-width:0;
+
     font-size:34px;
     font-weight:800;
     color:#e2e8f0;
-    min-width:140px;
+
     text-align:right;
     letter-spacing:1px;
-    font-variant-numeric: tabular-nums;
-    font-feature-settings: "tnum";
+
+    font-variant-numeric:tabular-nums;
+    font-feature-settings:"tnum";
 }
     #tempoTools{
     width:230px;
@@ -2233,80 +2235,85 @@ body.theme-day .setlistItem{
     </div>
     
 <div id="statusRight">
+
     <div id="songCount"></div>
 
     <div id="clockBox"></div>
 
-   <div id="clockRow">
+    <div id="tempoTools">
 
-   <div id="tempoTools">
+        <div id="visualMetronome">
+
+            <button
+                id="metroMinus"
+                class="metroAdjust"
+                type="button"
+                aria-label="Decrease metronome tempo"
+            >
+                −
+            </button>
+
+            <button
+                id="metroToggle"
+                type="button"
+                aria-label="Turn visual metronome on or off"
+                aria-pressed="false"
+            >
+                <div
+                    id="metroLights"
+                    aria-hidden="true"
+                >
+                    <span
+                        id="metroLightLeft"
+                        class="metroLight"
+                    ></span>
+
+                    <span
+                        id="metroLightRight"
+                        class="metroLight"
+                    ></span>
+                </div>
+
+                <span id="metroBpm">
+                    120 BPM
+                </span>
+
+                <span id="metroState">
+                    OFF
+                </span>
+            </button>
+
+            <button
+                id="metroPlus"
+                class="metroAdjust"
+                type="button"
+                aria-label="Increase metronome tempo"
+            >
+                +
+            </button>
+
+        </div>
 
         <button
-            id="metroMinus"
-            class="metroAdjust"
+            id="tapTempoBtn"
             type="button"
-            aria-label="Decrease metronome tempo"
+            aria-label="Tap tempo"
         >
-            −
-        </button>
-
-        <button
-            id="metroToggle"
-            type="button"
-            aria-label="Turn visual metronome on or off"
-            aria-pressed="false"
-        >
-            <div id="metroLights" aria-hidden="true">
-    <span
-        id="metroLightLeft"
-        class="metroLight"
-    ></span>
-
-    <span
-        id="metroLightRight"
-        class="metroLight"
-    ></span>
-</div>
-
-            <span id="metroBpm">
-                120 BPM
+            <span id="tapTempoLabel">
+                TAP
             </span>
 
-            <span id="metroState">
-                OFF
+            <span id="tapTempoBpm">
+                — BPM
             </span>
-        </button>
-
-        <button
-            id="metroPlus"
-            class="metroAdjust"
-            type="button"
-            aria-label="Increase metronome tempo"
-        >
-            +
         </button>
 
     </div>
 
-    <button
-        id="tapTempoBtn"
-        type="button"
-        aria-label="Tap tempo"
-    >
-        <span id="tapTempoLabel">
-            TAP
-        </span>
-
-        <span id="tapTempoBpm">
-            — BPM
-        </span>
-    </button>
-
-</div>
     <button id="openSetlist">
-    <span>+ Set List</span>
-    <span id="setlistButtonCount">0</span>
-</button>
+        <span>+ Set List</span>
+        <span id="setlistButtonCount">0</span>
+    </button>
 <div id="settingsWrap">
 
     <button id="settingsBtn">•••</button>
