@@ -2191,6 +2191,320 @@ body.theme-day .setlistItem{
     background:rgba(148,163,184,.14);
     transform:none;
 }
+    /* =========================
+   FOOT CONTROLS
+   ========================= */
+
+#footControlsOverlay{
+    position:fixed;
+    inset:0;
+
+    background:rgba(2,6,23,.58);
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:opacity .2s ease;
+
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+
+    z-index:100003;
+}
+
+#footControlsOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#footControlsPanel{
+    position:fixed;
+
+    left:50%;
+    top:50%;
+
+    transform:translate(-50%, -50%);
+
+    width:min(94%, 560px);
+    max-height:82vh;
+
+    padding:18px;
+    box-sizing:border-box;
+
+    display:none;
+
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+
+    background:var(--theme-panel);
+    color:var(--theme-text);
+
+    border:
+        1px solid rgba(255,255,255,.09);
+
+    border-radius:var(--radius-panel);
+
+    box-shadow:
+        0 20px 60px rgba(0,0,0,.55);
+
+    z-index:100004;
+}
+
+#footControlsPanel.open{
+    display:block;
+}
+
+#footControlsHeader{
+    position:sticky;
+    top:-18px;
+    z-index:5;
+
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+
+    margin:-18px -18px 14px;
+    padding:16px 18px 12px;
+
+    background:var(--theme-panel);
+
+    border-bottom:
+        1px solid rgba(148,163,184,.15);
+}
+
+#footControlsEnableRow{
+    display:flex;
+    align-items:center;
+    gap:9px;
+
+    margin-bottom:10px;
+
+    font-size:15px;
+    font-weight:700;
+}
+
+#footControlsEnabled{
+    width:20px;
+    height:20px;
+
+    accent-color:var(--theme-accent);
+}
+
+#footControlsHint{
+    margin-bottom:14px;
+
+    color:var(--theme-muted);
+
+    font-size:13px;
+    line-height:1.4;
+}
+
+#footScrollSpeedRow{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    gap:12px;
+
+    margin-bottom:12px;
+    padding:10px 12px;
+
+    background:var(--theme-card);
+
+    border-radius:12px;
+}
+
+#footScrollSpeedRow > span{
+    font-size:14px;
+    font-weight:700;
+}
+
+#footScrollSpeedRow > div{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+#footScrollSpeedRow button{
+    width:34px;
+    height:34px;
+    padding:0;
+
+    text-align:center;
+}
+
+#footScrollSpeedValue{
+    width:52px;
+
+    text-align:center;
+
+    font-size:14px;
+    font-weight:800;
+
+    font-variant-numeric:tabular-nums;
+}
+
+#footControlStatus{
+    margin-bottom:12px;
+    padding:9px 11px;
+
+    border:
+        1px solid rgba(148,163,184,.18);
+
+    border-radius:10px;
+
+    color:var(--theme-muted);
+
+    font-size:13px;
+}
+
+#footControlStatus.learning{
+    color:var(--theme-accent);
+    border-color:var(--theme-accent);
+    font-weight:800;
+}
+
+#footControlMappings{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.footControlRow{
+    display:grid;
+    grid-template-columns:
+        minmax(0, 1fr)
+        112px
+        72px;
+
+    align-items:center;
+    gap:8px;
+
+    padding:10px;
+
+    background:var(--theme-card);
+
+    border:
+        1px solid rgba(148,163,184,.12);
+
+    border-radius:12px;
+}
+
+.footControlName{
+    min-width:0;
+}
+
+.footControlName strong{
+    display:block;
+
+    font-size:14px;
+}
+
+.footControlName small{
+    display:block;
+
+    margin-top:2px;
+
+    color:var(--theme-muted);
+
+    font-size:11px;
+}
+
+.footControlBinding{
+    overflow:hidden;
+
+    color:var(--theme-muted);
+
+    font-size:12px;
+    font-weight:700;
+
+    text-align:center;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.footLearnBtn{
+    padding:7px 8px;
+
+    font-size:13px;
+    text-align:center !important;
+}
+
+.footLearnBtn.learning{
+    background:var(--theme-accent);
+    color:#03131d;
+    font-weight:900;
+}
+
+#clearFootMappings{
+    width:100%;
+
+    margin-top:14px;
+
+    color:var(--theme-danger);
+}
+
+#footControlToast{
+    position:fixed;
+
+    left:50%;
+    bottom:56px;
+
+    transform:
+        translate(-50%, 12px);
+
+    padding:9px 14px;
+
+    background:var(--theme-panel);
+    color:var(--theme-text);
+
+    border:
+        1px solid var(--theme-accent);
+
+    border-radius:999px;
+
+    box-shadow:
+        0 10px 30px rgba(0,0,0,.45);
+
+    font-size:14px;
+    font-weight:800;
+
+    opacity:0;
+    pointer-events:none;
+
+    transition:
+        opacity .18s ease,
+        transform .18s ease;
+
+    z-index:100010;
+}
+
+#footControlToast.show{
+    opacity:1;
+
+    transform:
+        translate(-50%, 0);
+}
+
+@media(max-width:480px){
+
+    .footControlRow{
+        grid-template-columns:
+            minmax(0, 1fr)
+            82px;
+    }
+
+    .footControlBinding{
+        grid-column:1 / -1;
+        grid-row:2;
+
+        text-align:left;
+    }
+
+    .footLearnBtn{
+        grid-column:2;
+        grid-row:1;
+    }
+}
 </style>
 </head>
 
@@ -2380,6 +2694,9 @@ body.theme-day .setlistItem{
 </button>
         <button id="filterColoursBtn">
     Filter Colours
+</button>
+        <button id="footControlsBtn">
+    Foot Controls
 </button>
 
 <button id="undoBtn">
@@ -2597,7 +2914,62 @@ body.theme-day .setlistItem{
         </button>
     </div>
 </div>
-    
+    <div id="footControlsOverlay"></div>
+
+<div id="footControlsPanel">
+
+    <div id="footControlsHeader">
+        <strong>Foot Controls</strong>
+
+        <button id="closeFootControls">
+            ✕
+        </button>
+    </div>
+
+    <label id="footControlsEnableRow">
+        <input
+            id="footControlsEnabled"
+            type="checkbox"
+        >
+
+        Enable keyboard foot controls
+    </label>
+
+    <div id="footControlsHint">
+        Tap Learn, then press the required
+        footswitch. Assignments are saved
+        automatically.
+    </div>
+
+    <div id="footScrollSpeedRow">
+        <span>Hold-scroll speed</span>
+
+        <div>
+            <button id="footScrollSpeedMinus">
+                −
+            </button>
+
+            <span id="footScrollSpeedValue">
+                700
+            </span>
+
+            <button id="footScrollSpeedPlus">
+                +
+            </button>
+        </div>
+    </div>
+
+    <div id="footControlStatus">
+        No control is currently learning.
+    </div>
+
+    <div id="footControlMappings"></div>
+
+    <button id="clearFootMappings">
+        Clear All Assignments
+    </button>
+
+</div>
 <div id="editOverlay"></div>
 
 <div id="editPanel">
@@ -9864,7 +10236,1328 @@ notesText.addEventListener("input", () => {
         notesText.value
     );
 });
+/* =========================
+   KEYBOARD FOOT CONTROLS
+   ========================= */
 
+const FOOT_CONTROL_STORAGE_KEY =
+    "songFinderFootControls";
+
+const FOOT_LONG_HOLD_MS =
+    1200;
+
+const FOOT_CONTROL_ACTIONS = [
+    {
+        id:"scrollDown",
+        label:"Scroll Down",
+        description:"Hold for continuous scrolling"
+    },
+    {
+        id:"scrollUp",
+        label:"Scroll Up",
+        description:"Hold for continuous scrolling"
+    },
+    {
+        id:"tapTempo",
+        label:"Tap Tempo",
+        description:"One press equals one tap"
+    },
+    {
+        id:"toggleMetronome",
+        label:"Metronome On / Off",
+        description:"Toggle visual metronome"
+    },
+    {
+        id:"toggleNotes",
+        label:"Toggle Notes Drawer",
+        description:"Open or close notes"
+    },
+    {
+        id:"toggleSetlist",
+        label:"Toggle Set List",
+        description:"Open or close the Set List panel"
+    },
+    {
+        id:"clearFiltersHold",
+        label:"Clear All Filters",
+        description:"Hold for 1.2 seconds"
+    },
+    {
+        id:"closePanels",
+        label:"Close All Panels",
+        description:"Recommended panic control"
+    },
+    {
+        id:"backToTop",
+        label:"Back to Top",
+        description:"Return to the first songs"
+    },
+    {
+        id:"metroDown",
+        label:"Metronome Tempo −",
+        description:"Decrease by 1 BPM"
+    },
+    {
+        id:"metroUp",
+        label:"Metronome Tempo +",
+        description:"Increase by 1 BPM"
+    },
+    {
+        id:"toggleAutoScroll",
+        label:"Toggle Auto Scroll",
+        description:"Start or stop normal Auto Scroll"
+    }
+];
+
+function loadFootControlSettings(){
+
+    const defaults = {
+        enabled:true,
+        scrollSpeed:700,
+        bindings:{}
+    };
+
+    try{
+
+        const saved =
+            JSON.parse(
+                localStorage.getItem(
+                    FOOT_CONTROL_STORAGE_KEY
+                ) || "null"
+            );
+
+        if(!saved){
+            return defaults;
+        }
+
+        return {
+            enabled:
+                saved.enabled !== false,
+
+            scrollSpeed:
+                Number(saved.scrollSpeed) ||
+                defaults.scrollSpeed,
+
+            bindings:
+                saved.bindings &&
+                typeof saved.bindings === "object"
+                ? saved.bindings
+                : {}
+        };
+
+    }catch(error){
+
+        return defaults;
+    }
+}
+
+let footControlSettings =
+    loadFootControlSettings();
+
+let footLearningActionId = null;
+let footLearningIgnoredKey = null;
+
+const activeFootKeys =
+    new Map();
+
+const footHoldTimers =
+    new Map();
+
+const heldFootScrollActions =
+    new Set();
+
+let footScrollFrame = null;
+let footScrollLastTime = null;
+let footToastTimer = null;
+
+function saveFootControlSettings(){
+
+    localStorage.setItem(
+        FOOT_CONTROL_STORAGE_KEY,
+        JSON.stringify(
+            footControlSettings
+        )
+    );
+}
+
+function getFootEventKey(event){
+
+    return String(
+        event.code ||
+        event.key ||
+        ""
+    );
+}
+
+function eventToFootBinding(event){
+
+    return {
+        code:
+            getFootEventKey(event),
+
+        key:
+            String(event.key || ""),
+
+        ctrl:
+            event.ctrlKey === true,
+
+        alt:
+            event.altKey === true,
+
+        shift:
+            event.shiftKey === true,
+
+        meta:
+            event.metaKey === true
+    };
+}
+
+function getFootBindingSignature(binding){
+
+    if(!binding || !binding.code){
+        return "";
+    }
+
+    return [
+        binding.ctrl ? "ctrl" : "",
+        binding.alt ? "alt" : "",
+        binding.shift ? "shift" : "",
+        binding.meta ? "meta" : "",
+        binding.code
+    ].join("|");
+}
+
+function getFootEventSignature(event){
+
+    return getFootBindingSignature(
+        eventToFootBinding(event)
+    );
+}
+
+function formatFootBinding(binding){
+
+    if(!binding || !binding.code){
+        return "Not assigned";
+    }
+
+    const parts = [];
+
+    if(binding.ctrl){
+        parts.push("Ctrl");
+    }
+
+    if(binding.alt){
+        parts.push("Alt");
+    }
+
+    if(binding.shift){
+        parts.push("Shift");
+    }
+
+    if(binding.meta){
+        parts.push("Command");
+    }
+
+    const friendlyNames = {
+        Space:"Space",
+        ArrowUp:"Up Arrow",
+        ArrowDown:"Down Arrow",
+        ArrowLeft:"Left Arrow",
+        ArrowRight:"Right Arrow",
+        PageUp:"Page Up",
+        PageDown:"Page Down",
+        Enter:"Enter",
+        Escape:"Escape",
+        Tab:"Tab",
+        Backspace:"Backspace"
+    };
+
+    let keyName =
+        friendlyNames[binding.code] ||
+        binding.code;
+
+    keyName =
+        keyName
+            .replace(/^Key/, "")
+            .replace(/^Digit/, "");
+
+    parts.push(keyName);
+
+    return parts.join(" + ");
+}
+
+function findFootActionForEvent(event){
+
+    const signature =
+        getFootEventSignature(event);
+
+    const match =
+        FOOT_CONTROL_ACTIONS.find(action => {
+
+            const binding =
+                footControlSettings
+                    .bindings[action.id];
+
+            return (
+                getFootBindingSignature(
+                    binding
+                ) === signature
+            );
+        });
+
+    return match
+        ? match.id
+        : "";
+}
+
+function isFootTypingTarget(target){
+
+    if(!target){
+        return false;
+    }
+
+    const tag =
+        String(
+            target.tagName || ""
+        ).toUpperCase();
+
+    return (
+        tag === "INPUT" ||
+        tag === "TEXTAREA" ||
+        tag === "SELECT" ||
+        target.isContentEditable === true
+    );
+}
+
+function showFootControlToast(message){
+
+    let toast =
+        document.getElementById(
+            "footControlToast"
+        );
+
+    if(!toast){
+
+        toast =
+            document.createElement("div");
+
+        toast.id =
+            "footControlToast";
+
+        document.body.appendChild(
+            toast
+        );
+    }
+
+    toast.innerText =
+        message;
+
+    clearTimeout(
+        footToastTimer
+    );
+
+    toast.classList.add(
+        "show"
+    );
+
+    footToastTimer =
+        setTimeout(() => {
+
+            toast.classList.remove(
+                "show"
+            );
+
+        }, 1300);
+}
+
+function updateFootControlStatus(){
+
+    const status =
+        document.getElementById(
+            "footControlStatus"
+        );
+
+    if(!status){
+        return;
+    }
+
+    if(!footLearningActionId){
+
+        status.classList.remove(
+            "learning"
+        );
+
+        status.innerText =
+            "No control is currently learning.";
+
+        return;
+    }
+
+    const action =
+        FOOT_CONTROL_ACTIONS.find(
+            item =>
+                item.id ===
+                footLearningActionId
+        );
+
+    status.classList.add(
+        "learning"
+    );
+
+    status.innerText =
+        `Press the footswitch for: ${
+            action
+                ? action.label
+                : "this action"
+        }`;
+}
+
+function renderFootControlMappings(){
+
+    const container =
+        document.getElementById(
+            "footControlMappings"
+        );
+
+    if(!container){
+        return;
+    }
+
+    container.innerHTML = "";
+
+    FOOT_CONTROL_ACTIONS
+        .forEach(action => {
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+            row.className =
+                "footControlRow";
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+            name.className =
+                "footControlName";
+
+            name.innerHTML =
+                `<strong>${action.label}</strong>` +
+                `<small>${action.description}</small>`;
+
+            const binding =
+                document.createElement(
+                    "div"
+                );
+
+            binding.className =
+                "footControlBinding";
+
+            binding.innerText =
+                formatFootBinding(
+                    footControlSettings
+                        .bindings[action.id]
+                );
+
+            const learn =
+                document.createElement(
+                    "button"
+                );
+
+            learn.className =
+                "footLearnBtn";
+
+            const isLearning =
+                footLearningActionId ===
+                action.id;
+
+            learn.classList.toggle(
+                "learning",
+                isLearning
+            );
+
+            learn.innerText =
+                isLearning
+                ? "Press…"
+                : "Learn";
+
+            learn.onclick = event => {
+
+                event.stopPropagation();
+
+                footLearningActionId =
+                    isLearning
+                    ? null
+                    : action.id;
+
+                renderFootControlMappings();
+                updateFootControlStatus();
+            };
+
+            row.appendChild(name);
+            row.appendChild(binding);
+            row.appendChild(learn);
+
+            container.appendChild(row);
+        });
+
+    const enabled =
+        document.getElementById(
+            "footControlsEnabled"
+        );
+
+    if(enabled){
+
+        enabled.checked =
+            footControlSettings.enabled;
+    }
+
+    const speed =
+        document.getElementById(
+            "footScrollSpeedValue"
+        );
+
+    if(speed){
+
+        speed.innerText =
+            Math.round(
+                footControlSettings
+                    .scrollSpeed
+            );
+    }
+
+    updateFootControlStatus();
+}
+
+function openFootControlsPanel(){
+
+    footLearningActionId = null;
+
+    document
+        .getElementById(
+            "settingsMenu"
+        )
+        .classList
+        .remove("open");
+
+    document
+        .getElementById(
+            "footControlsOverlay"
+        )
+        .classList
+        .add("open");
+
+    document
+        .getElementById(
+            "footControlsPanel"
+        )
+        .classList
+        .add("open");
+
+    renderFootControlMappings();
+}
+
+function closeFootControlsPanel(){
+
+    footLearningActionId = null;
+
+    document
+        .getElementById(
+            "footControlsOverlay"
+        )
+        .classList
+        .remove("open");
+
+    document
+        .getElementById(
+            "footControlsPanel"
+        )
+        .classList
+        .remove("open");
+
+    updateFootControlStatus();
+}
+
+function getHeldFootScrollDirection(){
+
+    const down =
+        heldFootScrollActions.has(
+            "scrollDown"
+        );
+
+    const up =
+        heldFootScrollActions.has(
+            "scrollUp"
+        );
+
+    if(down === up){
+        return 0;
+    }
+
+    return down
+        ? 1
+        : -1;
+}
+
+function stopFootScrollLoop(){
+
+    if(footScrollFrame){
+
+        cancelAnimationFrame(
+            footScrollFrame
+        );
+    }
+
+    footScrollFrame = null;
+    footScrollLastTime = null;
+}
+
+function footScrollStep(timestamp){
+
+    const direction =
+        getHeldFootScrollDirection();
+
+    if(direction === 0){
+
+        stopFootScrollLoop();
+        return;
+    }
+
+    if(footScrollLastTime === null){
+
+        footScrollLastTime =
+            timestamp;
+    }
+
+    const elapsed =
+        timestamp -
+        footScrollLastTime;
+
+    footScrollLastTime =
+        timestamp;
+
+    window.scrollBy(
+        0,
+        direction *
+        footControlSettings.scrollSpeed *
+        elapsed /
+        1000
+    );
+
+    const atTop =
+        window.scrollY <= 0;
+
+    const atBottom =
+        window.innerHeight +
+        window.scrollY >=
+        document.documentElement
+            .scrollHeight - 2;
+
+    if(
+        (direction < 0 && atTop) ||
+        (direction > 0 && atBottom)
+    ){
+        stopFootScrollLoop();
+        return;
+    }
+
+    footScrollFrame =
+        requestAnimationFrame(
+            footScrollStep
+        );
+}
+
+function updateFootScrollLoop(){
+
+    const direction =
+        getHeldFootScrollDirection();
+
+    if(direction === 0){
+
+        stopFootScrollLoop();
+        return;
+    }
+
+    if(footScrollFrame){
+        return;
+    }
+
+    window.scrollBy(
+        0,
+        direction * 24
+    );
+
+    footScrollLastTime = null;
+
+    footScrollFrame =
+        requestAnimationFrame(
+            footScrollStep
+        );
+}
+
+function setFootScrollHeld(
+    actionId,
+    isHeld
+){
+
+    if(isHeld){
+
+        heldFootScrollActions.add(
+            actionId
+        );
+
+    }else{
+
+        heldFootScrollActions.delete(
+            actionId
+        );
+    }
+
+    updateFootScrollLoop();
+}
+
+function clearAllSongFiltersFromFoot(){
+
+    mustPlayOnlyActive = false;
+
+    activeFilters.clear();
+    activeDecades.clear();
+
+    artistFilter = "";
+    genreFilter = "";
+    countryFilter = "";
+    yearFilter = "";
+    bpmFilter = null;
+
+    clearBirthdayFilter(true);
+
+    currentQuery = "";
+
+    const search =
+        document.getElementById(
+            "search"
+        );
+
+    if(search){
+
+        search.value = "";
+    }
+
+    document
+        .querySelectorAll(".chip")
+        .forEach(chip => {
+
+            chip.classList.remove(
+                "active"
+            );
+
+            chip.classList.remove(
+                "decade-active"
+            );
+
+            if(
+                !chip.classList.contains(
+                    "decadeChip"
+                ) &&
+                !chip.classList.contains(
+                    "filterChip"
+                )
+            ){
+                chip.style.background = "";
+            }
+        });
+
+    syncGenreDropdown();
+
+    updateFilterChipColours();
+    updateDecadeChipColours();
+
+    render();
+
+    showFootControlToast(
+        "All filters cleared"
+    );
+}
+
+function toggleNotesFromFoot(){
+
+    if(
+        notesDrawer.classList.contains(
+            "open"
+        )
+    ){
+        closeNotesDrawer();
+
+    }else{
+        openNotesDrawer();
+    }
+}
+
+function openSetlistFromFoot(){
+
+    pauseAutoScroll();
+
+    renderSetlist();
+
+    document
+        .getElementById(
+            "setlistPanel"
+        )
+        .classList
+        .add("open");
+
+    document
+        .getElementById(
+            "setlistOverlay"
+        )
+        .classList
+        .add("open");
+}
+
+function toggleSetlistFromFoot(){
+
+    const panel =
+        document.getElementById(
+            "setlistPanel"
+        );
+
+    if(
+        panel.classList.contains(
+            "open"
+        )
+    ){
+        closeSetlist();
+
+    }else{
+        openSetlistFromFoot();
+    }
+}
+
+function closeAllSongFinderPanels(){
+
+    [
+        "settingsMenu",
+        "notesDrawer",
+        "setlistPanel",
+        "birthdayPanel",
+        "savedSetlistsPanel",
+        "decadeColoursPanel",
+        "filterColoursPanel",
+        "songListExportPanel",
+        "editPanel",
+        "footControlsPanel"
+    ].forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+        if(element){
+
+            element.classList.remove(
+                "open"
+            );
+        }
+    });
+
+    [
+        "setlistOverlay",
+        "birthdayOverlay",
+        "savedSetlistsOverlay",
+        "decadeColoursOverlay",
+        "filterColoursOverlay",
+        "songListExportOverlay",
+        "editOverlay",
+        "footControlsOverlay"
+    ].forEach(id => {
+
+        const element =
+            document.getElementById(id);
+
+        if(element){
+
+            element.classList.remove(
+                "open"
+            );
+        }
+    });
+
+    resumeAutoScroll();
+
+    showFootControlToast(
+        "Panels closed"
+    );
+}
+
+function executeFootControlAction(
+    actionId
+){
+
+    switch(actionId){
+
+        case "tapTempo":
+            handleTapTempo();
+            break;
+
+        case "toggleMetronome":
+            toggleVisualMetronome();
+            break;
+
+        case "toggleNotes":
+            toggleNotesFromFoot();
+            break;
+
+        case "toggleSetlist":
+            toggleSetlistFromFoot();
+            break;
+
+        case "closePanels":
+            closeAllSongFinderPanels();
+            break;
+
+        case "backToTop":
+            window.scrollTo({
+                top:0,
+                behavior:"smooth"
+            });
+            break;
+
+        case "metroDown":
+            setVisualMetronomeBpm(
+                visualMetronomeBpm - 1
+            );
+            break;
+
+        case "metroUp":
+            setVisualMetronomeBpm(
+                visualMetronomeBpm + 1
+            );
+            break;
+
+        case "toggleAutoScroll":
+            toggleAutoScroll();
+            break;
+    }
+}
+
+function beginFootLongHold(
+    physicalKey
+){
+
+    clearTimeout(
+        footHoldTimers.get(
+            physicalKey
+        )
+    );
+
+    const timer =
+        setTimeout(() => {
+
+            footHoldTimers.delete(
+                physicalKey
+            );
+
+            clearAllSongFiltersFromFoot();
+
+        }, FOOT_LONG_HOLD_MS);
+
+    footHoldTimers.set(
+        physicalKey,
+        timer
+    );
+}
+
+function cancelFootLongHold(
+    physicalKey
+){
+
+    const timer =
+        footHoldTimers.get(
+            physicalKey
+        );
+
+    if(timer){
+
+        clearTimeout(timer);
+
+        footHoldTimers.delete(
+            physicalKey
+        );
+    }
+}
+
+function resetActiveFootControls(){
+
+    activeFootKeys.clear();
+
+    heldFootScrollActions.clear();
+
+    stopFootScrollLoop();
+
+    footHoldTimers.forEach(
+        timer =>
+            clearTimeout(timer)
+    );
+
+    footHoldTimers.clear();
+}
+
+function handleFootControlKeyDown(
+    event
+){
+
+    const physicalKey =
+        getFootEventKey(event);
+
+    if(!physicalKey){
+        return;
+    }
+
+    if(footLearningActionId){
+
+        if(event.repeat){
+            return;
+        }
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        const binding =
+            eventToFootBinding(event);
+
+        const signature =
+            getFootBindingSignature(
+                binding
+            );
+
+        Object.keys(
+            footControlSettings.bindings
+        ).forEach(actionId => {
+
+            const existing =
+                footControlSettings
+                    .bindings[actionId];
+
+            if(
+                getFootBindingSignature(
+                    existing
+                ) === signature
+            ){
+                delete footControlSettings
+                    .bindings[actionId];
+            }
+        });
+
+        footControlSettings
+            .bindings[
+                footLearningActionId
+            ] = binding;
+
+        const learnedAction =
+            FOOT_CONTROL_ACTIONS.find(
+                action =>
+                    action.id ===
+                    footLearningActionId
+            );
+
+        footLearningIgnoredKey =
+            physicalKey;
+
+        footLearningActionId = null;
+
+        saveFootControlSettings();
+        renderFootControlMappings();
+
+        showFootControlToast(
+            learnedAction
+                ? `${learnedAction.label} assigned`
+                : "Control assigned"
+        );
+
+        return;
+    }
+
+    if(!footControlSettings.enabled){
+        return;
+    }
+
+    if(isFootTypingTarget(event.target)){
+        return;
+    }
+
+    const actionId =
+        findFootActionForEvent(event);
+
+    if(!actionId){
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if(
+        activeFootKeys.has(
+            physicalKey
+        )
+    ){
+        return;
+    }
+
+    activeFootKeys.set(
+        physicalKey,
+        actionId
+    );
+
+    if(
+        actionId === "scrollDown" ||
+        actionId === "scrollUp"
+    ){
+        setFootScrollHeld(
+            actionId,
+            true
+        );
+
+        return;
+    }
+
+    if(
+        actionId ===
+        "clearFiltersHold"
+    ){
+        beginFootLongHold(
+            physicalKey
+        );
+
+        return;
+    }
+
+    executeFootControlAction(
+        actionId
+    );
+}
+
+function handleFootControlKeyUp(
+    event
+){
+
+    const physicalKey =
+        getFootEventKey(event);
+
+    if(!physicalKey){
+        return;
+    }
+
+    if(
+        footLearningIgnoredKey ===
+        physicalKey
+    ){
+        event.preventDefault();
+        event.stopPropagation();
+
+        footLearningIgnoredKey =
+            null;
+
+        return;
+    }
+
+    const actionId =
+        activeFootKeys.get(
+            physicalKey
+        );
+
+    if(!actionId){
+        return;
+    }
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    activeFootKeys.delete(
+        physicalKey
+    );
+
+    if(
+        actionId === "scrollDown" ||
+        actionId === "scrollUp"
+    ){
+        setFootScrollHeld(
+            actionId,
+            false
+        );
+    }
+
+    if(
+        actionId ===
+        "clearFiltersHold"
+    ){
+        cancelFootLongHold(
+            physicalKey
+        );
+    }
+}
+
+document.addEventListener(
+    "keydown",
+    handleFootControlKeyDown,
+    true
+);
+
+document.addEventListener(
+    "keyup",
+    handleFootControlKeyUp,
+    true
+);
+
+window.addEventListener(
+    "blur",
+    resetActiveFootControls
+);
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if(document.hidden){
+
+            resetActiveFootControls();
+        }
+    }
+);
+
+document
+    .getElementById(
+        "footControlsBtn"
+    )
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            openFootControlsPanel();
+        }
+    );
+
+document
+    .getElementById(
+        "closeFootControls"
+    )
+    .addEventListener(
+        "click",
+        closeFootControlsPanel
+    );
+
+document
+    .getElementById(
+        "footControlsOverlay"
+    )
+    .addEventListener(
+        "click",
+        closeFootControlsPanel
+    );
+
+document
+    .getElementById(
+        "footControlsPanel"
+    )
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+        }
+    );
+
+document
+    .getElementById(
+        "footControlsEnabled"
+    )
+    .addEventListener(
+        "change",
+        event => {
+
+            footControlSettings.enabled =
+                event.target.checked;
+
+            saveFootControlSettings();
+
+            resetActiveFootControls();
+        }
+    );
+
+document
+    .getElementById(
+        "footScrollSpeedMinus"
+    )
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            footControlSettings.scrollSpeed =
+                Math.max(
+                    100,
+                    footControlSettings
+                        .scrollSpeed - 50
+                );
+
+            saveFootControlSettings();
+            renderFootControlMappings();
+        }
+    );
+
+document
+    .getElementById(
+        "footScrollSpeedPlus"
+    )
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            footControlSettings.scrollSpeed =
+                Math.min(
+                    1800,
+                    footControlSettings
+                        .scrollSpeed + 50
+                );
+
+            saveFootControlSettings();
+            renderFootControlMappings();
+        }
+    );
+
+document
+    .getElementById(
+        "clearFootMappings"
+    )
+    .addEventListener(
+        "click",
+        event => {
+
+            event.stopPropagation();
+
+            const sure =
+                confirm(
+                    "Clear all foot control assignments?"
+                );
+
+            if(!sure){
+                return;
+            }
+
+            footControlSettings.bindings = {};
+
+            saveFootControlSettings();
+            renderFootControlMappings();
+        }
+    );
+
+renderFootControlMappings();
 clearNotesBtn.onclick = e => {
 
     e.stopPropagation();
