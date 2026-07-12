@@ -49,13 +49,18 @@ html, body{
     display:flex;
     flex-direction:column;
     gap:10px;
+    flex:1 1 auto;
+min-width:0;
 }
 #statusRight{
     display:flex;
     flex-direction:column;
     align-items:flex-end;
     gap:6px;
-    min-width:140px;
+
+    width:230px;
+    min-width:230px;
+    flex:0 0 230px;
 }
 #searchWrap{ position:relative; }
 
@@ -105,7 +110,7 @@ html, body{
 
 #controls{
     display:flex;
-    gap:8px;
+    gap:6px;
     align-items:center;
     flex-wrap:wrap;
 }
@@ -116,6 +121,8 @@ html, body{
 }
 
 #clockBox{
+    width:100%;
+    min-width:0;
     font-size:34px;
     font-weight:800;
     color:#e2e8f0;
@@ -125,13 +132,14 @@ html, body{
     font-variant-numeric: tabular-nums;
     font-feature-settings: "tnum";
 }
-    #clockRow{
+    #tempoTools{
+    width:230px;
+
     display:flex;
     align-items:center;
     justify-content:flex-end;
-    gap:10px;
+    gap:8px;
 
-    width:100%;
     white-space:nowrap;
 }
 
@@ -455,7 +463,10 @@ button{
 
     cursor:pointer;
 
-    max-width:180px;
+    width:145px;
+min-width:145px;
+max-width:145px;
+flex:0 0 145px;
 }
 
 .genreSelect.active{
@@ -594,19 +605,20 @@ button{
 
 .card{
     position:relative;
-    overflow:hidden;
 
     background:
         linear-gradient(
             145deg,
-            rgba(255,255,255,.14) 0%,
-            rgba(255,255,255,.045) 42%,
-            rgba(0,0,0,.12) 100%
+            rgba(255,255,255,.09) 0%,
+            rgba(255,255,255,.025) 45%,
+            rgba(0,0,0,.10) 100%
         ),
         var(--card-colour, var(--theme-card));
 
-    border:1px solid rgba(255,255,255,.10);
-    border-radius:18px;
+    border:1px solid rgba(255,255,255,.11);
+    border-top-color:rgba(255,255,255,.19);
+
+    border-radius:var(--radius-card);
 
     padding:calc(14px * var(--scale));
 
@@ -619,20 +631,15 @@ button{
     user-select:none;
     overflow:hidden;
 
-    box-shadow:
-        0 10px 24px rgba(0,0,0,.25),
-        inset 0 1px 0 rgba(255,255,255,.13);
+    contain:paint;
 
     transition:
-        transform .14s ease,
-        box-shadow .16s ease,
-        border-color .16s ease;
+        transform .10s ease;
 }
 
 .card:active{
-    transform:scale(.985);
-}
-.plusBtn{
+    transform:scale(.99);
+}.plusBtn{
     font-size:26px;
     font-weight:800;
 
@@ -1663,12 +1670,16 @@ a,
     color:#020617 !important;
     font-weight:800;
 }
-   body.theme-day .card{
+body.theme-day .card{
     color:#f8fafc;
 
-    box-shadow:
-        0 10px 24px rgba(15,23,42,.18),
-        inset 0 1px 0 rgba(255,255,255,.20);
+    border-color:
+        rgba(255,255,255,.18);
+
+    border-top-color:
+        rgba(255,255,255,.32);
+
+    box-shadow:none;
 }
 
 body.theme-day .card .title{
@@ -1996,32 +2007,6 @@ button,
         0
         var(--radius-panel);
 }
-    .card::before{
-    content:"";
-
-    position:absolute;
-    inset:0;
-
-    background:
-        linear-gradient(
-            125deg,
-            rgba(255,255,255,.10) 0%,
-            rgba(255,255,255,.025) 34%,
-            transparent 58%
-        ),
-        radial-gradient(
-            circle at 100% 0%,
-            rgba(255,255,255,.08),
-            transparent 42%
-        );
-
-    pointer-events:none;
-}
-
-.card > *{
-    position:relative;
-    z-index:1;
-}
     .setlistItem{
     border:
         1px solid rgba(255,255,255,.08);
@@ -2223,7 +2208,7 @@ body.theme-day .setlistItem{
         <div id="chipContainer"></div>
         <div id="controls">
             
-            <span style="color:#94a3b8;font-size:13px;margin-left:12px;">Sort by</span>
+            <span style="color:#94a3b8;font-size:13px;margin-left:0;">Sort by</span>
 
 <button id="sortArtist">Artist</button>
 <button id="sortTitle">Title</button>
@@ -2231,6 +2216,11 @@ body.theme-day .setlistItem{
 <button id="sortYear">Year</button>
 <button id="sortOrder">A-Z</button>
 <button id="sortRandom">Random</button>
+
+<select id="genreSelect" class="genreSelect">
+    <option value="">All Genres</option>
+</select>
+
 <button id="autoScrollBtn" class="autoScrollBtn">
     Auto Scroll
 </button>
@@ -2238,10 +2228,6 @@ body.theme-day .setlistItem{
 <button id="birthdayBtn" class="birthdayBtn">
     Birthday
 </button>
-
-<select id="genreSelect" class="genreSelect">
-    <option value="">All Genres</option>
-</select>
         </div>
 
     </div>
@@ -2249,9 +2235,11 @@ body.theme-day .setlistItem{
 <div id="statusRight">
     <div id="songCount"></div>
 
+    <div id="clockBox"></div>
+
    <div id="clockRow">
 
-    <div id="visualMetronome">
+   <div id="tempoTools">
 
         <button
             id="metroMinus"
@@ -2313,8 +2301,6 @@ body.theme-day .setlistItem{
             — BPM
         </span>
     </button>
-
-    <div id="clockBox"></div>
 
 </div>
     <button id="openSetlist">
