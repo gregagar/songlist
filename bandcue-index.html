@@ -1,0 +1,5163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>BandCue | GigSuite</title>
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<meta name="theme-color" content="#f4ecdf">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+
+<style>
+:root{
+    --bg:#000000;
+    --panel:#0f172a;
+    --soft:#1e293b;
+    --soft2:#111827;
+    --text:#e2e8f0;
+    --muted:#94a3b8;
+    --blue:#38bdf8;
+    --green:#34d399;
+    --yellow:#fbbf24;
+    --red:#f87171;
+    --purple:#c084fc;
+}
+
+*{ box-sizing:border-box; }
+
+html,
+body{
+    margin:0;
+    min-height:100%;
+    background:var(--bg);
+    color:var(--text);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    -webkit-text-size-adjust:100%;
+    touch-action:manipulation;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+}
+
+body{
+    padding:
+        calc(env(safe-area-inset-top,0px) + 12px)
+        12px
+        calc(env(safe-area-inset-bottom,0px) + 12px);
+}
+
+button,
+input,
+select,
+textarea{ font-family:inherit; }
+
+button{
+    border:none;
+    border-radius:12px;
+    padding:12px 14px;
+    background:var(--soft);
+    color:var(--text);
+    font-size:16px;
+    font-weight:800;
+    cursor:pointer;
+    -webkit-tap-highlight-color:transparent;
+}
+
+button:disabled{ opacity:.45; }
+
+input,
+select,
+textarea{
+    width:100%;
+    border:none;
+    border-radius:12px;
+    padding:14px;
+    background:#020617;
+    color:var(--text);
+    font-size:18px;
+    outline:none;
+    user-select:text;
+    -webkit-user-select:text;
+}
+
+textarea{
+    min-height:86px;
+    resize:vertical;
+}
+
+label{
+    display:block;
+    color:var(--muted);
+    font-size:13px;
+    font-weight:800;
+    margin-bottom:6px;
+}
+
+.header{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:12px;
+    margin-bottom:12px;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:1000;
+    letter-spacing:-.5px;
+}
+
+.logo span{ color:var(--blue); }
+
+.small{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+}
+
+.badge{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 9px;
+    border-radius:999px;
+    background:var(--soft);
+    color:var(--muted);
+    font-size:12px;
+    font-weight:900;
+    white-space:nowrap;
+}
+
+.badge.online{ color:var(--green); }
+.badge.leader{ color:var(--yellow); }
+
+.panel{
+    background:var(--panel);
+    border:1px solid #1e293b;
+    border-radius:18px;
+    padding:16px;
+    margin-bottom:12px;
+    box-shadow:0 10px 28px rgba(0,0,0,.32);
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+@media(max-width:520px){
+    .grid{ grid-template-columns:1fr; }
+}
+
+.row{
+    display:flex;
+    align-items:center;
+    gap:10px;
+}
+
+.field{ margin-bottom:12px; }
+
+.modeButtons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:12px;
+}
+
+.modeButtons button.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+.primary{ background:#075985; color:white; }
+.good{ background:#065f46; color:white; }
+.warn{ background:#713f12; color:white; }
+.yellow{ background:#713f12; color:white; }
+.danger{ background:#7f1d1d; color:white; }
+.ghost{ background:#111827; color:var(--muted); }
+.purple{ background:#581c87; color:white; }
+
+.quickGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:10px;
+}
+
+@media(min-width:760px){
+    .quickGrid{ grid-template-columns:repeat(4,minmax(0,1fr)); }
+}
+
+.quickGrid button{ min-height:58px; }
+
+.hiddenSelect{
+    display:none !important;
+}
+
+.targetPicker{
+    position:relative;
+}
+
+#targetPickerBtn{
+    width:100%;
+    text-align:left;
+    background:#020617;
+    color:var(--text);
+    box-shadow:inset 0 0 0 1px #1e293b;
+    padding:14px;
+    font-size:18px;
+    font-weight:800;
+}
+
+#targetPickerBtn::after{
+    content:" ▾";
+    color:var(--blue);
+    float:right;
+}
+
+.targetPickerMenu{
+    position:absolute;
+    left:0;
+    right:0;
+    top:calc(100% + 6px);
+    z-index:9999;
+    max-height:240px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    background:#111827;
+    border:1px solid #334155;
+    border-radius:12px;
+    padding:6px;
+    box-shadow:0 12px 28px rgba(0,0,0,.5);
+}
+
+.targetPickerMenu.hidden{
+    display:none;
+}
+
+.targetPickerOption{
+    width:100%;
+    text-align:left;
+    background:transparent;
+    color:var(--text);
+    padding:10px 12px;
+    border-radius:9px;
+}
+
+.targetPickerOption.active{
+    background:#075985;
+    color:white;
+}
+
+
+.sessionCode{
+    font-size:36px;
+    font-weight:1000;
+    letter-spacing:3px;
+    color:var(--yellow);
+    font-variant-numeric:tabular-nums;
+}
+
+.memberList,
+.replyList,
+.history{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.member,
+.replyItem{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:10px;
+    padding:10px 12px;
+    border-radius:12px;
+    background:#111827;
+}
+
+.memberName{
+    font-size:17px;
+    font-weight:1000;
+}
+
+.memberMeta{
+    color:var(--muted);
+    font-size:13px;
+}
+
+ .member.offline{ opacity:.45; }
+
+.replyThumb{
+    font-size:34px;
+    line-height:1;
+    min-height:64px;
+}
+
+.replyValue{
+    font-size:28px;
+    font-weight:1000;
+    min-width:44px;
+    text-align:right;
+}
+
+.replyValue.positive{
+    color:var(--green);
+}
+
+.replyValue.negative{
+    color:var(--red);
+}
+
+.replyValue.neutral{
+    color:var(--yellow);
+}
+
+.currentCue{
+    min-height:180px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    border-radius:18px;
+    background:linear-gradient(180deg,#111827,#020617);
+    border:1px solid #334155;
+    padding:20px;
+}
+
+.currentCue.alert{ animation:pulseCue .65s ease 0s 3; }
+
+@keyframes pulseCue{
+    0%{ box-shadow:0 0 0 rgba(56,189,248,0); transform:scale(1); }
+    50%{ box-shadow:0 0 36px rgba(56,189,248,.55); transform:scale(1.015); }
+    100%{ box-shadow:0 0 0 rgba(56,189,248,0); transform:scale(1); }
+}
+
+.cueText{
+    white-space:pre-wrap;
+    font-size:clamp(34px,10vw,86px);
+    line-height:.98;
+    font-weight:1000;
+    letter-spacing:-1.5px;
+    color:white;
+}
+
+.cueMeta{
+    margin-top:12px;
+    color:var(--muted);
+    font-size:14px;
+    font-weight:800;
+}
+
+.cue-next{ border-color:#38bdf8; box-shadow:inset 0 0 0 2px rgba(56,189,248,.25); }
+.cue-vamp{ border-color:#c084fc; box-shadow:inset 0 0 0 2px rgba(192,132,252,.25); }
+.cue-cut{ border-color:#f87171; box-shadow:inset 0 0 0 2px rgba(248,113,113,.3); }
+.cue-ready{ border-color:#34d399; box-shadow:inset 0 0 0 2px rgba(52,211,153,.25); }
+.cue-watch{ border-color:#fbbf24; box-shadow:inset 0 0 0 2px rgba(251,191,36,.25); }
+
+.receiverName{
+    color:var(--blue);
+    font-weight:1000;
+}
+
+.replyGrid{
+    display:grid;
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+    margin-top:12px;
+}
+
+@media(min-width:720px){
+    .replyGrid{ grid-template-columns:repeat(4,1fr); }
+}
+
+.history{
+    max-height:260px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+.historyItem{
+    padding:10px 12px;
+    border-radius:12px;
+    background:#111827;
+    color:#cbd5e1;
+}
+
+.historyText{
+    font-weight:1000;
+    white-space:pre-wrap;
+}
+
+.historyMeta{
+    color:var(--muted);
+    font-size:12px;
+    margin-top:4px;
+}
+
+.hidden{ display:none !important; }
+
+.footerButtons{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+}
+
+.notice{
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.4;
+    padding:10px 12px;
+    background:#020617;
+    border:1px solid #1e293b;
+    border-radius:12px;
+}
+
+.notice strong{ color:var(--yellow); }
+
+#configWarning{
+    color:#fecaca;
+    background:#3f1212;
+    border-color:#7f1d1d;
+}
+
+#leaderCurrentCueBox{
+    min-height:110px;
+    margin-bottom:12px;
+}
+
+#leaderCurrentCueText{
+    font-size:clamp(28px,6vw,56px);
+}
+
+#receiverCueHistoryStrip{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-top:12px;
+}
+
+.receiverHistoryItem{
+    padding:8px 10px;
+    border-radius:10px;
+    background:#111827;
+    color:#cbd5e1;
+    font-size:13px;
+    font-weight:800;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+}
+
+#flashOverlay{
+    position:fixed;
+    inset:0;
+    pointer-events:none;
+    background:rgba(56,189,248,.35);
+    opacity:0;
+    z-index:999999;
+}
+
+#flashOverlay.flash{
+    animation:screenFlash .55s ease 0s 2;
+}
+
+@keyframes screenFlash{
+    0%{ opacity:0; }
+    45%{ opacity:1; }
+    100%{ opacity:0; }
+}
+
+/* Compact iPad portrait leader layout */
+body.leaderView{
+    padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px);
+}
+
+body.leaderView .header{
+    margin-bottom:6px;
+}
+
+body.leaderView .logo{
+    font-size:22px;
+}
+
+body.leaderView .small{
+    font-size:12px;
+}
+
+body.leaderView .panel{
+    padding:10px;
+    margin-bottom:8px;
+    border-radius:14px;
+}
+
+body.leaderView h2,
+body.leaderView h3{
+    margin:0 0 8px;
+    font-size:16px;
+}
+
+body.leaderView button{
+    padding:8px 10px;
+    font-size:13px;
+    border-radius:10px;
+}
+
+body.leaderView input,
+body.leaderView select,
+body.leaderView textarea{
+    padding:9px 10px;
+    font-size:16px;
+    border-radius:10px;
+}
+
+body.leaderView textarea{
+    min-height:48px;
+}
+
+body.leaderView label{
+    font-size:11px;
+    margin-bottom:4px;
+}
+
+body.leaderView .sessionCode{
+    font-size:23px;
+    letter-spacing:2px;
+}
+
+body.leaderView #leaderCurrentCueBox{
+    min-height:72px;
+    padding:10px;
+    margin-bottom:8px;
+}
+
+body.leaderView #leaderCurrentCueText{
+    font-size:clamp(22px,4.5vw,38px);
+    line-height:1;
+}
+
+body.leaderView .cueMeta{
+    margin-top:6px;
+    font-size:11px;
+}
+
+body.leaderView .field{
+    margin-bottom:8px;
+}
+
+body.leaderView .quickGrid{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+}
+
+body.leaderView .quickGrid button{
+    min-height:34px;
+    font-size:11.5px;
+    padding:7px 6px;
+}
+
+body.leaderView .footerButtons{
+    gap:6px;
+}
+
+body.leaderView .member,
+body.leaderView .replyItem,
+body.leaderView .historyItem{
+    padding:7px 8px;
+    border-radius:10px;
+}
+
+body.leaderView .memberName{
+    font-size:14px;
+}
+
+body.leaderView .memberMeta,
+body.leaderView .historyMeta{
+    font-size:11px;
+}
+
+body.leaderView .history{
+    max-height:110px;
+}
+
+body.leaderView .memberList,
+body.leaderView .replyList{
+    max-height:150px;
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+}
+
+body.leaderView #leaderCompactGrid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+
+@media(max-width:700px){
+    body.leaderView #leaderCompactGrid{
+        grid-template-columns:1fr;
+    }
+}
+
+
+/* Top tabs */
+.topTabs{
+    display:flex;
+    gap:8px;
+    align-items:center;
+    flex-wrap:wrap;
+}
+
+.tabBtn{
+    border-radius:999px;
+    background:#111827;
+    color:var(--muted);
+    box-shadow:inset 0 0 0 1px #1e293b;
+    padding:9px 13px;
+}
+
+.tabBtn.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+body.leaderView .tabBtn{
+    padding:7px 10px;
+    font-size:13px;
+}
+
+#visualCueView.hidden,
+#bandCueView.hidden,
+#audioCueView.hidden{
+    display:none !important;
+}
+
+.visualToolbar{
+    display:grid;
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:8px;
+    align-items:end;
+}
+
+@media(max-width:760px){
+    .visualToolbar{
+        grid-template-columns:repeat(2,minmax(0,1fr));
+    }
+}
+
+.visualToolbar .field{
+    margin-bottom:0;
+}
+
+.visualToolRow{
+    display:flex;
+    flex-wrap:wrap;
+    gap:8px;
+    margin-top:10px;
+}
+
+.visualToolRow button.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+#visualStage{
+    position:relative;
+    width:100%;
+    height:min(72vh, 900px);
+    min-height:430px;
+    background:#050505;
+    border:1px solid #334155;
+    border-radius:18px;
+    overflow:hidden;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+    overscroll-behavior:none;
+    box-shadow:0 10px 30px rgba(0,0,0,.35);
+}
+
+#visualStage.blank{
+    background:#020617;
+}
+
+#pdfCanvas,
+#drawCanvas{
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    height:100%;
+}
+
+#pdfCanvas{
+    background:white;
+}
+
+#drawCanvas{
+    touch-action:none;
+    z-index:2;
+    user-select:none;
+    -webkit-user-select:none;
+    -webkit-touch-callout:none;
+    -webkit-tap-highlight-color:transparent;
+}
+
+#visualStatus{
+    margin-top:8px;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+}
+
+#pdfUploadInput{
+    display:none;
+}
+
+.colourSwatch{
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+}
+
+.colourSwatch button{
+    width:34px;
+    height:34px;
+    border-radius:999px;
+    padding:0;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.18);
+}
+
+.colourSwatch button.active{
+    box-shadow:
+        inset 0 0 0 3px white,
+        0 0 0 2px var(--blue);
+}
+
+body.leaderView #visualStage{
+    height:calc(100vh - 230px);
+    min-height:420px;
+}
+
+body.leaderView .visualToolbar{
+    grid-template-columns:repeat(4,minmax(0,1fr));
+    gap:6px;
+}
+
+
+/* AudioCue */
+.audioToolbar{
+    display:grid;
+    grid-template-columns:1.1fr .9fr;
+    gap:10px;
+    align-items:stretch;
+}
+
+@media(max-width:760px){
+    .audioToolbar{
+        grid-template-columns:1fr;
+    }
+}
+
+.audioTalkBtn{
+    min-height:150px;
+    width:100%;
+    border-radius:22px;
+    font-size:clamp(34px, 8vw, 76px);
+    line-height:1;
+    font-weight:1000;
+    letter-spacing:-1px;
+    background:#111827;
+    color:#e2e8f0;
+    box-shadow:inset 0 0 0 2px #334155;
+    touch-action:none;
+    user-select:none;
+    -webkit-user-select:none;
+}
+
+.audioTalkBtn.ready{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 2px var(--blue);
+}
+
+.audioTalkBtn.talking{
+    background:#7f1d1d;
+    color:white;
+    box-shadow:inset 0 0 0 3px var(--red), 0 0 32px rgba(248,113,113,.5);
+    transform:scale(1.015);
+}
+
+.audioControls{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.audioStatus{
+    padding:10px 12px;
+    border-radius:12px;
+    background:#020617;
+    color:var(--muted);
+    font-size:13px;
+    line-height:1.35;
+    border:1px solid #1e293b;
+}
+
+.audioMemberList{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+}
+
+.audioMember{
+    display:grid;
+    grid-template-columns:minmax(0, 1fr) minmax(110px, 170px);
+    gap:10px;
+    align-items:center;
+    padding:10px 12px;
+    border-radius:14px;
+    background:#111827;
+}
+
+.audioMember.self{
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+.audioMember.talking{
+    box-shadow:inset 0 0 0 2px var(--red);
+    background:#1f1115;
+}
+
+.audioMemberName{
+    font-size:17px;
+    font-weight:900;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+
+.audioMemberMeta{
+    margin-top:3px;
+    color:var(--muted);
+    font-size:12px;
+    line-height:1.25;
+}
+
+.audioVolumeWrap{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+}
+
+.audioVolumeLabel{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:800;
+    text-align:right;
+}
+
+.audioVolume{
+    width:100%;
+    accent-color:#38bdf8;
+}
+
+#audioRemoteElements{
+    position:absolute;
+    width:1px;
+    height:1px;
+    overflow:hidden;
+    opacity:0;
+    pointer-events:none;
+}
+
+body.leaderView #audioCueView .panel{
+    padding:12px;
+    margin-bottom:10px;
+}
+
+body.leaderView .audioTalkBtn{
+    min-height:115px;
+    font-size:clamp(30px, 7vw, 58px);
+}
+
+
+/* =========================
+   BandCue v7 additions
+   ========================= */
+:root{
+    --cue-next:#38bdf8;
+    --cue-key:#22d3ee;
+    --cue-solo:#fbbf24;
+    --cue-vamp:#c084fc;
+    --cue-cut:#f87171;
+    --cue-watch:#fbbf24;
+    --cue-custom:#38bdf8;
+
+    --btn-next:#075985;
+    --btn-key:#0f766e;
+    --btn-solo:#fbbf24;
+    --btn-vamp:#581c87;
+    --btn-cut:#7f1d1d;
+    --btn-watch:#075985;
+    --btn-custom:#111827;
+}
+
+.headerRight{
+    display:flex;
+    align-items:flex-start;
+    justify-content:flex-end;
+    gap:8px;
+    flex-wrap:wrap;
+}
+
+.settingsBtn{
+    width:38px;
+    height:38px;
+    border-radius:999px;
+    padding:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--soft2);
+    color:var(--text);
+    letter-spacing:2px;
+    box-shadow:inset 0 0 0 1px #1e293b;
+}
+
+.sessionSetupRow,
+.sessionInfoRow{
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+
+.sessionSetupRow input{
+    flex:1;
+    min-width:0;
+}
+
+.sessionSetupRow button{
+    flex:0 0 auto;
+    white-space:nowrap;
+}
+
+.sessionInfoRow{
+    flex-wrap:wrap;
+}
+
+.clockBox{
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    padding:7px 10px;
+    border-radius:999px;
+    background:var(--soft2);
+    color:#ffffff;
+    font-size:28px;
+    font-weight:1000;
+    letter-spacing:1px;
+    font-variant-numeric:tabular-nums;
+    box-shadow:inset 0 0 0 1px #1e293b;
+}
+
+.yellow,
+.quickGrid button.yellow{
+    background:#b45309;
+    color:white;
+}
+
+.keyCueBox,
+.customButtonsBox{
+    background:#020617;
+    border:1px solid #1e293b;
+    border-radius:14px;
+    padding:10px;
+    margin-bottom:10px;
+}
+
+.keyCueGrid{
+    display:grid;
+    grid-template-columns:repeat(7,minmax(0,1fr));
+    gap:6px;
+    margin-bottom:8px;
+}
+
+.keyCueControlsRow{
+    display:grid;
+    grid-template-columns:minmax(0,1fr) auto;
+    gap:6px;
+    align-items:stretch;
+}
+
+.keyCueControls{
+    display:grid;
+    grid-template-columns:repeat(6,minmax(0,1fr));
+    gap:6px;
+}
+
+.keyCueGrid button,
+.keyCueControls button,
+.sendKeyCueInline{
+    padding:9px 6px;
+    min-height:38px;
+}
+
+.keyCueGrid button.active,
+.keyCueControls button.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+.sendKeyCueInline{
+    background:var(--btn-key);
+    color:white;
+    min-width:76px;
+}
+
+.quickGrid button[data-kind="next"],
+.customButtonGrid button[data-button-kind="next"]{ background:var(--btn-next); color:white; }
+.quickGrid button[data-kind="key"],
+.customButtonGrid button[data-button-kind="key"]{ background:var(--btn-key); color:white; }
+.quickGrid button[data-kind="solo"],
+.customButtonGrid button[data-button-kind="solo"]{ background:var(--btn-solo); color:#111827; }
+.quickGrid button[data-kind="vamp"],
+.customButtonGrid button[data-button-kind="vamp"]{ background:var(--btn-vamp); color:white; }
+.quickGrid button[data-kind="cut"],
+.customButtonGrid button[data-button-kind="cut"]{ background:var(--btn-cut); color:white; }
+.quickGrid button[data-kind="watch"],
+.customButtonGrid button[data-button-kind="watch"]{ background:var(--btn-watch); color:white; }
+.customButtonGrid button[data-button-kind="custom"]{ background:var(--btn-custom); color:white; }
+
+.customButtonsHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:8px;
+    margin-bottom:8px;
+}
+
+.customButtonGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+}
+
+@media(min-width:760px){
+    .customButtonGrid{
+        grid-template-columns:repeat(4,minmax(0,1fr));
+    }
+}
+
+.customButtonGrid button{
+    min-height:48px;
+}
+
+.cue-next{ border-color:var(--cue-next); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-next) 35%, transparent); }
+.cue-key{ border-color:var(--cue-key); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-key) 35%, transparent); }
+.cue-solo{ border-color:var(--cue-solo); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-solo) 35%, transparent); }
+.cue-vamp{ border-color:var(--cue-vamp); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-vamp) 35%, transparent); }
+.cue-cut{ border-color:var(--cue-cut); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-cut) 35%, transparent); }
+.cue-watch{ border-color:var(--cue-watch); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-watch) 35%, transparent); }
+.cue-custom{ border-color:var(--cue-custom); box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cue-custom) 35%, transparent); }
+
+.settingsOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.52);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .18s ease;
+    z-index:1000000;
+}
+
+.settingsOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.settingsPanel{
+    position:fixed;
+    top:calc(env(safe-area-inset-top,0px) + 10px);
+    right:12px;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 12px);
+    width:min(460px, calc(100vw - 24px));
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    background:var(--panel);
+    border:1px solid #334155;
+    border-radius:18px;
+    padding:14px;
+    z-index:1000001;
+    transform:translateX(calc(100% + 24px));
+    transition:transform .22s ease;
+    box-shadow:0 18px 48px rgba(0,0,0,.55);
+}
+
+.settingsPanel.open{
+    transform:translateX(0);
+}
+
+.settingsHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:12px;
+    margin-bottom:12px;
+}
+
+.settingsHeader h2{
+    margin:0;
+}
+
+.settingsSection{
+    border-top:1px solid #1e293b;
+    padding-top:12px;
+    margin-top:12px;
+}
+
+.settingsSection h3{
+    margin:0 0 10px;
+}
+
+.settingsModeGrid,
+.settingsButtonGrid{
+    display:grid;
+    grid-template-columns:repeat(2,minmax(0,1fr));
+    gap:8px;
+}
+
+.settingsModeGrid button.active{
+    background:#075985;
+    color:white;
+    box-shadow:inset 0 0 0 1px var(--blue);
+}
+
+.colourSettingsGrid{
+    display:grid;
+    grid-template-columns:1fr 64px;
+    gap:8px 10px;
+    align-items:center;
+}
+
+.colourSettingsGrid label{
+    margin:0;
+}
+
+.colourSettingsGrid input[type="color"]{
+    height:38px;
+    padding:2px;
+}
+
+#importProfileInput{
+    display:none;
+}
+
+body.theme-daylight{
+    --bg:#f8fafc;
+    --panel:#ffffff;
+    --soft:#e2e8f0;
+    --soft2:#f1f5f9;
+    --text:#0f172a;
+    --muted:#475569;
+    color:#0f172a;
+}
+
+body.theme-daylight .currentCue,
+body.theme-daylight .member,
+body.theme-daylight .replyItem,
+body.theme-daylight .historyItem,
+body.theme-daylight .notice,
+body.theme-daylight .keyCueBox,
+body.theme-daylight .customButtonsBox{
+    background:#f1f5f9;
+    color:#0f172a;
+}
+
+body.theme-daylight input,
+body.theme-daylight select,
+body.theme-daylight textarea,
+body.theme-daylight #targetPickerBtn{
+    background:#ffffff;
+    color:#0f172a;
+    box-shadow:inset 0 0 0 1px #cbd5e1;
+}
+
+body.theme-daylight .cueText{
+    color:#020617;
+}
+
+body.theme-daylight .tabBtn,
+body.theme-daylight .settingsBtn,
+body.theme-daylight .ghost,
+body.theme-daylight .badge{
+    background:#e2e8f0;
+    color:#0f172a;
+    box-shadow:inset 0 0 0 1px #94a3b8;
+}
+
+body.theme-daylight .tabBtn.active,
+body.theme-daylight .primary{
+    background:#0369a1;
+    color:#ffffff;
+}
+
+body.theme-daylight .good{ background:#047857; color:#ffffff; }
+body.theme-daylight .warn,
+body.theme-daylight .yellow{ background:#b45309; color:#ffffff; }
+body.theme-daylight .danger{ background:#b91c1c; color:#ffffff; }
+body.theme-daylight .purple{ background:#7e22ce; color:#ffffff; }
+
+body.theme-daylight .clockBox{
+    background:#020617;
+    color:#ffffff;
+}
+
+body.theme-daylight .sessionCode{
+    color:#92400e;
+}
+
+body.theme-highcontrast{
+    --bg:#000000;
+    --panel:#000000;
+    --soft:#111111;
+    --soft2:#111111;
+    --text:#ffffff;
+    --muted:#ffffff;
+    --blue:#00e5ff;
+    --green:#00ff84;
+    --yellow:#ffea00;
+    --red:#ff3b30;
+    --purple:#d946ef;
+}
+
+body.theme-highcontrast .panel,
+body.theme-highcontrast .currentCue,
+body.theme-highcontrast .member,
+body.theme-highcontrast .replyItem,
+body.theme-highcontrast .historyItem{
+    border-color:#ffffff;
+}
+
+body.theme-rednight{
+    --bg:#090000;
+    --panel:#140303;
+    --soft:#2a0707;
+    --soft2:#1f0505;
+    --text:#fecaca;
+    --muted:#fca5a5;
+    --blue:#f87171;
+    --green:#fca5a5;
+    --yellow:#fb7185;
+    --red:#ef4444;
+    --purple:#f43f5e;
+}
+
+body.theme-rednight .cueText{
+    color:#fecaca;
+}
+
+body.leaderView .clockBox{
+    font-size:20px;
+    padding:6px 10px;
+    color:#ffffff;
+    background:#020617;
+    letter-spacing:1.5px;
+}
+
+body.leaderView .settingsBtn{
+    width:32px;
+    height:32px;
+    font-size:13px;
+}
+
+body.leaderView .keyCueBox,
+body.leaderView .customButtonsBox{
+    padding:8px;
+    margin-bottom:8px;
+}
+
+body.leaderView .keyCueGrid,
+body.leaderView .keyCueControls,
+body.leaderView .keyCueControlsRow,
+body.leaderView .customButtonGrid{
+    gap:5px;
+}
+
+body.leaderView .keyCueGrid button,
+body.leaderView .keyCueControls button,
+body.leaderView .sendKeyCueInline,
+body.leaderView .customButtonGrid button{
+    min-height:30px;
+    font-size:11.5px;
+    padding:6px 4px;
+}
+
+
+
+/* =========================
+   BandCue v9 layout refinements
+   ========================= */
+.sessionPanel{
+    padding:8px 10px;
+    margin-bottom:8px;
+}
+.sessionTopBar{
+    position:relative;
+    display:grid;
+    grid-template-columns:minmax(92px, 1fr) minmax(180px, 1.7fr) minmax(92px, 1fr);
+    align-items:center;
+    gap:8px;
+    min-height:48px;
+}
+.sessionLeft,
+.sessionRight{
+    min-width:0;
+}
+.sessionRight{
+    text-align:right;
+}
+.sessionLabel{
+    color:var(--muted);
+    font-size:11px;
+    font-weight:900;
+    letter-spacing:.4px;
+    text-transform:uppercase;
+}
+.sessionCenter{
+    min-width:0;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+.sessionPanel .sessionCode{
+    font-size:clamp(22px, 4vw, 34px);
+    line-height:1;
+    letter-spacing:2px;
+}
+.sessionPanel .clockBox{
+    width:100%;
+    max-width:360px;
+    padding:0 4px;
+    border-radius:0;
+    background:transparent;
+    color:#ffffff;
+    font-size:clamp(44px, 9vw, 86px);
+    line-height:.86;
+    letter-spacing:1px;
+    box-shadow:none;
+    text-align:center;
+    text-shadow:0 2px 10px rgba(0,0,0,.55);
+}
+.sessionPanel .badge{
+    padding:4px 7px;
+    font-size:11px;
+}
+.sessionPanel .small{
+    font-size:11px;
+}
+.sessionPanel .footerButtons{
+    margin-top:6px !important;
+    gap:6px;
+}
+.sessionPanel .footerButtons button{
+    padding:6px 8px;
+    font-size:12px;
+    border-radius:9px;
+}
+
+.settingsCollapseBtn{
+    width:100%;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    background:var(--soft2);
+    color:var(--text);
+    box-shadow:inset 0 0 0 1px #1e293b;
+}
+.settingsCollapseBtn::after{
+    content:"▾";
+    color:var(--blue);
+    font-size:16px;
+    transition:transform .16s ease;
+}
+.settingsCollapseBtn.open::after{
+    transform:rotate(180deg);
+}
+.settingsCollapseContent{
+    display:none;
+    margin-top:10px;
+}
+.settingsCollapseContent.open{
+    display:block;
+}
+
+.customActionOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,.45);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .16s ease;
+    z-index:1000002;
+}
+.customActionOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+.customActionSheet{
+    position:fixed;
+    left:50%;
+    bottom:calc(env(safe-area-inset-bottom,0px) + 16px);
+    transform:translate(-50%, calc(100% + 28px));
+    width:min(360px, calc(100vw - 24px));
+    background:var(--panel);
+    border:1px solid #334155;
+    border-radius:18px;
+    padding:14px;
+    z-index:1000003;
+    box-shadow:0 18px 44px rgba(0,0,0,.55);
+    transition:transform .18s ease;
+}
+.customActionSheet.open{
+    transform:translate(-50%, 0);
+}
+.customActionTitle{
+    font-size:18px;
+    font-weight:1000;
+    margin-bottom:4px;
+    overflow:hidden;
+    white-space:nowrap;
+    text-overflow:ellipsis;
+}
+.customActionHint{
+    color:var(--muted);
+    font-size:13px;
+    margin-bottom:12px;
+}
+.customActionButtons{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+}
+.customActionButtons button:last-child{
+    grid-column:1 / -1;
+}
+
+body.theme-daylight .sessionPanel .clockBox{
+    color:#020617;
+    text-shadow:none;
+}
+body.theme-daylight .settingsCollapseBtn{
+    background:#e2e8f0;
+    color:#0f172a;
+    box-shadow:inset 0 0 0 1px #94a3b8;
+}
+body.theme-daylight .customActionSheet{
+    background:#ffffff;
+    color:#0f172a;
+}
+
+body.leaderView .sessionPanel{
+    padding:6px 8px;
+    margin-bottom:6px;
+}
+body.leaderView .sessionTopBar{
+    min-height:42px;
+    grid-template-columns:minmax(72px, 1fr) minmax(150px, 1.8fr) minmax(72px, 1fr);
+    gap:6px;
+}
+body.leaderView .sessionPanel .clockBox{
+    font-size:clamp(38px, 7vw, 70px);
+    padding:0;
+    background:transparent;
+    box-shadow:none;
+}
+body.leaderView .sessionPanel .sessionCode{
+    font-size:clamp(18px, 3vw, 25px);
+}
+body.leaderView .sessionPanel .footerButtons{
+    margin-top:4px !important;
+}
+body.leaderView .sessionPanel .footerButtons button{
+    padding:5px 7px;
+    font-size:11px;
+}
+
+@media(orientation:portrait) and (max-width:900px){
+    body{
+        padding:calc(env(safe-area-inset-top,0px) + 8px) 8px calc(env(safe-area-inset-bottom,0px) + 8px);
+    }
+    .header{
+        align-items:center;
+        margin-bottom:8px;
+    }
+    .topTabs{
+        gap:5px;
+    }
+    .tabBtn{
+        padding:7px 9px;
+        font-size:13px;
+    }
+    .header .small{
+        display:none;
+    }
+    .settingsBtn{
+        width:34px;
+        height:34px;
+    }
+    .panel{
+        padding:10px;
+        margin-bottom:8px;
+        border-radius:14px;
+    }
+    .sessionTopBar{
+        grid-template-columns:minmax(64px, 1fr) minmax(158px, 2fr) minmax(64px, 1fr);
+        min-height:42px;
+    }
+    .sessionLabel{
+        font-size:9.5px;
+    }
+    .sessionPanel .sessionCode{
+        font-size:18px;
+        letter-spacing:1.2px;
+    }
+    .sessionPanel .clockBox{
+        font-size:clamp(40px, 13vw, 72px);
+    }
+    .sessionPanel .small{
+        font-size:10px;
+        line-height:1.1;
+    }
+    .sessionPanel .badge{
+        font-size:10px;
+        padding:3px 6px;
+    }
+    .quickGrid{
+        gap:7px;
+    }
+    .quickGrid button{
+        min-height:42px;
+        padding:8px 6px;
+        font-size:13px;
+    }
+    .keyCueGrid{
+        gap:5px;
+    }
+    .keyCueControlsRow{
+        grid-template-columns:1fr;
+    }
+    .keyCueControls{
+        grid-template-columns:repeat(6, minmax(0,1fr));
+    }
+    .sendKeyCueInline{
+        width:100%;
+    }
+    .customButtonGrid{
+        grid-template-columns:repeat(2, minmax(0,1fr));
+    }
+    #leaderCompactGrid{
+        grid-template-columns:1fr !important;
+    }
+    .currentCue{
+        min-height:140px;
+        padding:14px;
+    }
+    #leaderCurrentCueBox{
+        min-height:80px;
+    }
+}
+
+@media(max-width:520px){
+    .sessionTopBar{
+        grid-template-columns:54px 1fr 54px;
+        gap:4px;
+    }
+    .sessionPanel .clockBox{
+        font-size:clamp(36px, 15vw, 62px);
+        letter-spacing:0;
+    }
+    .sessionPanel .sessionCode{
+        font-size:16px;
+        letter-spacing:.8px;
+    }
+    .sessionRight .small{
+        display:none;
+    }
+    .sessionPanel .footerButtons{
+        display:grid;
+        grid-template-columns:1fr 1fr 1fr;
+    }
+    .settingsPanel{
+        right:8px;
+        width:calc(100vw - 16px);
+    }
+}
+
+
+
+/* =========================================================
+   GigSuite shared branding — BandCue
+   Cream is the default visual mode; Stage Dark remains intact.
+   ========================================================= */
+:root{
+    --brand-brown:#7b4328;
+    --brand-brown-deep:#4a281b;
+    --brand-brown-soft:#d8b79e;
+    --brand-cream:#f4ecdf;
+    --brand-cream-2:#fbf7f0;
+    --brand-panel:#fffdf8;
+    --brand-line:#dccbbb;
+    --brand-shadow:0 12px 34px rgba(91,54,32,.10);
+    --brand-radius:18px;
+}
+
+.brandHeader{
+    display:grid;
+    grid-template-columns:minmax(220px,1fr) auto minmax(220px,1fr);
+    align-items:center;
+    gap:18px;
+    padding:10px 12px;
+    border-radius:20px;
+}
+
+.bandCueBrand{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    gap:11px;
+}
+.bandCueBrandIcon{
+    display:block;
+    width:58px;
+    height:58px;
+    flex:0 0 58px;
+    object-fit:contain;
+    filter:drop-shadow(0 7px 12px rgba(43,22,10,.16));
+}
+.bandCueBrandCopy{ min-width:0; line-height:1; }
+.bandCueWordmark{
+    color:var(--text);
+    font-size:clamp(24px,2.5vw,34px);
+    letter-spacing:-.045em;
+    white-space:nowrap;
+}
+.bandCueWordmark strong{ font-weight:850; }
+.bandCueWordmark span{ font-weight:420; }
+.gigSuiteModule{
+    margin-top:5px;
+    color:var(--muted);
+    font-size:11px;
+    font-weight:750;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    white-space:nowrap;
+}
+.brandNavigation{
+    min-width:0;
+    display:grid;
+    justify-items:center;
+    gap:5px;
+}
+.brandTagline{ text-align:center; }
+.headerRight{
+    min-width:0;
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:12px;
+    flex-wrap:nowrap;
+}
+.someoneBorrowedLogo{
+    display:block;
+    width:clamp(112px,13vw,176px);
+    height:52px;
+    object-fit:contain;
+    transform:scale(1.08);
+    transform-origin:center right;
+}
+.headerControls{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:8px;
+}
+
+/* Cream/default mode */
+body.theme-daylight{
+    --bg:#f4ecdf;
+    --panel:#fffdf8;
+    --soft:#eadbcd;
+    --soft2:#f7efe6;
+    --text:#342218;
+    --muted:#756356;
+    --blue:#7b4328;
+    --green:#2d7c59;
+    --yellow:#a7680f;
+    --red:#b83f3f;
+    --purple:#7d5374;
+    background:
+        radial-gradient(circle at 9% 0%, rgba(164,96,52,.14), transparent 34rem),
+        radial-gradient(circle at 96% 12%, rgba(255,255,255,.72), transparent 31rem),
+        linear-gradient(145deg,#efe4d4 0%,#f8f2e9 46%,#eee0d0 100%);
+    color:var(--text);
+}
+body.theme-daylight .brandHeader{
+    background:rgba(255,253,248,.76);
+    border:1px solid rgba(123,67,40,.12);
+    box-shadow:var(--brand-shadow);
+    backdrop-filter:blur(18px);
+    -webkit-backdrop-filter:blur(18px);
+}
+body.theme-daylight .panel,
+body.theme-daylight .settingsPanel,
+body.theme-daylight .customActionSheet{
+    background:linear-gradient(145deg,rgba(255,253,248,.98),rgba(248,239,229,.96));
+    color:var(--text);
+    border-color:rgba(123,67,40,.17);
+    box-shadow:var(--brand-shadow);
+}
+body.theme-daylight .panel,
+body.theme-daylight .settingsPanel,
+body.theme-daylight .customActionSheet,
+body.theme-daylight .currentCue,
+body.theme-daylight .keyCueBox,
+body.theme-daylight .customButtonsBox,
+body.theme-daylight .notice,
+body.theme-daylight .member,
+body.theme-daylight .replyItem,
+body.theme-daylight .historyItem,
+body.theme-daylight .receiverHistoryItem,
+body.theme-daylight .audioStatus,
+body.theme-daylight .audioMember,
+body.theme-daylight .swapItem{
+    border-color:rgba(123,67,40,.16);
+}
+body.theme-daylight .currentCue,
+body.theme-daylight .member,
+body.theme-daylight .replyItem,
+body.theme-daylight .historyItem,
+body.theme-daylight .receiverHistoryItem,
+body.theme-daylight .notice,
+body.theme-daylight .keyCueBox,
+body.theme-daylight .customButtonsBox,
+body.theme-daylight .audioStatus,
+body.theme-daylight .audioMember{
+    background:rgba(248,239,229,.82);
+    color:var(--text);
+}
+body.theme-daylight input,
+body.theme-daylight select,
+body.theme-daylight textarea,
+body.theme-daylight #targetPickerBtn{
+    background:#fffdfa;
+    color:var(--text);
+    border:1px solid rgba(123,67,40,.19);
+    box-shadow:inset 0 1px 2px rgba(72,39,21,.04);
+}
+body.theme-daylight input:focus,
+body.theme-daylight select:focus,
+body.theme-daylight textarea:focus,
+body.theme-daylight #targetPickerBtn:focus{
+    border-color:rgba(123,67,40,.62);
+    box-shadow:0 0 0 3px rgba(123,67,40,.13);
+}
+body.theme-daylight button,
+body.theme-daylight .tabBtn,
+body.theme-daylight .settingsBtn,
+body.theme-daylight .ghost,
+body.theme-daylight .badge,
+body.theme-daylight .settingsCollapseBtn{
+    background:#f5eadf;
+    color:var(--text);
+    box-shadow:inset 0 0 0 1px rgba(123,67,40,.16);
+}
+body.theme-daylight button:hover{
+    background:#efe0d2;
+}
+body.theme-daylight .tabBtn.active,
+body.theme-daylight .primary,
+body.theme-daylight .modeButtons button.active,
+body.theme-daylight .settingsModeGrid button.active,
+body.theme-daylight .visualToolRow button.active,
+body.theme-daylight .keyCueGrid button.active,
+body.theme-daylight .keyCueControls button.active{
+    background:linear-gradient(145deg,#8b5030,#65331f);
+    color:#fffaf4;
+    box-shadow:inset 0 0 0 1px rgba(74,40,27,.38),0 6px 15px rgba(91,50,29,.14);
+}
+body.theme-daylight .good{ background:#39775a; color:#fff; }
+body.theme-daylight .warn,
+body.theme-daylight .yellow{ background:#a56a18; color:#fff; }
+body.theme-daylight .danger{ background:#a9423e; color:#fff; }
+body.theme-daylight .purple{ background:#78536f; color:#fff; }
+body.theme-daylight .tabBtn{
+    border-radius:999px;
+}
+body.theme-daylight .sessionPanel .clockBox{
+    color:var(--brand-brown-deep);
+    text-shadow:none;
+}
+body.theme-daylight .sessionCode{ color:var(--brand-brown); }
+body.theme-daylight .cueText{ color:#2f1f17; }
+body.theme-daylight .receiverName{ color:var(--brand-brown); }
+body.theme-daylight .targetPickerMenu{
+    background:#fffaf4;
+    border-color:rgba(123,67,40,.22);
+    box-shadow:0 14px 32px rgba(79,43,24,.16);
+}
+body.theme-daylight .targetPickerOption{ color:var(--text); }
+body.theme-daylight .targetPickerOption.active{
+    background:var(--brand-brown);
+    color:#fff;
+}
+body.theme-daylight .settingsSection{ border-color:rgba(123,67,40,.14); }
+body.theme-daylight .settingsOverlay,
+body.theme-daylight .customActionOverlay{ background:rgba(63,39,25,.42); }
+body.theme-daylight #visualStage{
+    border-color:rgba(72,40,24,.5);
+    box-shadow:0 14px 30px rgba(68,37,21,.17);
+}
+body.theme-daylight .audioTalkBtn{
+    background:linear-gradient(145deg,#5a3222,#321d15);
+    color:#fff8ef;
+    box-shadow:inset 0 0 0 2px rgba(255,255,255,.12);
+}
+body.theme-daylight .audioTalkBtn.ready{
+    background:linear-gradient(145deg,#8b5030,#65331f);
+    color:#fff;
+    box-shadow:inset 0 0 0 2px #a86c47;
+}
+body.theme-daylight .colourSwatch button{
+    box-shadow:inset 0 0 0 2px rgba(52,34,24,.18);
+}
+body.theme-daylight .colourSwatch button.active{
+    box-shadow:inset 0 0 0 3px #fff,0 0 0 2px var(--brand-brown);
+}
+body.theme-daylight #configWarning{
+    color:#782c2c;
+    background:#fff0ec;
+    border-color:#d69a8e;
+}
+
+/* Stage-dark branding stays legible without changing the existing stage palette. */
+body:not(.theme-daylight):not(.theme-highcontrast):not(.theme-rednight) .brandHeader{
+    background:rgba(15,23,42,.76);
+    border:1px solid #1e293b;
+    box-shadow:0 12px 34px rgba(0,0,0,.25);
+}
+body:not(.theme-daylight):not(.theme-highcontrast):not(.theme-rednight) .someoneBorrowedLogo,
+body.theme-rednight .someoneBorrowedLogo{
+    filter:invert(1) brightness(1.8);
+}
+body.theme-highcontrast .brandHeader{ border:1px solid #fff; }
+body.theme-highcontrast .someoneBorrowedLogo{ filter:invert(1); }
+
+@media(max-width:900px){
+    .brandHeader{
+        grid-template-columns:1fr auto;
+        gap:10px;
+        padding:8px 9px;
+    }
+    .brandNavigation{
+        grid-column:1 / -1;
+        grid-row:2;
+        justify-items:stretch;
+    }
+    .brandNavigation .topTabs{
+        display:grid;
+        grid-template-columns:repeat(3,minmax(0,1fr));
+        width:100%;
+    }
+    .brandTagline{ display:none; }
+    .someoneBorrowedLogo{ width:112px; height:44px; }
+    .bandCueBrandIcon{ width:48px; height:48px; flex-basis:48px; }
+    .bandCueWordmark{ font-size:25px; }
+    .gigSuiteModule{ font-size:9px; }
+}
+@media(max-width:520px){
+    .brandHeader{ grid-template-columns:minmax(0,1fr) auto; }
+    .someoneBorrowedLogo{ width:86px; height:38px; transform:scale(1.06); }
+    .headerRight{ gap:5px; }
+    .headerControls{ gap:5px; }
+    .headerControls .badge{ max-width:72px; overflow:hidden; text-overflow:ellipsis; }
+    .bandCueBrandIcon{ width:42px; height:42px; flex-basis:42px; }
+    .bandCueWordmark{ font-size:22px; }
+    .gigSuiteModule{ letter-spacing:.07em; }
+}
+body.leaderView .brandHeader{
+    padding:6px 8px;
+    margin-bottom:6px;
+}
+body.leaderView .bandCueBrandIcon{
+    width:42px;
+    height:42px;
+    flex-basis:42px;
+}
+body.leaderView .bandCueWordmark{ font-size:22px; }
+body.leaderView .gigSuiteModule{ font-size:8.5px; margin-top:3px; }
+body.leaderView .someoneBorrowedLogo{ width:96px; height:38px; }
+
+</style>
+</head>
+
+<body>
+<div id="flashOverlay"></div>
+
+<div id="settingsOverlay" class="settingsOverlay"></div>
+
+<div id="settingsPanel" class="settingsPanel">
+    <div class="settingsHeader">
+        <h2>Settings</h2>
+        <button id="closeSettingsBtn" class="ghost">✕</button>
+    </div>
+
+    <div class="settingsSection" style="border-top:none;margin-top:0;padding-top:0;">
+        <h3>Display Mode</h3>
+        <div class="settingsModeGrid">
+            <button type="button" data-display-mode="daylight">GigSuite Cream</button>
+            <button type="button" data-display-mode="dark">Stage Dark</button>
+            <button type="button" data-display-mode="highcontrast">High Contrast</button>
+            <button type="button" data-display-mode="rednight">Red Night</button>
+        </div>
+    </div>
+
+    <div class="settingsSection">
+        <button type="button" class="settingsCollapseBtn" data-collapse-target="cueColourCollapse">Cue Colours</button>
+        <div id="cueColourCollapse" class="settingsCollapseContent">
+            <div class="colourSettingsGrid">
+                <label for="cueColourNext">Next Song</label>
+                <input id="cueColourNext" type="color" data-cue-colour="next">
+                <label for="cueColourKey">Key Cue</label>
+                <input id="cueColourKey" type="color" data-cue-colour="key">
+                <label for="cueColourSolo">Solo</label>
+                <input id="cueColourSolo" type="color" data-cue-colour="solo">
+                <label for="cueColourVamp">Vamp / Repeat</label>
+                <input id="cueColourVamp" type="color" data-cue-colour="vamp">
+                <label for="cueColourCut">Cut / Emergency</label>
+                <input id="cueColourCut" type="color" data-cue-colour="cut">
+                <label for="cueColourWatch">Watch Me</label>
+                <input id="cueColourWatch" type="color" data-cue-colour="watch">
+                <label for="cueColourCustom">Custom</label>
+                <input id="cueColourCustom" type="color" data-cue-colour="custom">
+            </div>
+        </div>
+    </div>
+
+    <div class="settingsSection">
+        <button type="button" class="settingsCollapseBtn" data-collapse-target="quickButtonColourCollapse">Quick Cue Button Colours</button>
+        <div id="quickButtonColourCollapse" class="settingsCollapseContent">
+            <div class="colourSettingsGrid">
+                <label for="buttonColourNext">Next Song Buttons</label>
+                <input id="buttonColourNext" type="color" data-button-colour="next">
+                <label for="buttonColourKey">Key Button</label>
+                <input id="buttonColourKey" type="color" data-button-colour="key">
+                <label for="buttonColourSolo">Solo Buttons</label>
+                <input id="buttonColourSolo" type="color" data-button-colour="solo">
+                <label for="buttonColourVamp">Vamp / Repeat Buttons</label>
+                <input id="buttonColourVamp" type="color" data-button-colour="vamp">
+                <label for="buttonColourCut">Cut / Emergency Buttons</label>
+                <input id="buttonColourCut" type="color" data-button-colour="cut">
+                <label for="buttonColourWatch">Watch Me Buttons</label>
+                <input id="buttonColourWatch" type="color" data-button-colour="watch">
+                <label for="buttonColourCustom">Custom Buttons</label>
+                <input id="buttonColourCustom" type="color" data-button-colour="custom">
+            </div>
+        </div>
+    </div>
+
+    <div class="settingsSection">
+        <h3>Cue Profiles</h3>
+        <div class="field">
+            <label>Saved profiles</label>
+            <select id="profileSelect"></select>
+        </div>
+        <div class="settingsButtonGrid">
+            <button id="saveProfileBtn" class="primary" type="button">Save Profile</button>
+            <button id="loadProfileBtn" class="good" type="button">Load Profile</button>
+            <button id="deleteProfileBtn" class="danger" type="button">Delete Profile</button>
+            <button id="exportProfileBtn" class="ghost" type="button">Export Profile</button>
+            <button id="importProfileBtn" class="ghost" type="button">Import Profile</button>
+        </div>
+        <input id="importProfileInput" type="file" accept=".json,application/json">
+    </div>
+
+    <div class="settingsSection">
+        <h3>Custom Buttons</h3>
+        <button id="settingsAddCustomButtonBtn" class="primary" type="button">+ Add Custom Button</button>
+    </div>
+
+    <div class="settingsSection">
+        <h3>Reset</h3>
+        <div class="settingsButtonGrid">
+            <button id="resetCuesBtn" class="warn" type="button">Reset Cues</button>
+            <button id="resetAppBtn" class="danger" type="button">Reset App</button>
+        </div>
+        <div class="small" style="margin-top:8px;">
+            Reset Cues clears custom buttons and cue colour changes. Reset App also clears saved profiles and local BandCue preferences on this device.
+        </div>
+    </div>
+</div>
+
+<div id="customActionOverlay" class="customActionOverlay"></div>
+<div id="customActionSheet" class="customActionSheet">
+    <div id="customActionTitle" class="customActionTitle">Custom Button</div>
+    <div class="customActionHint">Choose what to do with this cue button.</div>
+    <div class="customActionButtons">
+        <button id="renameCustomButtonBtn" class="primary" type="button">Rename / Edit</button>
+        <button id="deleteCustomButtonBtn" class="danger" type="button">Delete</button>
+        <button id="cancelCustomActionBtn" class="ghost" type="button">Cancel</button>
+    </div>
+</div>
+
+<div class="header brandHeader">
+    <div class="bandCueBrand" aria-label="BandCue, a GigSuite module">
+        <img class="bandCueBrandIcon" src="bandcue-logo.png" alt="">
+        <div class="bandCueBrandCopy">
+            <div class="bandCueWordmark"><strong>Band</strong><span>Cue</span></div>
+            <div class="gigSuiteModule">a GigSuite module</div>
+        </div>
+    </div>
+
+    <div class="brandNavigation">
+        <div class="topTabs">
+            <button id="bandCueTab" class="tabBtn active">BandCue</button>
+            <button id="visualCueTab" class="tabBtn">VisualCue</button>
+            <button id="audioCueTab" class="tabBtn">AudioCue</button>
+        </div>
+        <div class="small brandTagline">Leader cues, live visual notes and push-to-talk for bands</div>
+    </div>
+
+    <div class="headerRight">
+        <img class="someoneBorrowedLogo" src="SBlogo.png" alt="Someone Borrowed">
+        <div class="headerControls">
+            <div id="connectionBadge" class="badge">Offline</div>
+            <button id="settingsBtn" class="settingsBtn" title="Settings">•••</button>
+        </div>
+    </div>
+</div>
+
+<div id="configWarning" class="panel hidden">
+    <strong>Firebase config missing.</strong><br>
+    Paste your Firebase web app config into the <code>firebaseConfig</code> object near the top of the script.
+</div>
+
+<div id="setupPanel" class="panel">
+    <div class="field">
+        <label>Mode</label>
+        <div class="modeButtons">
+            <button id="leaderModeBtn" class="active">I am Band Leader</button>
+            <button id="receiverModeBtn">I am Band Mate</button>
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="field">
+            <label>Session code</label>
+            <div class="sessionSetupRow">
+                <input id="sessionCodeInput" placeholder="e.g. 4821" inputmode="text" autocomplete="off">
+                <button id="newSessionCodeBtn" class="ghost" type="button">New</button>
+            </div>
+        </div>
+        <div class="field">
+            <label>Your name</label>
+            <input id="nameInput" placeholder="e.g. Greg" autocomplete="name">
+        </div>
+    </div>
+
+    <div class="grid">
+        <div class="field">
+            <label>Instrument / role</label>
+            <select id="instrumentInput">
+                <option value="Leader">Leader</option>
+                <option value="Vocals">Vocals</option>
+                <option value="Piano / Keys">Piano / Keys</option>
+                <option value="Guitar">Guitar</option>
+                <option value="Bass">Bass</option>
+                <option value="Drums">Drums</option>
+                <option value="Sax">Sax</option>
+                <option value="Trumpet">Trumpet</option>
+                <option value="Trombone">Trombone</option>
+                <option value="Strings">Strings</option>
+                <option value="DJ">DJ</option>
+                <option value="Sound Engineer">Sound Engineer</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+        <div class="field">
+            <label>&nbsp;</label>
+            <button id="connectBtn" class="primary">Create Session</button>
+        </div>
+    </div>
+
+    <div class="notice">
+        First version: band mates keep this page visible, ideally on an iPhone beside their iPad.
+        Later version: iPad Home Screen notifications can show short cues while ForScore stays open.
+    </div>
+</div>
+
+<div id="appPanel" class="hidden">
+    <div class="panel sessionPanel">
+        <div class="sessionTopBar">
+            <div class="sessionLeft">
+                <div class="sessionLabel">Session</div>
+                <div id="sessionCodeDisplay" class="sessionCode">----</div>
+            </div>
+
+            <div class="sessionCenter">
+                <div id="sessionClock" class="clockBox">--:--:--</div>
+            </div>
+
+            <div class="sessionRight">
+                <div id="identityDisplay" class="small"></div>
+                <div id="modeBadge" class="badge"></div>
+            </div>
+        </div>
+
+        <div class="footerButtons">
+            <button id="copyJoinLinkBtn" class="ghost">Copy Join Link</button>
+            <button id="wakeLockBtn" class="ghost">Keep Screen Awake</button>
+            <button id="leaveBtn" class="danger">Leave</button>
+        </div>
+    </div>
+
+    <div id="bandCueView">
+    <div id="leaderPanel" class="panel hidden">
+        <h2>Band Leader Mode</h2>
+
+        <div id="leaderCurrentCueBox" class="currentCue">
+            <div id="leaderCurrentCueText" class="cueText">No cue sent</div>
+            <div id="leaderCurrentCueMeta" class="cueMeta">Waiting</div>
+        </div>
+
+        <div class="grid">
+            <div class="field">
+                <label>Send to</label>
+                <div id="targetPicker" class="targetPicker">
+                    <button id="targetPickerBtn" type="button">Everyone</button>
+                    <div id="targetPickerMenu" class="targetPickerMenu hidden"></div>
+                </div>
+                <select id="targetSelect" class="hiddenSelect" aria-hidden="true"><option value="all">Everyone</option></select>
+            </div>
+            <div class="field">
+                <label>Next song</label>
+                <div class="row">
+                    <input id="nextSongInput" placeholder="e.g. Valerie">
+                    <button id="sendNextSongBtn" class="good" style="flex:0 0 auto;">Send</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="field">
+            <label>Quick cues</label>
+            <div class="quickGrid">
+                <button data-cue="NEXT SONG CHANGED" data-kind="next" class="primary">Next Changed</button>
+                <button data-cue="SKIP NEXT SONG" data-kind="cut" class="warn">Skip Next</button>
+                <button data-cue="VAMP TILL CUE" data-kind="vamp" class="purple">Vamp till Cue</button>
+                <button data-cue="REPEAT CHORUS" data-kind="vamp" class="purple">Repeat Chorus</button>
+                <button data-cue="CUT TO ENDING" data-kind="cut" class="danger">Cut To Ending</button>
+                <button data-cue="REPEAT TILL END" data-kind="vamp" class="warn">Repeat till End</button>
+                <button data-cue="WATCH ME" data-kind="watch" class="primary">Watch Me</button>
+                <button data-cue="GO STRAIGHT INTO NEXT SONG" data-kind="next" class="good">Straight Into Next</button>
+                <button data-cue="GUITAR SOLO" data-kind="solo" class="yellow">Guitar Solo</button>
+                <button data-cue="KEYS SOLO" data-kind="solo" class="yellow">Keys Solo</button>
+                <button data-cue="BASS SOLO" data-kind="solo" class="yellow">Bass Solo</button>
+                <button data-cue="DRUM SOLO" data-kind="solo" class="yellow">Drum Solo</button>
+            </div>
+        </div>
+
+        <div class="keyCueBox">
+            <label>Key Cue</label>
+            <div id="keyCueNoteGrid" class="keyCueGrid"></div>
+            <div class="keyCueControlsRow">
+                <div id="keyCueControls" class="keyCueControls"></div>
+                <button id="sendKeyCueBtn" class="sendKeyCueInline" type="button">Send</button>
+            </div>
+        </div>
+
+        <div class="customButtonsBox">
+            <div class="customButtonsHeader">
+                <label style="margin:0;">Custom Buttons</label>
+                <button id="addCustomButtonBtn" class="ghost" type="button">+ Add</button>
+            </div>
+            <div id="customButtonGrid" class="customButtonGrid"></div>
+        </div>
+
+        <div class="field">
+            <label>Custom cue</label>
+            <textarea id="customCueInput" placeholder="e.g. NEXT: Valerie, not Mr Brightside"></textarea>
+        </div>
+
+        <div class="footerButtons">
+            <button id="sendCustomCueBtn" class="primary">Send Cue</button>
+            <button id="clearCueBtn" class="ghost">Clear Cue</button>
+            <button id="clearHistoryBtn" class="ghost">Clear History</button>
+            <button id="endSessionBtn" class="danger">End Session</button>
+        </div>
+    </div>
+
+    <div id="receiverPanel" class="panel hidden">
+        <div class="row" style="justify-content:space-between;">
+            <h2 style="margin:0;">Band Mate Mode</h2>
+            <span id="receiverIdentity" class="badge"></span>
+        </div>
+
+        <div id="receiverCueBox" class="currentCue" style="margin-top:14px;">
+            <div id="receiverCueText" class="cueText">Waiting</div>
+            <div id="receiverCueMeta" class="cueMeta">No cue yet</div>
+        </div>
+
+        <div id="receiverCueHistoryStrip"></div>
+
+        <div class="replyGrid">
+            <button data-reply="👍" class="good replyThumb" aria-label="Thumbs up">👍</button>
+            <button data-reply="👎" class="danger replyThumb" aria-label="Thumbs down">👎</button>
+            <button data-reply="REPEAT?" class="warn">Repeat?</button>
+            <button data-reply="CAN'T SEE" class="danger">Can't See</button>
+        </div>
+
+        <div class="field" style="margin-top:12px;">
+            <label>Write back</label>
+            <input id="customReplyInput" placeholder="Type short reply...">
+        </div>
+
+        <div class="footerButtons">
+            <button id="sendCustomReplyBtn" class="primary">Send Reply</button>
+            <button id="flashToggleBtn" class="ghost">Flash On</button>
+        </div>
+    </div>
+
+    <div id="leaderCompactGrid">
+        <div class="panel">
+            <h3>Connected Band Mates</h3>
+            <div id="memberList" class="memberList"></div>
+        </div>
+
+        <div class="panel">
+            <h3>Replies</h3>
+            <div id="replyList" class="replyList"></div>
+        </div>
+    </div>
+
+    <div class="panel">
+        <h3>Cue History</h3>
+        <div id="historyList" class="history"></div>
+    </div>
+    </div><!-- closes bandCueView -->
+
+    <div id="visualCueView" class="hidden">
+        <div class="panel">
+            <h2 style="margin-top:0;">VisualCue</h2>
+
+            <div class="visualToolbar">
+                <div class="field">
+                    <label>PDF / chart</label>
+                    <button id="uploadPdfBtn" class="primary">Upload PDF</button>
+                    <input id="pdfUploadInput" type="file" accept="application/pdf,.pdf">
+                </div>
+
+                <div class="field">
+                    <label>Page</label>
+                    <div class="row">
+                        <button id="prevPdfPageBtn" class="ghost">−</button>
+                        <input id="pdfPageInput" value="1" inputmode="numeric" style="text-align:center;">
+                        <button id="nextPdfPageBtn" class="ghost">+</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Drawing</label>
+                    <div class="row">
+                        <button id="penToolBtn" class="active">Pen</button>
+                        <button id="eraserToolBtn" class="ghost">Eraser</button>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>Actions</label>
+                    <div class="row">
+                        <button id="undoVisualBtn" class="ghost">Undo</button>
+                        <button id="clearVisualBtn" class="ghost">Clear Drawing</button>
+                        <button id="blankVisualBtn" class="danger">Blank</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="visualToolRow">
+                <div class="colourSwatch" id="colourSwatch">
+                    <button data-colour="#38bdf8" class="active" style="background:#38bdf8;"></button>
+                    <button data-colour="#fbbf24" style="background:#fbbf24;"></button>
+                    <button data-colour="#f87171" style="background:#f87171;"></button>
+                    <button data-colour="#34d399" style="background:#34d399;"></button>
+                    <button data-colour="#ffffff" style="background:#ffffff;"></button>
+                    <button data-colour="#111827" style="background:#111827;"></button>
+                </div>
+
+                <button id="thinPenBtn" class="ghost">Thin</button>
+                <button id="mediumPenBtn" class="active">Medium</button>
+                <button id="thickPenBtn" class="ghost">Thick</button>
+            </div>
+
+            <div id="visualStatus">
+                Blank visual page. Draw here and it will appear live on every connected Band Mate screen.
+            </div>
+        </div>
+
+        <div id="visualStage" class="blank">
+            <canvas id="pdfCanvas"></canvas>
+            <canvas id="drawCanvas"></canvas>
+        </div>
+    </div>
+
+    <div id="audioCueView" class="hidden">
+        <div class="panel">
+            <h2 style="margin-top:0;">AudioCue</h2>
+
+            <div class="notice" style="margin-bottom:12px;">
+                Push-to-talk audio for the band. Tap <strong>Enable AudioCue</strong>, allow microphone access,
+                then hold the talk button to speak. Best used with headphones or IEMs to avoid feedback.
+            </div>
+
+            <div class="audioToolbar">
+                <div>
+                    <button id="audioTalkBtn" class="audioTalkBtn" type="button">
+                        HOLD<br>TO TALK
+                    </button>
+                </div>
+
+                <div class="audioControls">
+                    <button id="startAudioBtn" class="primary">Enable AudioCue</button>
+                    <button id="stopAudioBtn" class="ghost">Disable AudioCue</button>
+                    <button id="muteAllAudioBtn" class="ghost">Mute Incoming</button>
+                    <div id="audioStatus" class="audioStatus">
+                        AudioCue not enabled yet.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h3 style="margin-top:0;">AudioCue Members</h3>
+            <div id="audioMemberList" class="audioMemberList"></div>
+        </div>
+
+        <div id="audioRemoteElements"></div>
+    </div>
+</div>
+
+<script type="module">
+const firebaseConfig = {
+    apiKey: "AIzaSyC7L7CCt8Pi2U9QyBFjGRU-USyEQdss3tA",
+    authDomain: "bandcue-cb805.firebaseapp.com",
+    databaseURL: "https://bandcue-cb805-default-rtdb.europe-west1.firebasedatabase.app",
+    projectId: "bandcue-cb805",
+    storageBucket: "bandcue-cb805.firebasestorage.app",
+    messagingSenderId: "843476594976",
+    appId: "1:843476594976:web:fbff30da3e12eafc402745"
+};
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.5/firebase-app.js";
+import {
+    getAuth,
+    signInAnonymously,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-auth.js";
+import {
+    getDatabase,
+    ref,
+    set,
+    update,
+    push,
+    onValue,
+    onDisconnect,
+    serverTimestamp,
+    remove
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-database.js";
+import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.12.5/firebase-storage.js";
+
+const hasFirebaseConfig =
+    firebaseConfig.apiKey &&
+    !firebaseConfig.apiKey.includes("PASTE_");
+
+let app = null;
+let auth = null;
+let db = null;
+let storage = null;
+let pdfjsLib = null;
+
+if(hasFirebaseConfig){
+    app = initializeApp(firebaseConfig);
+    auth = getAuth(app);
+    db = getDatabase(app);
+    storage = getStorage(app);
+}else{
+    document.getElementById("configWarning").classList.remove("hidden");
+}
+
+
+function safeJsonParse(value, fallback){
+    try{
+        const parsed = JSON.parse(value);
+        return parsed === null || parsed === undefined ? fallback : parsed;
+    }catch(e){
+        return fallback;
+    }
+}
+
+const DEFAULT_CUE_COLOURS = {
+    next:"#38bdf8",
+    key:"#22d3ee",
+    solo:"#fbbf24",
+    vamp:"#c084fc",
+    cut:"#f87171",
+    watch:"#fbbf24",
+    custom:"#38bdf8"
+};
+
+const DEFAULT_BUTTON_COLOURS = {
+    next:"#075985",
+    key:"#0f766e",
+    solo:"#fbbf24",
+    vamp:"#581c87",
+    cut:"#7f1d1d",
+    watch:"#075985",
+    custom:"#111827"
+};
+
+const KEY_NOTES = ["C", "D", "E", "F", "G", "A", "B"];
+
+const state = {
+    mode:"leader",
+    uid:"",
+    sessionCode:"",
+    name:"",
+    instrument:"Leader",
+    latestCueId:"",
+    customActionIndex:null,
+    sessionData:null,
+    wakeLock:null,
+    unsubscribeSession:null,
+    flashOn:localStorage.getItem("bandCueFlashOn") !== "false",
+    activeTab:"bandcue",
+    settings:{
+        displayMode:localStorage.getItem("bandCueDisplayMode") || "daylight",
+        cueColours:safeJsonParse(localStorage.getItem("bandCueCueColours") || "{}", {}),
+        buttonColours:safeJsonParse(localStorage.getItem("bandCueButtonColours") || "{}", {}),
+        customButtons:safeJsonParse(localStorage.getItem("bandCueCustomButtons") || "[]", []),
+        key:{
+            note:"C",
+            accidental:"",
+            minor:false
+        }
+    },
+    visual:{
+        tool:"pen",
+        colour:"#38bdf8",
+        width:6,
+        strokes:{},
+        drawing:false,
+        currentStroke:null,
+        currentPdf:null,
+        pdfPage:1,
+        pdfPageCount:0,
+        pdfAspect:1.414
+    },
+    audio:{
+        started:false,
+        localStream:null,
+        peers:{},
+        participants:{},
+        processedSignals:new Set(),
+        unsubscribeSignals:null,
+        talkActive:false,
+        incomingMuted:false,
+        volumes:JSON.parse(localStorage.getItem("bandCueAudioVolumes") || "{}")
+    }
+};
+
+const $ = id => document.getElementById(id);
+
+const els = {
+    connectionBadge:$("connectionBadge"),
+    settingsBtn:$("settingsBtn"),
+    settingsOverlay:$("settingsOverlay"),
+    settingsPanel:$("settingsPanel"),
+    closeSettingsBtn:$("closeSettingsBtn"),
+    sessionClock:$("sessionClock"),
+    newSessionCodeBtn:$("newSessionCodeBtn"),
+    profileSelect:$("profileSelect"),
+    saveProfileBtn:$("saveProfileBtn"),
+    loadProfileBtn:$("loadProfileBtn"),
+    deleteProfileBtn:$("deleteProfileBtn"),
+    exportProfileBtn:$("exportProfileBtn"),
+    importProfileBtn:$("importProfileBtn"),
+    importProfileInput:$("importProfileInput"),
+    resetCuesBtn:$("resetCuesBtn"),
+    resetAppBtn:$("resetAppBtn"),
+    settingsAddCustomButtonBtn:$("settingsAddCustomButtonBtn"),
+    customActionOverlay:$("customActionOverlay"),
+    customActionSheet:$("customActionSheet"),
+    customActionTitle:$("customActionTitle"),
+    renameCustomButtonBtn:$("renameCustomButtonBtn"),
+    deleteCustomButtonBtn:$("deleteCustomButtonBtn"),
+    cancelCustomActionBtn:$("cancelCustomActionBtn"),
+    bandCueTab:$("bandCueTab"),
+    visualCueTab:$("visualCueTab"),
+    audioCueTab:$("audioCueTab"),
+    setupPanel:$("setupPanel"),
+    appPanel:$("appPanel"),
+    bandCueView:$("bandCueView"),
+    visualCueView:$("visualCueView"),
+    audioCueView:$("audioCueView"),
+    leaderModeBtn:$("leaderModeBtn"),
+    receiverModeBtn:$("receiverModeBtn"),
+    sessionCodeInput:$("sessionCodeInput"),
+    nameInput:$("nameInput"),
+    instrumentInput:$("instrumentInput"),
+    connectBtn:$("connectBtn"),
+    sessionCodeDisplay:$("sessionCodeDisplay"),
+    identityDisplay:$("identityDisplay"),
+    modeBadge:$("modeBadge"),
+    leaderPanel:$("leaderPanel"),
+    receiverPanel:$("receiverPanel"),
+    targetSelect:$("targetSelect"),
+    targetPicker:$("targetPicker"),
+    targetPickerBtn:$("targetPickerBtn"),
+    targetPickerMenu:$("targetPickerMenu"),
+    nextSongInput:$("nextSongInput"),
+    sendNextSongBtn:$("sendNextSongBtn"),
+    keyCueNoteGrid:$("keyCueNoteGrid"),
+    keyCueControls:$("keyCueControls"),
+    sendKeyCueBtn:$("sendKeyCueBtn"),
+    addCustomButtonBtn:$("addCustomButtonBtn"),
+    customButtonGrid:$("customButtonGrid"),
+    customCueInput:$("customCueInput"),
+    sendCustomCueBtn:$("sendCustomCueBtn"),
+    clearCueBtn:$("clearCueBtn"),
+    clearHistoryBtn:$("clearHistoryBtn"),
+    endSessionBtn:$("endSessionBtn"),
+    leaderCurrentCueBox:$("leaderCurrentCueBox"),
+    leaderCurrentCueText:$("leaderCurrentCueText"),
+    leaderCurrentCueMeta:$("leaderCurrentCueMeta"),
+    receiverIdentity:$("receiverIdentity"),
+    receiverCueBox:$("receiverCueBox"),
+    receiverCueText:$("receiverCueText"),
+    receiverCueMeta:$("receiverCueMeta"),
+    receiverCueHistoryStrip:$("receiverCueHistoryStrip"),
+    customReplyInput:$("customReplyInput"),
+    sendCustomReplyBtn:$("sendCustomReplyBtn"),
+    flashToggleBtn:$("flashToggleBtn"),
+    memberList:$("memberList"),
+    replyList:$("replyList"),
+    historyList:$("historyList"),
+    copyJoinLinkBtn:$("copyJoinLinkBtn"),
+    wakeLockBtn:$("wakeLockBtn"),
+    leaveBtn:$("leaveBtn"),
+    flashOverlay:$("flashOverlay"),
+    uploadPdfBtn:$("uploadPdfBtn"),
+    pdfUploadInput:$("pdfUploadInput"),
+    prevPdfPageBtn:$("prevPdfPageBtn"),
+    nextPdfPageBtn:$("nextPdfPageBtn"),
+    pdfPageInput:$("pdfPageInput"),
+    penToolBtn:$("penToolBtn"),
+    eraserToolBtn:$("eraserToolBtn"),
+    undoVisualBtn:$("undoVisualBtn"),
+    clearVisualBtn:$("clearVisualBtn"),
+    blankVisualBtn:$("blankVisualBtn"),
+    colourSwatch:$("colourSwatch"),
+    thinPenBtn:$("thinPenBtn"),
+    mediumPenBtn:$("mediumPenBtn"),
+    thickPenBtn:$("thickPenBtn"),
+    visualStatus:$("visualStatus"),
+    visualStage:$("visualStage"),
+    pdfCanvas:$("pdfCanvas"),
+    drawCanvas:$("drawCanvas"),
+    startAudioBtn:$("startAudioBtn"),
+    stopAudioBtn:$("stopAudioBtn"),
+    muteAllAudioBtn:$("muteAllAudioBtn"),
+    audioTalkBtn:$("audioTalkBtn"),
+    audioStatus:$("audioStatus"),
+    audioMemberList:$("audioMemberList"),
+    audioRemoteElements:$("audioRemoteElements")
+};
+
+function makeSessionCode(){
+    return String(Math.floor(1000 + Math.random() * 9000));
+}
+
+function cleanSessionCode(value){
+    return String(value || "")
+        .trim()
+        .toUpperCase()
+        .replace(/[^A-Z0-9]/g, "")
+        .slice(0, 10);
+}
+
+function cleanText(value){
+    return String(value || "")
+        .trim()
+        .replace(/\s+\n/g, "\n")
+        .replace(/\n{3,}/g, "\n\n")
+        .slice(0, 240);
+}
+
+function formatTime(timestamp){
+    if(!timestamp || typeof timestamp !== "number"){
+        return "";
+    }
+
+    return new Date(timestamp).toLocaleTimeString([], {
+        hour:"2-digit",
+        minute:"2-digit"
+    });
+}
+
+function getSessionRef(path = ""){
+    const base = `bandCueSessions/${state.sessionCode}`;
+
+    return ref(
+        db,
+        path ? `${base}/${path}` : base
+    );
+}
+
+function escapeHtml(value){
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function escapeAttr(value){
+    return escapeHtml(value).replace(/'/g, "&#039;");
+}
+
+function getCueKindFromText(text){
+    const t = String(text || "").toUpperCase();
+
+    if(t.includes("KEY:")) return "key";
+    if(t.includes("NEXT") || t.includes("STRAIGHT INTO")) return "next";
+    if(t.includes("SOLO")) return "solo";
+    if(t.includes("VAMP") || t.includes("REPEAT")) return "vamp";
+    if(t.includes("CUT") || t.includes("SKIP") || t.includes("END") || t.includes("STOP")) return "cut";
+    if(t.includes("READY") || t.includes("👍")) return "ready";
+    if(t.includes("WATCH")) return "watch";
+
+    return "custom";
+}
+
+function cueKindClass(kind){
+    return {
+        next:"cue-next",
+        key:"cue-key",
+        solo:"cue-solo",
+        vamp:"cue-vamp",
+        cut:"cue-cut",
+        ready:"cue-ready",
+        watch:"cue-watch",
+        custom:"cue-custom"
+    }[kind] || "";
+}
+
+function applyCueClass(box, kind){
+    if(!box) return;
+
+    box.classList.remove(
+        "cue-next",
+        "cue-key",
+        "cue-solo",
+        "cue-vamp",
+        "cue-cut",
+        "cue-ready",
+        "cue-watch",
+        "cue-custom"
+    );
+
+    const cls = cueKindClass(kind);
+    if(cls){ box.classList.add(cls); }
+}
+
+function targetLabel(target, members){
+    if(!target || target === "all") return "Everyone";
+
+    if(target.startsWith("instrument:")){
+        return target.replace("instrument:", "") + " players";
+    }
+
+    const member = members && members[target];
+    if(member){
+        return `${member.name || "Band Mate"} (${member.instrument || "Other"})`;
+    }
+
+    return "One band mate";
+}
+
+function setMode(mode){
+    state.mode = mode;
+
+    els.leaderModeBtn.classList.toggle("active", mode === "leader");
+    els.receiverModeBtn.classList.toggle("active", mode === "receiver");
+
+    els.instrumentInput.value =
+        mode === "leader"
+            ? "Leader"
+            : (
+                els.instrumentInput.value === "Leader"
+                    ? "Guitar"
+                    : els.instrumentInput.value
+            );
+
+    els.connectBtn.innerText =
+        mode === "leader"
+            ? "Create Session"
+            : "Join Session";
+
+    if(mode === "leader" && !els.sessionCodeInput.value){
+        els.sessionCodeInput.value = makeSessionCode();
+    }
+}
+
+function updateConnectionBadge(text, online = false){
+    els.connectionBadge.innerText = text;
+    els.connectionBadge.classList.toggle("online", online);
+}
+
+async function ensureSignedIn(){
+    if(!hasFirebaseConfig){
+        throw new Error("Firebase config missing.");
+    }
+
+    if(state.uid){
+        return state.uid;
+    }
+
+    const credential = await signInAnonymously(auth);
+    state.uid = credential.user.uid;
+
+    return state.uid;
+}
+
+async function connect(){
+    try{
+        els.connectBtn.disabled = true;
+
+        await ensureSignedIn();
+
+        const requestedCode = cleanSessionCode(els.sessionCodeInput.value);
+
+        state.sessionCode = requestedCode || makeSessionCode();
+        state.name = cleanText(els.nameInput.value) || (state.mode === "leader" ? "Band Leader" : "Band Mate");
+        state.instrument = cleanText(els.instrumentInput.value) || (state.mode === "leader" ? "Leader" : "Other");
+
+        if(state.mode === "leader"){
+            await update(getSessionRef("meta"), {
+                createdAt:serverTimestamp(),
+                updatedAt:serverTimestamp(),
+                leaderId:state.uid,
+                leaderName:state.name,
+                active:true
+            });
+        }
+
+        await set(getSessionRef(`members/${state.uid}`), {
+            id:state.uid,
+            name:state.name,
+            instrument:state.instrument,
+            mode:state.mode,
+            online:true,
+            joinedAt:serverTimestamp(),
+            lastSeen:serverTimestamp()
+        });
+
+        onDisconnect(getSessionRef(`members/${state.uid}`))
+            .update({
+                online:false,
+                lastSeen:serverTimestamp()
+            });
+
+        showApp();
+        listenToSession();
+
+    }catch(err){
+        console.error(err);
+
+        alert(
+            "BandCue error:\n\n" +
+            (err.code ? err.code + "\n\n" : "") +
+            (err.message || String(err))
+        );
+
+    }finally{
+        els.connectBtn.disabled = false;
+    }
+}
+
+function showApp(){
+    els.setupPanel.classList.add("hidden");
+    els.appPanel.classList.remove("hidden");
+
+    document.body.classList.toggle("leaderView", state.mode === "leader");
+    document.body.classList.toggle("receiverView", state.mode === "receiver");
+
+    els.sessionCodeDisplay.innerText = state.sessionCode;
+
+    els.identityDisplay.innerHTML =
+        `<span class="receiverName">${escapeHtml(state.name)}</span><br>${escapeHtml(state.instrument)}`;
+
+    els.modeBadge.innerText = state.mode === "leader" ? "Leader" : "Band Mate";
+    els.modeBadge.classList.toggle("leader", state.mode === "leader");
+
+    els.leaderPanel.classList.toggle("hidden", state.mode !== "leader");
+    els.receiverPanel.classList.toggle("hidden", state.mode !== "receiver");
+
+    els.receiverIdentity.innerText = `${state.name} • ${state.instrument}`;
+
+    updateConnectionBadge("Connected", true);
+    applyDisplayMode();
+    applyCueColours();
+    renderKeyCueBuilder();
+    renderCustomButtons();
+    updateBandCueClock();
+    updateFlashButton();
+    saveLocalIdentity();
+    updateUrl();
+    setActiveTab(state.activeTab || "bandcue");
+}
+
+function listenToSession(){
+    if(state.unsubscribeSession){
+        state.unsubscribeSession();
+    }
+
+    state.unsubscribeSession = onValue(getSessionRef(), snapshot => {
+        const data = snapshot.val() || {};
+
+        state.sessionData = data;
+
+        renderMembers(data.members || {});
+        renderTargetOptions(data.members || {});
+        renderCurrentCue(data.currentCue || null);
+        renderReplies(data);
+        renderHistory(data.cues || {}, data.members || {});
+        renderReceiverHistory(data.cues || {});
+        renderVisualCue(data.visual || {});
+        syncAudioParticipants(data.audio && data.audio.participants ? data.audio.participants : {}, data.members || {});
+    });
+}
+
+function renderMembers(members){
+    const list = Object.values(members || {})
+        .sort((a,b) => {
+            if(a.mode === "leader" && b.mode !== "leader") return -1;
+            if(a.mode !== "leader" && b.mode === "leader") return 1;
+            return String(a.name || "").localeCompare(String(b.name || ""));
+        });
+
+    if(!list.length){
+        els.memberList.innerHTML = `<div class="small">No band mates connected yet.</div>`;
+        return;
+    }
+
+    els.memberList.innerHTML = list.map(member => `
+        <div class="member ${member.online ? "" : "offline"}">
+            <div>
+                <div class="memberName">
+                    ${escapeHtml(member.name || "Unknown")}${member.mode === "leader" ? " ⭐" : ""}
+                </div>
+                <div class="memberMeta">${escapeHtml(member.instrument || "Other")}</div>
+            </div>
+            <span class="badge ${member.online ? "online" : ""}">
+                ${member.online ? "Online" : "Away"}
+            </span>
+        </div>
+    `).join("");
+}
+
+function renderTargetOptions(members){
+    if(state.mode !== "leader") return;
+
+    const current = els.targetSelect.value || "all";
+
+    const receivers = Object.values(members || {})
+        .filter(member => member.id !== state.uid)
+        .sort((a,b) => String(a.name || "").localeCompare(String(b.name || "")));
+
+    const instruments = [...new Set(
+        receivers
+            .map(member => String(member.instrument || "Other").trim())
+            .filter(Boolean)
+    )].sort();
+
+    els.targetSelect.innerHTML =
+        `<option value="all">Everyone</option>` +
+        instruments.map(instrument =>
+            `<option value="instrument:${escapeAttr(instrument)}">All ${escapeHtml(instrument)}</option>`
+        ).join("") +
+        receivers.map(member =>
+            `<option value="${escapeAttr(member.id)}">${escapeHtml(member.name || "Unknown")} — ${escapeHtml(member.instrument || "Other")}</option>`
+        ).join("");
+
+    const validTargets = [
+        "all",
+        ...instruments.map(i => `instrument:${i}`),
+        ...receivers.map(m => m.id)
+    ];
+
+    if(validTargets.includes(current)){
+        els.targetSelect.value = current;
+    }
+
+    renderTargetPickerMenu();
+}
+
+function updateTargetPickerDisplay(){
+    if(!els.targetPickerBtn || !els.targetSelect) return;
+
+    const selected =
+        els.targetSelect.options[els.targetSelect.selectedIndex];
+
+    els.targetPickerBtn.innerText =
+        selected ? selected.textContent.trim() : "Everyone";
+}
+
+function closeTargetPicker(){
+    if(els.targetPickerMenu){
+        els.targetPickerMenu.classList.add("hidden");
+    }
+}
+
+function renderTargetPickerMenu(){
+    if(!els.targetPickerMenu || !els.targetSelect) return;
+
+    const current =
+        els.targetSelect.value || "all";
+
+    const options =
+        Array.from(els.targetSelect.options || []);
+
+    els.targetPickerMenu.innerHTML =
+        options.map(option => `
+            <button
+                type="button"
+                class="targetPickerOption ${option.value === current ? "active" : ""}"
+                data-target-value="${escapeAttr(option.value)}"
+            >
+                ${escapeHtml(option.textContent || "")}
+            </button>
+        `).join("");
+
+    els.targetPickerMenu
+        .querySelectorAll("button[data-target-value]")
+        .forEach(button => {
+            button.onclick = e => {
+                e.stopPropagation();
+
+                els.targetSelect.value =
+                    button.dataset.targetValue || "all";
+
+                updateTargetPickerDisplay();
+                renderTargetPickerMenu();
+                closeTargetPicker();
+            };
+        });
+
+    updateTargetPickerDisplay();
+}
+
+function cueAppliesToMe(cue){
+    if(!cue) return false;
+
+    if(cue.target === "all" || cue.target === state.uid){
+        return true;
+    }
+
+    if(String(cue.target || "").startsWith("instrument:")){
+        const targetInstrument = String(cue.target).replace("instrument:", "");
+        return targetInstrument === state.instrument;
+    }
+
+    return false;
+}
+
+function renderCurrentCue(cue){
+    const members = state.sessionData && state.sessionData.members ? state.sessionData.members : {};
+
+    if(state.mode === "leader"){
+        if(!cue || !cue.text){
+            els.leaderCurrentCueText.innerText = "No cue sent";
+            els.leaderCurrentCueMeta.innerText = "Waiting";
+            applyCueClass(els.leaderCurrentCueBox, "");
+            return;
+        }
+
+        const kind = cue.kind || getCueKindFromText(cue.text);
+
+        els.leaderCurrentCueText.innerText = cue.text;
+        els.leaderCurrentCueMeta.innerText =
+            `Sent to ${targetLabel(cue.target, members)} • ${formatTime(cue.createdAtMs)}`;
+
+        applyCueClass(els.leaderCurrentCueBox, kind);
+
+        if(cue.id && cue.id !== state.latestCueId){
+            state.latestCueId = cue.id;
+            els.leaderCurrentCueBox.classList.remove("alert");
+            void els.leaderCurrentCueBox.offsetWidth;
+            els.leaderCurrentCueBox.classList.add("alert");
+        }
+
+        return;
+    }
+
+    if(state.mode !== "receiver") return;
+
+    if(!cue || !cue.text || !cueAppliesToMe(cue)){
+        els.receiverCueText.innerText = "Waiting";
+        els.receiverCueMeta.innerText = "No cue yet";
+        applyCueClass(els.receiverCueBox, "");
+        return;
+    }
+
+    const kind = cue.kind || getCueKindFromText(cue.text);
+
+    els.receiverCueText.innerText = cue.text;
+    els.receiverCueMeta.innerText = `${cue.fromName || "Leader"} • ${formatTime(cue.createdAtMs)}`;
+
+    applyCueClass(els.receiverCueBox, kind);
+
+    if(cue.id && cue.id !== state.latestCueId){
+        state.latestCueId = cue.id;
+        alertReceiverCue();
+    }
+}
+
+function alertReceiverCue(){
+    els.receiverCueBox.classList.remove("alert");
+    void els.receiverCueBox.offsetWidth;
+    els.receiverCueBox.classList.add("alert");
+
+    if(state.flashOn){
+        els.flashOverlay.classList.remove("flash");
+        void els.flashOverlay.offsetWidth;
+        els.flashOverlay.classList.add("flash");
+    }
+
+    if(navigator.vibrate){
+        navigator.vibrate([150,80,150]);
+    }
+}
+
+function getReplyClass(replyText){
+    const text = String(replyText || "").toUpperCase();
+
+    if(text.includes("👍")){
+        return "positive";
+    }
+
+    if(
+        text.includes("👎") ||
+        text.includes("CAN'T") ||
+        text.includes("CANT")
+    ){
+        return "negative";
+    }
+
+    return "neutral";
+}
+
+function renderReplies(data){
+    const cue = data.currentCue || null;
+
+    if(!cue || !cue.id){
+        els.replyList.innerHTML = `<div class="small">No active cue replies yet.</div>`;
+        return;
+    }
+
+    const replies = data.replies && data.replies[cue.id] ? data.replies[cue.id] : {};
+
+    const list = Object.values(replies)
+        .sort((a,b) => Number(a.createdAtMs || 0) - Number(b.createdAtMs || 0));
+
+    if(!list.length){
+        els.replyList.innerHTML = `<div class="small">No replies yet.</div>`;
+        return;
+    }
+
+    const upCount = list.filter(reply => String(reply.reply || "").includes("👍")).length;
+    const downCount = list.filter(reply => String(reply.reply || "").includes("👎")).length;
+
+    els.replyList.innerHTML = `
+        <div class="replyItem">
+            <div><strong>Summary</strong><div class="memberMeta">Active cue</div></div>
+            <div class="replyValue neutral">👍 ${upCount} / 👎 ${downCount}</div>
+        </div>
+    ` + list.map(reply => `
+        <div class="replyItem">
+            <div>
+                <strong>${escapeHtml(reply.name || "Unknown")}</strong>
+                <div class="memberMeta">${escapeHtml(reply.instrument || "")}</div>
+            </div>
+            <div class="replyValue ${getReplyClass(reply.reply)}">${escapeHtml(reply.reply || "")}</div>
+        </div>
+    `).join("");
+}
+
+function renderHistory(cues, members){
+    const list = Object.values(cues || {})
+        .sort((a,b) => Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0))
+        .slice(0,30);
+
+    if(!list.length){
+        els.historyList.innerHTML = `<div class="small">No cues sent yet.</div>`;
+        return;
+    }
+
+    els.historyList.innerHTML = list.map(cue => `
+        <div class="historyItem">
+            <div class="historyText">${escapeHtml(cue.text || "")}</div>
+            <div class="historyMeta">
+                ${escapeHtml(cue.fromName || "Leader")}
+                → ${escapeHtml(targetLabel(cue.target, members))}
+                ${cue.createdAtMs ? " • " + formatTime(cue.createdAtMs) : ""}
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderReceiverHistory(cues){
+    if(state.mode !== "receiver") return;
+
+    const list = Object.values(cues || {})
+        .filter(cue => cueAppliesToMe(cue))
+        .sort((a,b) => Number(b.createdAtMs || 0) - Number(a.createdAtMs || 0))
+        .slice(1,4);
+
+    if(!list.length){
+        els.receiverCueHistoryStrip.innerHTML = "";
+        return;
+    }
+
+    els.receiverCueHistoryStrip.innerHTML =
+        `<div class="small">Previous cues</div>` +
+        list.map(cue => `
+            <div class="receiverHistoryItem">
+                ${escapeHtml(cue.text || "")}
+            </div>
+        `).join("");
+}
+
+async function sendCue(text, kind = ""){
+    if(state.mode !== "leader") return;
+
+    text = cleanText(text);
+
+    if(!text){
+        alert("Enter a cue first.");
+        return;
+    }
+
+    const cueRef = push(getSessionRef("cues"));
+
+    const cue = {
+        id:cueRef.key,
+        text,
+        kind:kind || getCueKindFromText(text),
+        target:els.targetSelect.value || "all",
+        fromId:state.uid,
+        fromName:state.name,
+        createdAt:serverTimestamp(),
+        createdAtMs:Date.now()
+    };
+
+    await set(cueRef, cue);
+    await set(getSessionRef("currentCue"), cue);
+
+    els.customCueInput.value = "";
+}
+
+async function clearCue(){
+    if(state.mode !== "leader") return;
+    await remove(getSessionRef("currentCue"));
+}
+
+async function clearHistory(){
+    if(state.mode !== "leader") return;
+
+    const sure = confirm("Clear cue history and replies for this session?");
+    if(!sure) return;
+
+    await remove(getSessionRef("cues"));
+    await remove(getSessionRef("replies"));
+}
+
+async function endSession(){
+    if(state.mode !== "leader") return;
+
+    const sure = confirm(
+        "End this BandCue session?\n\n" +
+        "This clears the active cue, history, replies and connected band mates."
+    );
+
+    if(!sure) return;
+
+    await stopAudioCue();
+
+    await remove(getSessionRef());
+    localStorage.removeItem("bandCueLastSession");
+    location.href = location.pathname;
+}
+
+async function sendReply(replyText){
+    replyText = cleanText(replyText);
+    if(!replyText) return;
+
+    const cue = state.sessionData && state.sessionData.currentCue ? state.sessionData.currentCue : null;
+
+    if(!cue || !cue.id){
+        alert("No active cue to reply to.");
+        return;
+    }
+
+    await set(getSessionRef(`replies/${cue.id}/${state.uid}`), {
+        memberId:state.uid,
+        name:state.name,
+        instrument:state.instrument,
+        reply:replyText,
+        createdAt:serverTimestamp(),
+        createdAtMs:Date.now()
+    });
+
+    els.customReplyInput.value = "";
+}
+
+async function leaveSession(){
+    await stopAudioCue();
+
+    if(!state.sessionCode || !state.uid){
+        location.reload();
+        return;
+    }
+
+    try{
+        await update(getSessionRef(`members/${state.uid}`), {
+            online:false,
+            lastSeen:serverTimestamp()
+        });
+    }catch(e){}
+
+    localStorage.removeItem("bandCueLastSession");
+    location.href = location.pathname;
+}
+
+function saveLocalIdentity(){
+    localStorage.setItem("bandCueLastSession", JSON.stringify({
+        mode:state.mode,
+        sessionCode:state.sessionCode,
+        name:state.name,
+        instrument:state.instrument
+    }));
+}
+
+function restoreFromUrlOrStorage(){
+    const params = new URLSearchParams(location.search);
+    const mode = params.get("mode");
+    const session = params.get("session");
+
+    if(mode === "leader" || mode === "receiver"){
+        setMode(mode);
+    }
+
+    if(session){
+        els.sessionCodeInput.value = cleanSessionCode(session);
+    }
+
+    try{
+        const saved = JSON.parse(localStorage.getItem("bandCueLastSession") || "null");
+
+        if(saved){
+            if(!mode && saved.mode){ setMode(saved.mode); }
+            if(!els.sessionCodeInput.value && saved.sessionCode){ els.sessionCodeInput.value = saved.sessionCode; }
+            if(saved.name){ els.nameInput.value = saved.name; }
+            if(saved.instrument){ els.instrumentInput.value = saved.instrument; }
+        }
+    }catch(e){}
+
+    if(!els.sessionCodeInput.value){
+        els.sessionCodeInput.value = makeSessionCode();
+    }
+}
+
+function updateUrl(){
+    const url = new URL(location.href);
+    url.searchParams.set("session", state.sessionCode);
+    url.searchParams.set("mode", state.mode);
+    history.replaceState(null, "", url.toString());
+}
+
+async function copyJoinLink(){
+    const url = new URL(location.href);
+    url.searchParams.set("session", state.sessionCode);
+    url.searchParams.set("mode", "receiver");
+
+    try{
+        await navigator.clipboard.writeText(url.toString());
+        alert("Band mate join link copied.");
+    }catch(e){
+        prompt("Copy this band mate join link:", url.toString());
+    }
+}
+
+async function toggleWakeLock(){
+    if(!("wakeLock" in navigator)){
+        alert("This browser does not support screen wake lock. On iPhone, set Auto-Lock to Never for best receiver use.");
+        return;
+    }
+
+    try{
+        if(state.wakeLock){
+            await state.wakeLock.release();
+            state.wakeLock = null;
+            els.wakeLockBtn.innerText = "Keep Screen Awake";
+            return;
+        }
+
+        state.wakeLock = await navigator.wakeLock.request("screen");
+
+        state.wakeLock.addEventListener("release", () => {
+            state.wakeLock = null;
+            els.wakeLockBtn.innerText = "Keep Screen Awake";
+        });
+
+        els.wakeLockBtn.innerText = "Screen Awake On";
+
+    }catch(err){
+        alert("Could not keep screen awake. Check browser support/settings.");
+    }
+}
+
+function updateFlashButton(){
+    if(!els.flashToggleBtn) return;
+    els.flashToggleBtn.innerText = state.flashOn ? "Flash On" : "Flash Off";
+    els.flashToggleBtn.classList.toggle("primary", state.flashOn);
+    els.flashToggleBtn.classList.toggle("ghost", !state.flashOn);
+}
+
+function toggleFlash(){
+    state.flashOn = !state.flashOn;
+    localStorage.setItem("bandCueFlashOn", state.flashOn ? "true" : "false");
+    updateFlashButton();
+}
+
+
+/* =========================
+   BandCue v7 settings, key cues, clock, profiles and custom buttons
+   ========================= */
+function formatClockTime(){
+    const now = new Date();
+
+    return (
+        String(now.getHours()).padStart(2,"0") + ":" +
+        String(now.getMinutes()).padStart(2,"0") + ":" +
+        String(now.getSeconds()).padStart(2,"0")
+    );
+}
+
+function updateBandCueClock(){
+    if(els.sessionClock){
+        els.sessionClock.innerText = formatClockTime();
+    }
+}
+
+function getMergedCueColours(){
+    return {
+        ...DEFAULT_CUE_COLOURS,
+        ...(state.settings.cueColours || {})
+    };
+}
+
+function applyCueColours(){
+    const colours = getMergedCueColours();
+
+    Object.entries(colours).forEach(([kind, colour]) => {
+        document.documentElement.style.setProperty(
+            `--cue-${kind}`,
+            colour
+        );
+    });
+
+    document
+        .querySelectorAll("input[data-cue-colour]")
+        .forEach(input => {
+            const kind = input.dataset.cueColour;
+            input.value = colours[kind] || DEFAULT_CUE_COLOURS[kind] || "#38bdf8";
+        });
+}
+
+function saveCueColours(){
+    localStorage.setItem(
+        "bandCueCueColours",
+        JSON.stringify(state.settings.cueColours || {})
+    );
+
+    applyCueColours();
+}
+
+function getMergedButtonColours(){
+    return {
+        ...DEFAULT_BUTTON_COLOURS,
+        ...(state.settings.buttonColours || {})
+    };
+}
+
+function applyButtonColours(){
+    const colours = getMergedButtonColours();
+
+    Object.entries(colours).forEach(([kind, colour]) => {
+        document.documentElement.style.setProperty(
+            `--btn-${kind}`,
+            colour
+        );
+    });
+
+    document
+        .querySelectorAll("input[data-button-colour]")
+        .forEach(input => {
+            const kind = input.dataset.buttonColour;
+            input.value = colours[kind] || DEFAULT_BUTTON_COLOURS[kind] || "#111827";
+        });
+}
+
+function saveButtonColours(){
+    localStorage.setItem(
+        "bandCueButtonColours",
+        JSON.stringify(state.settings.buttonColours || {})
+    );
+
+    applyButtonColours();
+}
+
+function applyDisplayMode(){
+    const mode = state.settings.displayMode || "daylight";
+
+    document.body.classList.remove(
+        "theme-daylight",
+        "theme-highcontrast",
+        "theme-rednight"
+    );
+
+    if(mode !== "dark"){
+        document.body.classList.add("theme-" + mode);
+    }
+
+    localStorage.setItem("bandCueDisplayMode", mode);
+
+    document
+        .querySelectorAll("button[data-display-mode]")
+        .forEach(button => {
+            button.classList.toggle(
+                "active",
+                button.dataset.displayMode === mode
+            );
+        });
+}
+
+function openSettings(){
+    renderProfileSelect();
+    applyCueColours();
+    applyButtonColours();
+    applyDisplayMode();
+
+    if(els.settingsOverlay){ els.settingsOverlay.classList.add("open"); }
+    if(els.settingsPanel){ els.settingsPanel.classList.add("open"); }
+}
+
+function closeSettings(){
+    if(els.settingsOverlay){ els.settingsOverlay.classList.remove("open"); }
+    if(els.settingsPanel){ els.settingsPanel.classList.remove("open"); }
+}
+
+function getProfiles(){
+    return safeJsonParse(
+        localStorage.getItem("bandCueProfiles") || "{}",
+        {}
+    );
+}
+
+function saveProfiles(profiles){
+    localStorage.setItem(
+        "bandCueProfiles",
+        JSON.stringify(profiles || {})
+    );
+}
+
+function getCurrentProfileData(){
+    return {
+        type:"BandCueProfile",
+        version:1,
+        name:"",
+        savedAt:new Date().toISOString(),
+        displayMode:state.settings.displayMode || "daylight",
+        cueColours:state.settings.cueColours || {},
+        buttonColours:state.settings.buttonColours || {},
+        customButtons:state.settings.customButtons || []
+    };
+}
+
+function applyProfileData(profile){
+    if(!profile || profile.type !== "BandCueProfile"){
+        alert("That does not look like a BandCue profile.");
+        return;
+    }
+
+    state.settings.displayMode = profile.displayMode || "daylight";
+    state.settings.cueColours = profile.cueColours || {};
+    state.settings.buttonColours = profile.buttonColours || {};
+    state.settings.customButtons = Array.isArray(profile.customButtons)
+        ? profile.customButtons
+        : [];
+
+    localStorage.setItem("bandCueDisplayMode", state.settings.displayMode);
+    localStorage.setItem("bandCueCueColours", JSON.stringify(state.settings.cueColours));
+    localStorage.setItem("bandCueButtonColours", JSON.stringify(state.settings.buttonColours));
+    localStorage.setItem("bandCueCustomButtons", JSON.stringify(state.settings.customButtons));
+
+    applyDisplayMode();
+    applyCueColours();
+    applyButtonColours();
+    renderCustomButtons();
+    renderProfileSelect();
+}
+
+function renderProfileSelect(){
+    if(!els.profileSelect) return;
+
+    const profiles = getProfiles();
+    const names = Object.keys(profiles).sort();
+
+    if(!names.length){
+        els.profileSelect.innerHTML = `<option value="">No saved profiles</option>`;
+        return;
+    }
+
+    els.profileSelect.innerHTML = names.map(name =>
+        `<option value="${escapeAttr(name)}">${escapeHtml(name)}</option>`
+    ).join("");
+}
+
+function saveProfile(){
+    const name = prompt("Name this cue profile:", "Wedding Band");
+    if(!name || !name.trim()) return;
+
+    const cleanName = name.trim();
+    const profiles = getProfiles();
+    const profile = getCurrentProfileData();
+    profile.name = cleanName;
+
+    profiles[cleanName] = profile;
+    saveProfiles(profiles);
+    renderProfileSelect();
+
+    if(els.profileSelect){
+        els.profileSelect.value = cleanName;
+    }
+
+    alert("Profile saved.");
+}
+
+function loadSelectedProfile(){
+    if(!els.profileSelect || !els.profileSelect.value){
+        alert("No profile selected.");
+        return;
+    }
+
+    const profiles = getProfiles();
+    const profile = profiles[els.profileSelect.value];
+
+    if(!profile){
+        alert("Profile not found.");
+        return;
+    }
+
+    applyProfileData(profile);
+    alert("Profile loaded.");
+}
+
+function deleteSelectedProfile(){
+    if(!els.profileSelect || !els.profileSelect.value){
+        alert("No profile selected.");
+        return;
+    }
+
+    const name = els.profileSelect.value;
+    const sure = confirm(`Delete profile “${name}”?`);
+    if(!sure) return;
+
+    const profiles = getProfiles();
+    delete profiles[name];
+    saveProfiles(profiles);
+    renderProfileSelect();
+}
+
+function exportSelectedProfile(){
+    let profile = null;
+    let name = "BandCue_Profile";
+
+    if(els.profileSelect && els.profileSelect.value){
+        const profiles = getProfiles();
+        profile = profiles[els.profileSelect.value] || null;
+        name = els.profileSelect.value;
+    }
+
+    if(!profile){
+        profile = getCurrentProfileData();
+        profile.name = "Current Profile";
+        name = "Current_Profile";
+    }
+
+    const blob = new Blob(
+        [JSON.stringify(profile, null, 2)],
+        { type:"application/json" }
+    );
+
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = name.replace(/[^a-z0-9_-]+/gi, "_") + ".json";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+function importProfileFile(file){
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+        try{
+            const profile = JSON.parse(reader.result);
+
+            if(!profile || profile.type !== "BandCueProfile"){
+                throw new Error("Not a BandCue profile.");
+            }
+
+            const name = profile.name || prompt("Name this imported profile:", "Imported Profile");
+            if(!name) return;
+
+            profile.name = name;
+
+            const profiles = getProfiles();
+            profiles[name] = profile;
+            saveProfiles(profiles);
+            renderProfileSelect();
+
+            if(els.profileSelect){ els.profileSelect.value = name; }
+
+            const loadNow = confirm("Profile imported. Load it now?");
+            if(loadNow){ applyProfileData(profile); }
+
+        }catch(err){
+            alert("Could not import profile. " + (err.message || String(err)));
+        }
+    };
+
+    reader.readAsText(file);
+}
+
+function resetCuesToDefault(){
+    const sure = confirm("Reset cue colours and custom buttons to default on this device?");
+    if(!sure) return;
+
+    state.settings.customButtons = [];
+    state.settings.cueColours = {};
+    state.settings.buttonColours = {};
+    localStorage.removeItem("bandCueCustomButtons");
+    localStorage.removeItem("bandCueCueColours");
+    localStorage.removeItem("bandCueButtonColours");
+
+    applyCueColours();
+    applyButtonColours();
+    renderCustomButtons();
+    alert("Cues reset.");
+}
+
+function resetBandCueApp(){
+    const confirmation = prompt(
+        "This clears local BandCue settings, profiles, custom buttons and preferences on this device.\n\nType RESET to confirm."
+    );
+
+    if(confirmation !== "RESET") return;
+
+    [
+        "bandCueDisplayMode",
+        "bandCueCueColours",
+        "bandCueButtonColours",
+        "bandCueCustomButtons",
+        "bandCueProfiles",
+        "bandCueAudioVolumes",
+        "bandCueFlashOn",
+        "bandCueLastSession"
+    ].forEach(key => localStorage.removeItem(key));
+
+    location.reload();
+}
+
+function saveCustomButtons(){
+    localStorage.setItem(
+        "bandCueCustomButtons",
+        JSON.stringify(state.settings.customButtons || [])
+    );
+}
+
+function buttonClassForKind(kind){
+    return {
+        next:"primary",
+        key:"primary",
+        solo:"yellow",
+        vamp:"purple",
+        cut:"danger",
+        watch:"primary",
+        custom:"ghost"
+    }[kind] || "ghost";
+}
+
+function renderCustomButtons(){
+    if(!els.customButtonGrid) return;
+
+    const buttons = Array.isArray(state.settings.customButtons)
+        ? state.settings.customButtons
+        : [];
+
+    if(!buttons.length){
+        els.customButtonGrid.innerHTML = `<div class="small">No custom buttons yet.</div>`;
+        return;
+    }
+
+    els.customButtonGrid.innerHTML = buttons.map((button, index) => `
+        <button
+            type="button"
+            class="${buttonClassForKind(button.kind || "custom")}" 
+            data-button-kind="${escapeAttr(button.kind || "custom")}" 
+            data-custom-button-index="${index}"
+            title="Tap to send. Hold to edit."
+        >
+            ${escapeHtml(button.label || "Custom")}
+        </button>
+    `).join("");
+
+    els.customButtonGrid
+        .querySelectorAll("button[data-custom-button-index]")
+        .forEach(button => {
+            let longPressTimer = null;
+            let longPressTriggered = false;
+
+            const index = Number(button.dataset.customButtonIndex);
+
+            function clearLongPressTimer(){
+                if(longPressTimer){
+                    clearTimeout(longPressTimer);
+                    longPressTimer = null;
+                }
+            }
+
+            function beginLongPress(e){
+                longPressTriggered = false;
+                clearLongPressTimer();
+
+                longPressTimer = setTimeout(() => {
+                    longPressTriggered = true;
+
+                    if(navigator.vibrate){
+                        navigator.vibrate(35);
+                    }
+
+                    openCustomButtonActions(index);
+                }, 650);
+            }
+
+            function cancelLongPress(){
+                clearLongPressTimer();
+            }
+
+            button.addEventListener("pointerdown", beginLongPress);
+            button.addEventListener("pointercancel", cancelLongPress);
+            button.addEventListener("pointerleave", cancelLongPress);
+
+            button.addEventListener("pointerup", e => {
+                clearLongPressTimer();
+
+                if(longPressTriggered){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setTimeout(() => { longPressTriggered = false; }, 0);
+                }
+            });
+
+            button.onclick = e => {
+                if(longPressTriggered){
+                    e.preventDefault();
+                    e.stopPropagation();
+                    longPressTriggered = false;
+                    return;
+                }
+
+                const item = state.settings.customButtons[index];
+                if(!item) return;
+
+                const previousTarget = els.targetSelect.value;
+
+                if(item.target){
+                    els.targetSelect.value = item.target;
+                    updateTargetPickerDisplay();
+                }
+
+                sendCue(item.message || item.label || "Custom Cue", item.kind || "custom");
+
+                els.targetSelect.value = previousTarget;
+                updateTargetPickerDisplay();
+            };
+
+            button.oncontextmenu = e => {
+                e.preventDefault();
+                openCustomButtonActions(index);
+            };
+        });
+}
+
+function openCustomButtonActions(index){
+    const item = state.settings.customButtons[index];
+    if(!item) return;
+
+    state.customActionIndex = index;
+
+    if(els.customActionTitle){
+        els.customActionTitle.innerText = item.label || "Custom Button";
+    }
+
+    if(els.customActionOverlay){
+        els.customActionOverlay.classList.add("open");
+    }
+
+    if(els.customActionSheet){
+        els.customActionSheet.classList.add("open");
+    }
+}
+
+function closeCustomButtonActions(){
+    state.customActionIndex = null;
+
+    if(els.customActionOverlay){
+        els.customActionOverlay.classList.remove("open");
+    }
+
+    if(els.customActionSheet){
+        els.customActionSheet.classList.remove("open");
+    }
+}
+
+function renameSelectedCustomButton(){
+    const index = state.customActionIndex;
+    closeCustomButtonActions();
+
+    if(index === null || index === undefined){
+        return;
+    }
+
+    editCustomButton(index);
+}
+
+function deleteSelectedCustomButton(){
+    const index = state.customActionIndex;
+    const item = state.settings.customButtons[index];
+
+    if(!item){
+        closeCustomButtonActions();
+        return;
+    }
+
+    const sure = confirm(`Delete “${item.label || "Custom"}”?`);
+    if(!sure){
+        return;
+    }
+
+    state.settings.customButtons.splice(index, 1);
+    saveCustomButtons();
+    renderCustomButtons();
+    closeCustomButtonActions();
+}
+
+function addCustomButton(){
+    const label = prompt("Button label:", "Bridge");
+    if(!label || !label.trim()) return;
+
+    const message = prompt("Message to send:", label.trim().toUpperCase());
+    if(!message || !message.trim()) return;
+
+    const kind = prompt(
+        "Cue type: next, key, solo, vamp, cut, watch, custom",
+        getCueKindFromText(message)
+    ) || "custom";
+
+    state.settings.customButtons.push({
+        label:label.trim(),
+        message:message.trim(),
+        kind:String(kind || "custom").trim().toLowerCase(),
+        target:""
+    });
+
+    saveCustomButtons();
+    renderCustomButtons();
+}
+
+function editCustomButton(index){
+    const item = state.settings.customButtons[index];
+    if(!item) return;
+
+    const label = prompt("Button label:", item.label || "");
+    if(!label || !label.trim()) return;
+
+    const message = prompt("Message to send:", item.message || label.trim());
+    if(!message || !message.trim()) return;
+
+    const kind = prompt(
+        "Cue type: next, key, solo, vamp, cut, watch, custom",
+        item.kind || getCueKindFromText(message)
+    ) || "custom";
+
+    state.settings.customButtons[index] = {
+        ...item,
+        label:label.trim(),
+        message:message.trim(),
+        kind:String(kind || "custom").trim().toLowerCase()
+    };
+
+    saveCustomButtons();
+    renderCustomButtons();
+}
+
+function renderKeyCueBuilder(){
+    if(!els.keyCueNoteGrid || !els.keyCueControls) return;
+
+    els.keyCueNoteGrid.innerHTML = KEY_NOTES.map(note => `
+        <button type="button" data-key-note="${note}" class="${state.settings.key.note === note ? "active" : ""}">
+            ${note}
+        </button>
+    `).join("");
+
+    els.keyCueControls.innerHTML = `
+        <button type="button" data-key-accidental="b" class="${state.settings.key.accidental === "b" ? "active" : ""}">♭</button>
+        <button type="button" data-key-accidental="" class="${state.settings.key.accidental === "" ? "active" : ""}">♮</button>
+        <button type="button" data-key-accidental="#" class="${state.settings.key.accidental === "#" ? "active" : ""}">♯</button>
+        <button type="button" data-key-minor="false" class="${!state.settings.key.minor ? "active" : ""}">Major</button>
+        <button type="button" data-key-minor="true" class="${state.settings.key.minor ? "active" : ""}">Minor</button>
+        <button type="button" id="clearKeyCueSelection" class="ghost">Clear</button>
+    `;
+
+    els.keyCueNoteGrid
+        .querySelectorAll("button[data-key-note]")
+        .forEach(button => {
+            button.onclick = () => {
+                state.settings.key.note = button.dataset.keyNote;
+                renderKeyCueBuilder();
+            };
+        });
+
+    els.keyCueControls
+        .querySelectorAll("button[data-key-accidental]")
+        .forEach(button => {
+            button.onclick = () => {
+                state.settings.key.accidental = button.dataset.keyAccidental || "";
+                renderKeyCueBuilder();
+            };
+        });
+
+    els.keyCueControls
+        .querySelectorAll("button[data-key-minor]")
+        .forEach(button => {
+            button.onclick = () => {
+                state.settings.key.minor = button.dataset.keyMinor === "true";
+                renderKeyCueBuilder();
+            };
+        });
+
+    const clearBtn = document.getElementById("clearKeyCueSelection");
+    if(clearBtn){
+        clearBtn.onclick = () => {
+            state.settings.key = { note:"C", accidental:"", minor:false };
+            renderKeyCueBuilder();
+        };
+    }
+}
+
+function getCurrentKeyCueText(){
+    const accidental =
+        state.settings.key.accidental === "b"
+            ? "♭"
+            : (
+                state.settings.key.accidental === "#"
+                    ? "♯"
+                    : ""
+            );
+
+    return "KEY: " +
+        state.settings.key.note +
+        accidental +
+        (state.settings.key.minor ? "m" : "");
+}
+
+function sendKeyCue(){
+    sendCue(getCurrentKeyCueText(), "key");
+}
+
+function generateNewSessionCode(){
+    if(!els.sessionCodeInput) return;
+    els.sessionCodeInput.value = makeSessionCode();
+}
+
+function initBandCueV7(){
+    applyDisplayMode();
+    applyCueColours();
+    applyButtonColours();
+    renderKeyCueBuilder();
+    renderCustomButtons();
+    renderProfileSelect();
+    updateBandCueClock();
+    setInterval(updateBandCueClock, 1000);
+}
+
+
+/* AudioCue */
+function audioRef(path = ""){
+    return getSessionRef(path ? `audio/${path}` : "audio");
+}
+
+function setAudioStatus(text){
+    if(els.audioStatus){
+        els.audioStatus.innerText = text;
+    }
+}
+
+function saveAudioVolumes(){
+    localStorage.setItem("bandCueAudioVolumes", JSON.stringify(state.audio.volumes || {}));
+}
+
+function getAudioVolume(uid){
+    const value = Number(state.audio.volumes && state.audio.volumes[uid]);
+    return Number.isFinite(value) ? value : 1;
+}
+
+function setAudioVolume(uid, value){
+    const volume = Math.max(0, Math.min(1, Number(value)));
+    state.audio.volumes[uid] = volume;
+    saveAudioVolumes();
+
+    const audio = document.getElementById(`audioRemote_${uid}`);
+    if(audio){
+        audio.volume = state.audio.incomingMuted ? 0 : volume;
+    }
+
+    renderAudioMembers();
+}
+
+async function startAudioCue(){
+    if(state.audio.started){
+        setAudioStatus("AudioCue is already enabled. Hold the talk button to speak.");
+        return;
+    }
+
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        alert("This browser does not support microphone access for AudioCue.");
+        return;
+    }
+
+    try{
+        els.startAudioBtn.disabled = true;
+        setAudioStatus("Requesting microphone access...");
+
+        const stream = await navigator.mediaDevices.getUserMedia({
+            audio:{
+                echoCancellation:true,
+                noiseSuppression:true,
+                autoGainControl:true
+            },
+            video:false
+        });
+
+        stream.getAudioTracks().forEach(track => {
+            track.enabled = false;
+        });
+
+        state.audio.localStream = stream;
+        state.audio.started = true;
+
+        await set(audioRef(`participants/${state.uid}`), {
+            id:state.uid,
+            name:state.name,
+            instrument:state.instrument,
+            mode:state.mode,
+            online:true,
+            talking:false,
+            joinedAt:serverTimestamp(),
+            lastSeen:serverTimestamp()
+        });
+
+        onDisconnect(audioRef(`participants/${state.uid}`)).remove();
+        listenForAudioSignals();
+
+        const participants = state.sessionData && state.sessionData.audio && state.sessionData.audio.participants
+            ? state.sessionData.audio.participants
+            : {};
+
+        syncAudioParticipants(participants, state.sessionData && state.sessionData.members ? state.sessionData.members : {});
+
+        els.audioTalkBtn.classList.add("ready");
+        setAudioStatus("AudioCue enabled. Hold the talk button to speak.");
+        renderAudioMembers();
+
+    }catch(err){
+        console.error(err);
+        alert("Could not start AudioCue. Check microphone permission and try again.");
+        setAudioStatus("AudioCue could not start.");
+
+    }finally{
+        els.startAudioBtn.disabled = false;
+    }
+}
+
+async function stopAudioCue(){
+    stopTalking();
+
+    if(state.audio.unsubscribeSignals){
+        state.audio.unsubscribeSignals();
+        state.audio.unsubscribeSignals = null;
+    }
+
+    Object.keys(state.audio.peers).forEach(uid => closeAudioPeer(uid));
+    state.audio.peers = {};
+    state.audio.participants = {};
+    state.audio.processedSignals.clear();
+
+    if(state.audio.localStream){
+        state.audio.localStream.getTracks().forEach(track => track.stop());
+        state.audio.localStream = null;
+    }
+
+    if(state.uid && state.sessionCode){
+        try{
+            await remove(audioRef(`participants/${state.uid}`));
+            await remove(audioRef(`signals/${state.uid}`));
+        }catch(e){}
+    }
+
+    state.audio.started = false;
+    els.audioTalkBtn.classList.remove("ready", "talking");
+    els.audioTalkBtn.innerHTML = "HOLD<br>TO TALK";
+    setAudioStatus("AudioCue disabled.");
+    renderAudioMembers();
+}
+
+function syncAudioParticipants(participants, members){
+    state.audio.participants = participants || {};
+
+    if(state.audio.started){
+        Object.keys(state.audio.participants).forEach(uid => {
+            if(uid !== state.uid){
+                ensureAudioPeer(uid);
+            }
+        });
+
+        Object.keys(state.audio.peers).forEach(uid => {
+            if(!state.audio.participants[uid]){
+                closeAudioPeer(uid);
+            }
+        });
+    }
+
+    renderAudioMembers(members);
+}
+
+function renderAudioMembers(members = null){
+    if(!els.audioMemberList) return;
+
+    const allMembers = members || (state.sessionData && state.sessionData.members ? state.sessionData.members : {});
+    const participants = state.audio.participants || {};
+
+    const list = Object.values(allMembers || {}).sort((a,b) => {
+        if(a.id === state.uid) return -1;
+        if(b.id === state.uid) return 1;
+        if(a.mode === "leader" && b.mode !== "leader") return -1;
+        if(a.mode !== "leader" && b.mode === "leader") return 1;
+        return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+
+    if(!list.length){
+        els.audioMemberList.innerHTML = `<div class="small">No band mates connected yet.</div>`;
+        return;
+    }
+
+    els.audioMemberList.innerHTML = list.map(member => {
+        const uid = member.id;
+        const isSelf = uid === state.uid;
+        const participant = participants[uid] || null;
+        const ready = !!participant;
+        const talking = !!(participant && participant.talking);
+        const record = state.audio.peers[uid];
+        const connection = record && record.pc ? record.pc.connectionState : "";
+        const volume = getAudioVolume(uid);
+
+        return `
+            <div class="audioMember ${isSelf ? "self" : ""} ${talking ? "talking" : ""}">
+                <div>
+                    <div class="audioMemberName">
+                        ${escapeHtml(member.name || "Unknown")}${isSelf ? " (You)" : ""}${member.mode === "leader" ? " ⭐" : ""}
+                    </div>
+                    <div class="audioMemberMeta">
+                        ${escapeHtml(member.instrument || "Other")}
+                        • ${ready ? (talking ? "Talking" : "Audio ready") : "Audio not started"}
+                        ${connection && !isSelf ? " • " + escapeHtml(connection) : ""}
+                    </div>
+                </div>
+                <div class="audioVolumeWrap">
+                    ${isSelf ? `
+                        <div class="audioVolumeLabel">Your mic</div>
+                        <div class="small" style="text-align:right;">Push-to-talk only</div>
+                    ` : `
+                        <div class="audioVolumeLabel">Volume ${Math.round(volume * 100)}%</div>
+                        <input class="audioVolume" type="range" min="0" max="1" step="0.01" value="${volume}" data-audio-volume="${escapeAttr(uid)}">
+                    `}
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    els.audioMemberList.querySelectorAll("input[data-audio-volume]").forEach(input => {
+        input.oninput = () => setAudioVolume(input.dataset.audioVolume, input.value);
+    });
+
+    updateAudioButtons();
+}
+
+function updateAudioButtons(){
+    if(!els.startAudioBtn) return;
+    els.startAudioBtn.innerText = state.audio.started ? "AudioCue Enabled" : "Enable AudioCue";
+    els.stopAudioBtn.disabled = !state.audio.started;
+    els.muteAllAudioBtn.innerText = state.audio.incomingMuted ? "Unmute Incoming" : "Mute Incoming";
+}
+
+function ensureAudioPeer(remoteUid){
+    if(!state.audio.started || !state.audio.localStream || remoteUid === state.uid){
+        return null;
+    }
+
+    if(state.audio.peers[remoteUid]){
+        return state.audio.peers[remoteUid];
+    }
+
+    const pc = new RTCPeerConnection({
+        iceServers:[{ urls:"stun:stun.l.google.com:19302" }]
+    });
+
+    const record = { pc, remoteUid, offerSent:false };
+    state.audio.peers[remoteUid] = record;
+
+    state.audio.localStream.getTracks().forEach(track => {
+        pc.addTrack(track, state.audio.localStream);
+    });
+
+    pc.onicecandidate = event => {
+        if(event.candidate){
+            sendAudioSignal(remoteUid, {
+                type:"candidate",
+                candidate:event.candidate.toJSON ? event.candidate.toJSON() : event.candidate
+            });
+        }
+    };
+
+    pc.ontrack = event => {
+        const stream = event.streams && event.streams[0] ? event.streams[0] : new MediaStream([event.track]);
+        attachRemoteAudio(remoteUid, stream);
+    };
+
+    pc.onconnectionstatechange = () => renderAudioMembers();
+
+    if(String(state.uid) < String(remoteUid)){
+        setTimeout(() => createAudioOffer(remoteUid), 120);
+    }
+
+    return record;
+}
+
+async function createAudioOffer(remoteUid){
+    const record = state.audio.peers[remoteUid] || ensureAudioPeer(remoteUid);
+    if(!record || record.offerSent) return;
+
+    try{
+        record.offerSent = true;
+        const offer = await record.pc.createOffer();
+        await record.pc.setLocalDescription(offer);
+
+        await sendAudioSignal(remoteUid, {
+            type:"offer",
+            description:{ type:record.pc.localDescription.type, sdp:record.pc.localDescription.sdp }
+        });
+    }catch(err){
+        console.warn("Audio offer failed", err);
+        record.offerSent = false;
+    }
+}
+
+async function sendAudioSignal(targetUid, message){
+    if(!targetUid || !state.uid || !state.sessionCode) return;
+
+    const signalRef = push(audioRef(`signals/${targetUid}`));
+
+    await set(signalRef, {
+        ...message,
+        from:state.uid,
+        fromName:state.name,
+        createdAt:serverTimestamp(),
+        createdAtMs:Date.now()
+    });
+}
+
+function listenForAudioSignals(){
+    if(state.audio.unsubscribeSignals){
+        state.audio.unsubscribeSignals();
+    }
+
+    state.audio.unsubscribeSignals = onValue(audioRef(`signals/${state.uid}`), snapshot => {
+        const signals = snapshot.val() || {};
+
+        Object.entries(signals).forEach(([key, signal]) => {
+            if(!signal || state.audio.processedSignals.has(key)) return;
+            state.audio.processedSignals.add(key);
+            handleAudioSignal(key, signal);
+        });
+    });
+}
+
+async function handleAudioSignal(key, signal){
+    try{
+        if(!signal.from || signal.from === state.uid){
+            await remove(audioRef(`signals/${state.uid}/${key}`));
+            return;
+        }
+
+        if(!state.audio.started){
+            await remove(audioRef(`signals/${state.uid}/${key}`));
+            return;
+        }
+
+        const record = ensureAudioPeer(signal.from);
+        if(!record) return;
+
+        if(signal.type === "offer" && signal.description){
+            await record.pc.setRemoteDescription(new RTCSessionDescription(signal.description));
+            const answer = await record.pc.createAnswer();
+            await record.pc.setLocalDescription(answer);
+            await sendAudioSignal(signal.from, {
+                type:"answer",
+                description:{ type:record.pc.localDescription.type, sdp:record.pc.localDescription.sdp }
+            });
+        }
+
+        if(signal.type === "answer" && signal.description){
+            if(record.pc.signalingState !== "stable"){
+                await record.pc.setRemoteDescription(new RTCSessionDescription(signal.description));
+            }
+        }
+
+        if(signal.type === "candidate" && signal.candidate){
+            try{
+                await record.pc.addIceCandidate(new RTCIceCandidate(signal.candidate));
+            }catch(e){
+                console.warn("Could not add ICE candidate", e);
+            }
+        }
+
+    }catch(err){
+        console.warn("Audio signal error", err);
+
+    }finally{
+        try{ await remove(audioRef(`signals/${state.uid}/${key}`)); }catch(e){}
+    }
+}
+
+function attachRemoteAudio(remoteUid, stream){
+    let audio = document.getElementById(`audioRemote_${remoteUid}`);
+
+    if(!audio){
+        audio = document.createElement("audio");
+        audio.id = `audioRemote_${remoteUid}`;
+        audio.autoplay = true;
+        audio.playsInline = true;
+        audio.controls = false;
+        els.audioRemoteElements.appendChild(audio);
+    }
+
+    if(audio.srcObject !== stream){
+        audio.srcObject = stream;
+    }
+
+    audio.volume = state.audio.incomingMuted ? 0 : getAudioVolume(remoteUid);
+    audio.play().catch(() => setAudioStatus("Audio connected. If you cannot hear it, tap Enable AudioCue again or interact with the page once."));
+}
+
+function closeAudioPeer(remoteUid){
+    const record = state.audio.peers[remoteUid];
+    if(record && record.pc){
+        try{ record.pc.close(); }catch(e){}
+    }
+
+    delete state.audio.peers[remoteUid];
+
+    const audio = document.getElementById(`audioRemote_${remoteUid}`);
+    if(audio){
+        audio.srcObject = null;
+        audio.remove();
+    }
+}
+
+async function startTalking(){
+    if(!state.audio.started){
+        alert("Enable AudioCue first.");
+        return;
+    }
+
+    if(state.audio.talkActive) return;
+
+    state.audio.talkActive = true;
+
+    if(state.audio.localStream){
+        state.audio.localStream.getAudioTracks().forEach(track => {
+            track.enabled = true;
+        });
+    }
+
+    els.audioTalkBtn.classList.add("talking");
+    els.audioTalkBtn.innerHTML = "LIVE<br>MIC";
+
+    try{
+        await update(audioRef(`participants/${state.uid}`), {
+            talking:true,
+            lastSeen:serverTimestamp()
+        });
+    }catch(e){}
+}
+
+async function stopTalking(){
+    if(!state.audio.talkActive && (!state.audio.localStream || !state.audio.started)) return;
+
+    state.audio.talkActive = false;
+
+    if(state.audio.localStream){
+        state.audio.localStream.getAudioTracks().forEach(track => {
+            track.enabled = false;
+        });
+    }
+
+    if(els.audioTalkBtn){
+        els.audioTalkBtn.classList.remove("talking");
+        els.audioTalkBtn.innerHTML = "HOLD<br>TO TALK";
+    }
+
+    if(state.audio.started && state.uid && state.sessionCode){
+        try{
+            await update(audioRef(`participants/${state.uid}`), {
+                talking:false,
+                lastSeen:serverTimestamp()
+            });
+        }catch(e){}
+    }
+}
+
+function toggleIncomingMute(){
+    state.audio.incomingMuted = !state.audio.incomingMuted;
+
+    Object.keys(state.audio.peers).forEach(uid => {
+        const audio = document.getElementById(`audioRemote_${uid}`);
+        if(audio){
+            audio.volume = state.audio.incomingMuted ? 0 : getAudioVolume(uid);
+        }
+    });
+
+    renderAudioMembers();
+    setAudioStatus(state.audio.incomingMuted ? "Incoming AudioCue audio muted." : "Incoming AudioCue audio unmuted.");
+}
+
+function setActiveTab(tab){
+    state.activeTab = tab;
+
+    els.bandCueTab.classList.toggle("active", tab === "bandcue");
+    els.visualCueTab.classList.toggle("active", tab === "visual");
+    els.audioCueTab.classList.toggle("active", tab === "audio");
+
+    if(els.appPanel.classList.contains("hidden")){
+        alert("Create or join a BandCue session first.");
+        els.bandCueTab.classList.add("active");
+        els.visualCueTab.classList.remove("active");
+        els.audioCueTab.classList.remove("active");
+        state.activeTab = "bandcue";
+        return;
+    }
+
+    els.bandCueView.classList.toggle("hidden", tab !== "bandcue");
+    els.visualCueView.classList.toggle("hidden", tab !== "visual");
+    els.audioCueView.classList.toggle("hidden", tab !== "audio");
+
+    if(tab === "visual"){
+        setTimeout(() => {
+            resizeVisualCanvases();
+            redrawVisual();
+        }, 50);
+    }
+
+    if(tab === "audio"){
+        renderAudioMembers();
+    }
+}
+
+async function ensurePdfJs(){
+    if(pdfjsLib) return pdfjsLib;
+
+    pdfjsLib = await import("https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.min.mjs");
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.5.136/pdf.worker.min.mjs";
+
+    return pdfjsLib;
+}
+
+function visualRef(path = ""){
+    return getSessionRef(path ? `visual/${path}` : "visual");
+}
+
+function setVisualStatus(text){
+    if(els.visualStatus){
+        els.visualStatus.innerText = text;
+    }
+}
+
+function resizeVisualCanvases(){
+    const stage = els.visualStage;
+    if(!stage) return;
+
+    const rect = stage.getBoundingClientRect();
+    const cssWidth = Math.max(320, Math.floor(rect.width));
+    const cssHeight = Math.max(320, Math.floor(rect.height));
+    const ratio = window.devicePixelRatio || 1;
+
+    [els.pdfCanvas, els.drawCanvas].forEach(canvas => {
+        canvas.width = Math.floor(cssWidth * ratio);
+        canvas.height = Math.floor(cssHeight * ratio);
+        canvas.style.width = cssWidth + "px";
+        canvas.style.height = cssHeight + "px";
+    });
+
+    renderPdfBackground();
+    redrawVisual();
+}
+
+function clearCanvas(canvas, transparent = true){
+    const ctx = canvas.getContext("2d");
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if(!transparent){
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+async function renderPdfBackground(){
+    if(!els.pdfCanvas) return;
+
+    const ctx = els.pdfCanvas.getContext("2d");
+    clearCanvas(els.pdfCanvas, false);
+
+    const pdfInfo = state.visual.currentPdf;
+
+    if(!pdfInfo || !pdfInfo.url){
+        els.visualStage.classList.add("blank");
+        setVisualStatus("Blank visual page. Draw here and it will appear live on every connected Band Mate screen.");
+        return;
+    }
+
+    try{
+        els.visualStage.classList.remove("blank");
+        setVisualStatus("Loading PDF page...");
+
+        const pdfjs = await ensurePdfJs();
+        const pdf = await pdfjs.getDocument({ url:pdfInfo.url }).promise;
+        const pageNumber = Math.min(Math.max(1, Number(state.visual.pdfPage || 1)), pdf.numPages);
+        state.visual.pdfPageCount = pdf.numPages;
+        state.visual.pdfPage = pageNumber;
+        els.pdfPageInput.value = pageNumber;
+
+        const page = await pdf.getPage(pageNumber);
+        const unscaled = page.getViewport({ scale:1 });
+        const scale = Math.min(
+            els.pdfCanvas.width / unscaled.width,
+            els.pdfCanvas.height / unscaled.height
+        );
+        const viewport = page.getViewport({ scale });
+
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, els.pdfCanvas.width, els.pdfCanvas.height);
+
+        const offsetX = (els.pdfCanvas.width - viewport.width) / 2;
+        const offsetY = (els.pdfCanvas.height - viewport.height) / 2;
+
+        await page.render({
+            canvasContext:ctx,
+            viewport,
+            transform:[1,0,0,1,offsetX,offsetY]
+        }).promise;
+
+        setVisualStatus(
+            `${pdfInfo.name || "PDF"} • page ${pageNumber} of ${pdf.numPages}. Drawings sync live to all connected Band Mates.`
+        );
+
+    }catch(err){
+        console.error(err);
+        setVisualStatus("Could not load this PDF. The drawing layer still works.");
+    }
+}
+
+function renderVisualCue(visual){
+    state.visual.strokes = visual.strokes || {};
+
+    const pdf = visual.pdf || null;
+    const page = Number(visual.pdfPage || 1);
+    const changedPdf = JSON.stringify(pdf || {}) !== JSON.stringify(state.visual.currentPdf || {});
+    const changedPage = page !== state.visual.pdfPage;
+
+    state.visual.currentPdf = pdf;
+    state.visual.pdfPage = page;
+
+    if(changedPdf || changedPage){
+        renderPdfBackground();
+    }
+
+    redrawVisual();
+}
+
+function redrawVisual(){
+    if(!els.drawCanvas) return;
+
+    const ctx = els.drawCanvas.getContext("2d");
+    clearCanvas(els.drawCanvas, true);
+
+    const activePage = Number(state.visual.pdfPage || 1);
+
+    const strokes = Object.values(state.visual.strokes || {})
+        .filter(stroke => Number(stroke.page || 1) === activePage)
+        .sort((a,b) => Number(a.createdAtMs || 0) - Number(b.createdAtMs || 0));
+
+    strokes.forEach(stroke => drawStroke(ctx, stroke));
+}
+
+function drawStroke(ctx, stroke){
+    const points = stroke.points || [];
+    if(points.length < 2) return;
+
+    const w = els.drawCanvas.width;
+    const h = els.drawCanvas.height;
+
+    ctx.save();
+    ctx.lineCap = "round";
+    ctx.lineJoin = "round";
+    ctx.strokeStyle = stroke.tool === "eraser" ? "rgba(0,0,0,1)" : (stroke.colour || "#38bdf8");
+    ctx.lineWidth = Number(stroke.width || 6) * (window.devicePixelRatio || 1);
+
+    if(stroke.tool === "eraser"){
+        ctx.globalCompositeOperation = "destination-out";
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(points[0].x * w, points[0].y * h);
+
+    for(let i = 1; i < points.length; i++){
+        ctx.lineTo(points[i].x * w, points[i].y * h);
+    }
+
+    ctx.stroke();
+    ctx.restore();
+}
+
+function pointerToVisualPoint(event){
+    const rect = els.drawCanvas.getBoundingClientRect();
+    const x = (event.clientX - rect.left) / rect.width;
+    const y = (event.clientY - rect.top) / rect.height;
+
+    return {
+        x:Math.min(1, Math.max(0, x)),
+        y:Math.min(1, Math.max(0, y))
+    };
+}
+
+function beginVisualDraw(event){
+    if(els.visualCueView.classList.contains("hidden")) return;
+
+    event.preventDefault();
+    els.drawCanvas.setPointerCapture(event.pointerId);
+
+    state.visual.drawing = true;
+    state.visual.currentStroke = {
+        id:"local_" + Date.now(),
+        tool:state.visual.tool,
+        colour:state.visual.colour,
+        width:state.visual.width,
+        byId:state.uid,
+        byName:state.name,
+        page:Number(state.visual.pdfPage || 1),
+        points:[pointerToVisualPoint(event)],
+        createdAtMs:Date.now()
+    };
+}
+
+function moveVisualDraw(event){
+    if(!state.visual.drawing || !state.visual.currentStroke) return;
+
+    event.preventDefault();
+    const point = pointerToVisualPoint(event);
+    const points = state.visual.currentStroke.points;
+    const last = points[points.length - 1];
+
+    const dx = point.x - last.x;
+    const dy = point.y - last.y;
+
+    if(Math.sqrt(dx * dx + dy * dy) < 0.002){
+        return;
+    }
+
+    points.push(point);
+
+    const ctx = els.drawCanvas.getContext("2d");
+    drawStroke(ctx, {
+        ...state.visual.currentStroke,
+        points:[last, point]
+    });
+}
+
+async function endVisualDraw(event){
+    if(!state.visual.drawing || !state.visual.currentStroke) return;
+
+    event.preventDefault();
+    state.visual.drawing = false;
+
+    const stroke = state.visual.currentStroke;
+    state.visual.currentStroke = null;
+
+    if((stroke.points || []).length < 2){
+        return;
+    }
+
+    const newRef = push(visualRef("strokes"));
+    stroke.id = newRef.key;
+    stroke.createdAt = serverTimestamp();
+    stroke.createdAtMs = Date.now();
+
+    await set(newRef, stroke);
+}
+
+function setVisualTool(tool){
+    state.visual.tool = tool;
+    els.penToolBtn.classList.toggle("active", tool === "pen");
+    els.eraserToolBtn.classList.toggle("active", tool === "eraser");
+    els.penToolBtn.classList.toggle("ghost", tool !== "pen");
+    els.eraserToolBtn.classList.toggle("ghost", tool !== "eraser");
+}
+
+function setVisualWidth(width){
+    state.visual.width = width;
+    els.thinPenBtn.classList.toggle("active", width === 3);
+    els.mediumPenBtn.classList.toggle("active", width === 6);
+    els.thickPenBtn.classList.toggle("active", width === 12);
+    els.thinPenBtn.classList.toggle("ghost", width !== 3);
+    els.mediumPenBtn.classList.toggle("ghost", width !== 6);
+    els.thickPenBtn.classList.toggle("ghost", width !== 12);
+}
+
+async function uploadVisualPdf(file){
+    if(!file) return;
+
+    if(!storage){
+        alert("Firebase Storage is not available yet.");
+        return;
+    }
+
+    if(file.type !== "application/pdf" && !file.name.toLowerCase().endsWith(".pdf")){
+        alert("Please choose a PDF file.");
+        return;
+    }
+
+    try{
+        setVisualStatus("Uploading PDF...");
+
+        const safeName = file.name.replace(/[^a-z0-9._-]/gi, "_");
+        const path = `bandCueSessions/${state.sessionCode}/visual/${Date.now()}_${safeName}`;
+        const fileRef = storageRef(storage, path);
+
+        await uploadBytes(fileRef, file, {
+            contentType:"application/pdf"
+        });
+
+        const url = await getDownloadURL(fileRef);
+
+        await update(visualRef(), {
+            pdf:{
+                name:file.name,
+                url,
+                path,
+                uploadedBy:state.name,
+                uploadedAtMs:Date.now()
+            },
+            pdfPage:1
+        });
+
+        setVisualStatus("PDF uploaded. Loading page...");
+
+    }catch(err){
+        console.error(err);
+        alert(
+            "Could not upload PDF.\n\n" +
+            (err.code ? err.code + "\n\n" : "") +
+            (err.message || String(err))
+        );
+    }
+}
+
+async function setVisualPdfPage(page){
+    page = Math.max(1, Number(page || 1));
+
+    if(state.visual.pdfPageCount){
+        page = Math.min(page, state.visual.pdfPageCount);
+    }
+
+    await update(visualRef(), {
+        pdfPage:page
+    });
+}
+
+async function undoVisualStroke(){
+    const page = Number(state.visual.pdfPage || 1);
+    const strokes = state.visual.strokes || {};
+
+    let candidates = Object.entries(strokes)
+        .filter(([key, stroke]) =>
+            Number(stroke.page || 1) === page &&
+            stroke.byId === state.uid
+        );
+
+    if(candidates.length === 0){
+        candidates = Object.entries(strokes)
+            .filter(([key, stroke]) =>
+                Number(stroke.page || 1) === page
+            );
+    }
+
+    if(candidates.length === 0){
+        setVisualStatus("Nothing to undo on this VisualCue page.");
+        return;
+    }
+
+    candidates.sort((a,b) =>
+        Number(b[1].createdAtMs || 0) -
+        Number(a[1].createdAtMs || 0)
+    );
+
+    await remove(visualRef(`strokes/${candidates[0][0]}`));
+    setVisualStatus("Last VisualCue stroke undone.");
+}
+
+async function clearVisualDrawing(){
+    const page = Number(state.visual.pdfPage || 1);
+    const sure = confirm("Clear the VisualCue drawing layer on this page for everyone?");
+    if(!sure) return;
+
+    const strokes = state.visual.strokes || {};
+    const removals = Object.entries(strokes)
+        .filter(([key, stroke]) => Number(stroke.page || 1) === page)
+        .map(([key]) => remove(visualRef(`strokes/${key}`)));
+
+    await Promise.all(removals);
+}
+
+async function blankVisualPage(){
+    const sure = confirm("Clear the PDF and drawing layer for everyone?");
+    if(!sure) return;
+
+    await remove(visualRef());
+    state.visual.currentPdf = null;
+    state.visual.pdfPage = 1;
+    state.visual.pdfPageCount = 0;
+    state.visual.strokes = {};
+    renderPdfBackground();
+    redrawVisual();
+}
+
+
+els.bandCueTab.onclick = () => setActiveTab("bandcue");
+els.visualCueTab.onclick = () => setActiveTab("visual");
+els.audioCueTab.onclick = () => setActiveTab("audio");
+
+if(els.targetPickerBtn){
+    els.targetPickerBtn.onclick = e => {
+        e.stopPropagation();
+        if(els.targetPickerMenu){
+            els.targetPickerMenu.classList.toggle("hidden");
+        }
+    };
+}
+
+if(els.targetPicker){
+    els.targetPicker.addEventListener("click", e => e.stopPropagation());
+}
+
+document.addEventListener("click", closeTargetPicker);
+
+els.uploadPdfBtn.onclick = () => els.pdfUploadInput.click();
+els.pdfUploadInput.onchange = e => uploadVisualPdf(e.target.files && e.target.files[0]);
+els.prevPdfPageBtn.onclick = () => setVisualPdfPage(Number(state.visual.pdfPage || 1) - 1);
+els.nextPdfPageBtn.onclick = () => setVisualPdfPage(Number(state.visual.pdfPage || 1) + 1);
+els.pdfPageInput.addEventListener("change", () => setVisualPdfPage(els.pdfPageInput.value));
+els.penToolBtn.onclick = () => setVisualTool("pen");
+els.eraserToolBtn.onclick = () => setVisualTool("eraser");
+els.thinPenBtn.onclick = () => setVisualWidth(3);
+els.mediumPenBtn.onclick = () => setVisualWidth(6);
+els.thickPenBtn.onclick = () => setVisualWidth(12);
+els.undoVisualBtn.onclick = undoVisualStroke;
+els.clearVisualBtn.onclick = clearVisualDrawing;
+els.blankVisualBtn.onclick = blankVisualPage;
+
+els.colourSwatch.querySelectorAll("button[data-colour]").forEach(button => {
+    button.onclick = () => {
+        state.visual.colour = button.dataset.colour;
+        els.colourSwatch.querySelectorAll("button").forEach(b => b.classList.remove("active"));
+        button.classList.add("active");
+        setVisualTool("pen");
+    };
+});
+
+[els.visualStage, els.drawCanvas, els.pdfCanvas].forEach(el => {
+    if(!el) return;
+
+    ["contextmenu", "selectstart", "dragstart"].forEach(eventName => {
+        el.addEventListener(eventName, e => e.preventDefault());
+    });
+});
+
+["touchstart", "touchmove"].forEach(eventName => {
+    els.drawCanvas.addEventListener(eventName, e => {
+        if(!els.visualCueView.classList.contains("hidden")){
+            e.preventDefault();
+        }
+    }, { passive:false });
+});
+
+els.drawCanvas.addEventListener("pointerdown", beginVisualDraw);
+els.drawCanvas.addEventListener("pointermove", moveVisualDraw);
+els.drawCanvas.addEventListener("pointerup", endVisualDraw);
+els.drawCanvas.addEventListener("pointercancel", endVisualDraw);
+window.addEventListener("resize", () => {
+    if(!els.visualCueView.classList.contains("hidden")){
+        resizeVisualCanvases();
+    }
+});
+
+els.leaderModeBtn.onclick = () => setMode("leader");
+els.receiverModeBtn.onclick = () => setMode("receiver");
+els.connectBtn.onclick = connect;
+
+els.sendCustomCueBtn.onclick = () => sendCue(els.customCueInput.value);
+els.clearCueBtn.onclick = clearCue;
+els.clearHistoryBtn.onclick = clearHistory;
+els.endSessionBtn.onclick = endSession;
+
+els.sendNextSongBtn.onclick = () => {
+    const song = cleanText(els.nextSongInput.value);
+
+    if(!song){
+        alert("Enter the next song first.");
+        return;
+    }
+
+    sendCue("NEXT:\n" + song, "next");
+    els.nextSongInput.value = "";
+};
+
+els.nextSongInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){
+        e.preventDefault();
+        els.sendNextSongBtn.click();
+    }
+});
+
+document.querySelectorAll("[data-cue]").forEach(button => {
+    button.onclick = () => sendCue(button.dataset.cue, button.dataset.kind || "");
+});
+
+document.querySelectorAll("[data-reply]").forEach(button => {
+    button.onclick = () => sendReply(button.dataset.reply);
+});
+
+els.sendCustomReplyBtn.onclick = () => sendReply(els.customReplyInput.value);
+
+els.customReplyInput.addEventListener("keydown", e => {
+    if(e.key === "Enter"){
+        e.preventDefault();
+        sendReply(els.customReplyInput.value);
+    }
+});
+
+els.copyJoinLinkBtn.onclick = copyJoinLink;
+els.wakeLockBtn.onclick = toggleWakeLock;
+els.leaveBtn.onclick = leaveSession;
+els.flashToggleBtn.onclick = toggleFlash;
+
+els.startAudioBtn.onclick = startAudioCue;
+els.stopAudioBtn.onclick = stopAudioCue;
+els.muteAllAudioBtn.onclick = toggleIncomingMute;
+
+els.audioTalkBtn.addEventListener("pointerdown", e => {
+    e.preventDefault();
+    startTalking();
+});
+
+["pointerup", "pointercancel", "pointerleave"].forEach(eventName => {
+    els.audioTalkBtn.addEventListener(eventName, e => {
+        e.preventDefault();
+        stopTalking();
+    });
+});
+
+els.audioTalkBtn.addEventListener("contextmenu", e => e.preventDefault());
+
+window.addEventListener("blur", () => {
+    stopTalking();
+});
+
+
+
+/* BandCue v7 wiring */
+if(els.newSessionCodeBtn){
+    els.newSessionCodeBtn.onclick = generateNewSessionCode;
+}
+
+if(els.settingsBtn){
+    els.settingsBtn.onclick = openSettings;
+}
+
+if(els.closeSettingsBtn){
+    els.closeSettingsBtn.onclick = closeSettings;
+}
+
+if(els.settingsOverlay){
+    els.settingsOverlay.onclick = closeSettings;
+}
+
+if(els.settingsPanel){
+    els.settingsPanel.addEventListener("click", e => e.stopPropagation());
+}
+
+document.querySelectorAll("button[data-display-mode]").forEach(button => {
+    button.onclick = () => {
+        state.settings.displayMode = button.dataset.displayMode || "dark";
+        applyDisplayMode();
+    };
+});
+
+document.querySelectorAll("input[data-cue-colour]").forEach(input => {
+    input.oninput = () => {
+        const kind = input.dataset.cueColour;
+        state.settings.cueColours[kind] = input.value;
+        saveCueColours();
+    };
+});
+
+document.querySelectorAll("input[data-button-colour]").forEach(input => {
+    input.oninput = () => {
+        const kind = input.dataset.buttonColour;
+        state.settings.buttonColours[kind] = input.value;
+        saveButtonColours();
+    };
+});
+
+if(els.saveProfileBtn){ els.saveProfileBtn.onclick = saveProfile; }
+if(els.loadProfileBtn){ els.loadProfileBtn.onclick = loadSelectedProfile; }
+if(els.deleteProfileBtn){ els.deleteProfileBtn.onclick = deleteSelectedProfile; }
+if(els.exportProfileBtn){ els.exportProfileBtn.onclick = exportSelectedProfile; }
+if(els.importProfileBtn){ els.importProfileBtn.onclick = () => els.importProfileInput && els.importProfileInput.click(); }
+if(els.importProfileInput){ els.importProfileInput.onchange = e => importProfileFile(e.target.files && e.target.files[0]); }
+if(els.resetCuesBtn){ els.resetCuesBtn.onclick = resetCuesToDefault; }
+if(els.resetAppBtn){ els.resetAppBtn.onclick = resetBandCueApp; }
+if(els.addCustomButtonBtn){ els.addCustomButtonBtn.onclick = addCustomButton; }
+if(els.settingsAddCustomButtonBtn){ els.settingsAddCustomButtonBtn.onclick = addCustomButton; }
+if(els.sendKeyCueBtn){ els.sendKeyCueBtn.onclick = sendKeyCue; }
+
+document.querySelectorAll(".settingsCollapseBtn[data-collapse-target]").forEach(button => {
+    button.onclick = () => {
+        const target = document.getElementById(button.dataset.collapseTarget);
+        const shouldOpen = !(target && target.classList.contains("open"));
+
+        button.classList.toggle("open", shouldOpen);
+
+        if(target){
+            target.classList.toggle("open", shouldOpen);
+        }
+    };
+});
+
+if(els.customActionOverlay){ els.customActionOverlay.onclick = closeCustomButtonActions; }
+if(els.cancelCustomActionBtn){ els.cancelCustomActionBtn.onclick = closeCustomButtonActions; }
+if(els.renameCustomButtonBtn){ els.renameCustomButtonBtn.onclick = renameSelectedCustomButton; }
+if(els.deleteCustomButtonBtn){ els.deleteCustomButtonBtn.onclick = deleteSelectedCustomButton; }
+
+if(hasFirebaseConfig){
+    onAuthStateChanged(auth, user => {
+        if(user){
+            state.uid = user.uid;
+            updateConnectionBadge("Signed in", true);
+        }else{
+            updateConnectionBadge("Offline", false);
+        }
+    });
+}
+
+document.addEventListener("visibilitychange", async () => {
+    if(document.visibilityState !== "visible"){
+        stopTalking();
+    }
+
+    if(document.visibilityState === "visible" && state.uid && state.sessionCode){
+        try{
+            await update(getSessionRef(`members/${state.uid}`), {
+                online:true,
+                lastSeen:serverTimestamp()
+            });
+        }catch(e){}
+    }
+});
+
+initBandCueV7();
+restoreFromUrlOrStorage();
+updateFlashButton();
+updateAudioButtons();
+renderAudioMembers();
+</script>
+</body>
+</html>
