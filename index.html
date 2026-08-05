@@ -1471,6 +1471,16 @@ a{
     color:#fca5a5;
 }
 
+.chip.eventDoNotPlayChip.active{
+    background:#ef4444;
+    color:#ffffff;
+    box-shadow:inset 0 0 0 1px #dc2626;
+}
+
+.chip.eventDoNotPlayChip.active::before{
+    color:#ffffff;
+}
+
 .chip.eventMustPlayFilterChip{
     background:#422006;
     color:#fde68a;
@@ -4096,6 +4106,7 @@ let eventSelectionDoNotPlayIds = new Set();
 
 let eventSelectionSource = "";
 let mustPlayOnlyActive = false;
+let doNotPlayOnlyActive = false;
 
 function normaliseEventText(value){
 
@@ -4120,8 +4131,9 @@ function loadEventSelectionFromStorage(){
     eventSelectionIds = new Set();
     eventSelectionMustIds = new Set();
     eventSelectionDoNotPlayIds = new Set();
-    eventSelectionSource = "";
+       eventSelectionSource = "";
     mustPlayOnlyActive = false;
+    doNotPlayOnlyActive = false;
 
     try{
 
@@ -4151,6 +4163,8 @@ function loadEventSelectionFromStorage(){
 
 mustPlayOnlyActive =
     saved.mustPlayOnlyActive === true;
+            doNotPlayOnlyActive =
+    saved.doNotPlayOnlyActive === true;
         }
 
     }catch(e){
@@ -4172,6 +4186,9 @@ function saveEventSelection(){
 
     eventSelection.mustPlayOnlyActive =
         mustPlayOnlyActive === true;
+
+    eventSelection.doNotPlayOnlyActive =
+        doNotPlayOnlyActive === true;
 
     localStorage.setItem(
         "eventSelection",
@@ -4364,6 +4381,17 @@ function showEventSongList(label, idsSet){
 function getBaseSongsForView(){
 
     if(
+        doNotPlayOnlyActive &&
+        eventSelectionDoNotPlayIds.size > 0
+    ){
+        return songs.filter(song =>
+            [...eventSelectionDoNotPlayIds].some(id =>
+                songMatchesStoredId(song, id)
+            )
+        );
+    }
+
+    if(
         !eventSelection ||
         eventSelectionIds.size === 0
     ){
@@ -4517,6 +4545,10 @@ if(
         mustPlayOnlyActive =
             !mustPlayOnlyActive;
 
+        if(mustPlayOnlyActive){
+            doNotPlayOnlyActive = false;
+        }
+
         saveEventSelection();
 
         render();
@@ -4536,20 +4568,34 @@ if(eventSelectionDoNotPlayIds.size > 0){
         noChip.className =
             "chip eventDoNotPlayChip";
 
+        if(doNotPlayOnlyActive){
+            noChip.classList.add("active");
+        }
+
         noChip.title =
-            "Tap to view Do Not Play songs";
+            doNotPlayOnlyActive
+            ? "Tap to return to Like and Must Play songs"
+            : "Tap to show only Do Not Play songs";
 
         noChip.innerText =
-            `${eventSelectionDoNotPlayIds.size}`;
+            doNotPlayOnlyActive
+            ? `${eventSelectionDoNotPlayIds.size} only`
+            : `${eventSelectionDoNotPlayIds.size}`;
 
         noChip.onclick = e => {
 
             e.stopPropagation();
 
-            showEventSongList(
-                "Do Not Play",
-                eventSelectionDoNotPlayIds
-            );
+            doNotPlayOnlyActive =
+                !doNotPlayOnlyActive;
+
+            if(doNotPlayOnlyActive){
+                mustPlayOnlyActive = false;
+            }
+
+            saveEventSelection();
+
+            render();
         };
 
         chipContainer.appendChild(noChip);
@@ -4853,6 +4899,9 @@ eventSelectionSource =
 mustPlayOnlyActive =
     false;
 
+doNotPlayOnlyActive =
+    false;
+
 saveEventSelection();
 
     resetFiltersForEventSelection();
@@ -5060,6 +5109,7 @@ function clearEventSelection(){
     eventSelectionDoNotPlayIds = new Set();
     eventSelectionSource = "";
     mustPlayOnlyActive = false;
+    doNotPlayOnlyActive = false;
 
     localStorage.removeItem("eventSelection");
 
@@ -5071,6 +5121,7 @@ function clearEventSelection(){
 function resetFiltersForEventSelection(){
     
 mustPlayOnlyActive = false;
+doNotPlayOnlyActive = false;
     
     activeFilters.clear();
     activeDecades.clear();
@@ -8148,6 +8199,7 @@ function closeSetlist(){
         );
 
     if(
+        !doNotPlayOnlyActive &&
         mustPlayOnlyActive &&
         eventSelectionSource === "clientToken" &&
         eventSelectionMustIds.size > 0
