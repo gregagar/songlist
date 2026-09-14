@@ -3170,41 +3170,38 @@ body.theme-day .decadeChip[data-decade="00s"]{
     width:38px;
     min-width:38px;
     height:38px;
-    padding:0;
+    padding:0 !important;
     display:flex;
     align-items:center;
     justify-content:center;
-    border:0;
-    border-radius:9px;
+    border:0 !important;
+    border-radius:0 !important;
     line-height:1;
-    overflow:hidden;
-    background:transparent;
-    box-shadow:none;
+    overflow:visible;
+    background:transparent !important;
+    box-shadow:none !important;
+    -webkit-appearance:none;
+    appearance:none;
 }
 
-.appLaunchBtn img{
-    width:38px;
-    height:38px;
+.appLaunchBtn .appLogoSvg{
+    width:32px;
+    height:32px;
     display:block;
-    object-fit:cover;
-    border-radius:9px;
+    overflow:visible;
+    filter:drop-shadow(0 2px 3px rgba(0,0,0,.28));
 }
 
 .appLaunchBtn:active{
-    background:transparent;
-    box-shadow:none;
+    background:transparent !important;
+    box-shadow:none !important;
+    transform:scale(.92);
 }
 
-.appLaunchFallback{
-    width:100%;
-    height:100%;
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    font-size:10px;
-    font-weight:900;
-    color:var(--theme-button-text);
-}
+/* Logo-only launch marks: deliberately no app-tile/square background. */
+#openForScore .appLogoSvg{ color:#35c7df; }
+#openOnSong .appLogoSvg{ color:#cbd5e1; }
+#openSheetMusicDirect .appLogoSvg{ color:#f97316; }
 
 #simplifyGenresBtn.active{
     background:var(--theme-accent) !important;
@@ -3452,16 +3449,20 @@ body.theme-day #birthdayBtn.active{
 <div id="statusActions">
 <div id="quickAppDock" aria-label="Open music apps">
     <button class="appLaunchBtn" data-app="forscore" id="openForScore" type="button" title="Open forScore" aria-label="Open forScore">
-        <img src="https://forscore.co/images/press/icon_rounded.png" alt="" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
-        <span class="appLaunchFallback" hidden>fS</span>
+        <svg class="appLogoSvg" viewBox="0 0 64 64" aria-hidden="true">
+            <text x="32" y="47" text-anchor="middle" font-family="Georgia, 'Times New Roman', serif" font-size="50" font-weight="700" font-style="italic" fill="currentColor">ƒs</text>
+        </svg>
     </button>
     <button class="appLaunchBtn" data-app="onsong" id="openOnSong" type="button" title="Open OnSong" aria-label="Open OnSong">
-        <img src="https://d2c0db5b8fb27c1c9887-9b32efc83a6b298bb22e7a1df0837426.ssl.cf2.rackcdn.com/24265671-onsong-o-icon-1020x1024.png" alt="" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
-        <span class="appLaunchFallback" hidden>On</span>
+        <svg class="appLogoSvg" viewBox="0 0 64 64" aria-hidden="true">
+            <ellipse cx="32" cy="32" rx="22" ry="19" fill="none" stroke="currentColor" stroke-width="11" transform="rotate(-12 32 32)"/>
+        </svg>
     </button>
     <button class="appLaunchBtn" data-app="sheetmusicdirect" id="openSheetMusicDirect" type="button" title="Open Sheet Music Direct" aria-label="Open Sheet Music Direct">
-        <img src="https://fastly.mwm-storage.mwmcdn.com/raw_files/afc27bec-643b-4dc2-a515-23670339c10a" alt="" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
-        <span class="appLaunchFallback" hidden>SMD</span>
+        <svg class="appLogoSvg" viewBox="0 0 64 64" aria-hidden="true">
+            <path d="M36 13v31.5a10 10 0 1 1-5-8.65V16.5c0-2.2 1.8-4 4-4h2.5c1.1 0 2 .9 2 2v8.2l10.2-7.4c1.45-1.05 3.5-.02 3.5 1.78v8.1c0 .7-.34 1.36-.92 1.77L39.5 36V13H36z" fill="currentColor"/>
+            <path d="M7 22h17M11 32h13M6 42h17" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round"/>
+        </svg>
     </button>
 </div>
 <div id="settingsWrap">
