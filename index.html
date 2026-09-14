@@ -515,6 +515,21 @@ flex:0 0 145px;
     color:black;
     font-weight:600;
 }
+
+#filterBackChip{
+    min-width:34px;
+    text-align:center;
+    font-size:18px;
+    font-weight:900;
+    opacity:.28;
+    pointer-events:none;
+}
+
+#filterBackChip.available{
+    opacity:1;
+    pointer-events:auto;
+    color:var(--theme-accent);
+}
 .chip.decadeChip{
     color:#fff;
     font-weight:700;
@@ -3931,6 +3946,16 @@ let tempoToolsVisible =
     localStorage.getItem("songFinderTempoToolsVisible") !== "false";
 let simplifyGenres =
     localStorage.getItem("songFinderSimplifyGenres") === "true";
+
+// Temporary “More Like This” drill-down. Each triple-tap saves the
+// current filter state so the Back chip can restore it exactly.
+let moreLikeThisState = null;
+const moreLikeThisHistory = [];
+const MORE_LIKE_THIS_BPM_RANGE = 8;
+// The requested example (1972 -> 1967–1977) is a 10-year window centred
+// on the selected song, so use five years either side.
+const MORE_LIKE_THIS_YEAR_RANGE = 5;
+
 let autoScrollSpeed =
     Number(
         localStorage.getItem("autoScrollSpeed") || 40
@@ -4092,6 +4117,251 @@ function updateSimplifyGenresButton(){
         simplifyGenres
         ? "Simplify Genres: On"
         : "Simplify Genres: Off";
+}
+
+
+function cloneMoreLikeThisState(state){
+
+    return state
+        ? { ...state }
+        : null;
+}
+
+function captureSongFinderFilterState(){
+
+    return {
+        activeFilters:[...activeFilters],
+        activeDecades:[...activeDecades],
+        artistFilter,
+        genreFilter,
+        countryFilter,
+        yearFilter,
+        bpmFilter,
+        currentQuery,
+        hidePlayed,
+        moreLikeThisState:
+            cloneMoreLikeThisState(moreLikeThisState)
+    };
+}
+
+function restoreSongFinderFilterState(state){
+
+    if(!state) return;
+
+    activeFilters.clear();
+    (state.activeFilters || []).forEach(filter =>
+        activeFilters.add(filter)
+    );
+
+    activeDecades.clear();
+    (state.activeDecades || []).forEach(decade =>
+        activeDecades.add(decade)
+    );
+
+    artistFilter = state.artistFilter || "";
+    genreFilter = state.genreFilter || "";
+    countryFilter = state.countryFilter || "";
+    yearFilter = state.yearFilter || "";
+    bpmFilter =
+        state.bpmFilter === null ||
+        state.bpmFilter === undefined
+            ? null
+            : Number(state.bpmFilter);
+
+    currentQuery = state.currentQuery || "";
+    hidePlayed = !!state.hidePlayed;
+    moreLikeThisState =
+        cloneMoreLikeThisState(state.moreLikeThisState);
+
+    const search =
+        document.getElementById("search");
+
+    if(search){
+        search.value = currentQuery;
+    }
+
+    updateHidePlayedButton();
+    buildChips();
+    syncGenreDropdown();
+    render();
+}
+
+function updateFilterBackChip(){
+
+    const back =
+        document.getElementById("filterBackChip");
+
+    if(!back) return;
+
+    const available =
+        moreLikeThisHistory.length > 0;
+
+    back.classList.toggle(
+        "available",
+        available
+    );
+
+    back.setAttribute(
+        "aria-disabled",
+        available ? "false" : "true"
+    );
+
+    back.title = available
+        ? "Back to the previous filter selection"
+        : "No previous filter selection";
+}
+
+function goBackOneFilterStep(){
+
+    if(moreLikeThisHistory.length === 0){
+        return;
+    }
+
+    const previous =
+        moreLikeThisHistory.pop();
+
+    restoreSongFinderFilterState(previous);
+}
+
+function getMoreLikeThisDecades(minYear, maxYear){
+
+    const result = [];
+
+    decadeFilters.forEach(decade => {
+
+        let start;
+        let end;
+
+        if(decade === "Newer"){
+            start = 2020;
+            end = getCurrentYear();
+        }else{
+
+            const match =
+                String(decade).match(/^(\d{2})s$/);
+
+            if(!match) return;
+
+            const n = Number(match[1]);
+
+            start =
+                n >= 60
+                    ? 1900 + n
+                    : 2000 + n;
+
+            end = start + 9;
+        }
+
+        if(start <= maxYear && end >= minYear){
+            result.push(decade);
+        }
+    });
+
+    return result;
+}
+
+function passesMoreLikeThis(song){
+
+    if(!moreLikeThisState){
+        return true;
+    }
+
+    const year =
+        Number(song.Year || 0);
+
+    const bpm =
+        Number(song.Tempo || 0);
+
+    if(!year || !bpm){
+        return false;
+    }
+
+    if(
+        year < moreLikeThisState.minYear ||
+        year > moreLikeThisState.maxYear
+    ){
+        return false;
+    }
+
+    if(
+        bpm < moreLikeThisState.minBpm ||
+        bpm > moreLikeThisState.maxBpm
+    ){
+        return false;
+    }
+
+    const rawGenre =
+        String((song && song.Genre) || "").trim();
+
+    const comparisonGenre =
+        moreLikeThisState.genreModeSimplified
+            ? simplifyGenreName(rawGenre)
+            : rawGenre;
+
+    return (
+        comparisonGenre ===
+        moreLikeThisState.genre
+    );
+}
+
+function applyMoreLikeThis(song){
+
+    const year =
+        Number(song && song.Year);
+
+    const bpm =
+        Number(song && song.Tempo);
+
+    const genre =
+        getSongGenreForView(song);
+
+    if(!year || !bpm || !genre){
+        return;
+    }
+
+    moreLikeThisHistory.push(
+        captureSongFinderFilterState()
+    );
+
+    moreLikeThisState = {
+        songId:getSongId(song),
+        genre,
+        genreModeSimplified:simplifyGenres,
+        minBpm:bpm - MORE_LIKE_THIS_BPM_RANGE,
+        maxBpm:bpm + MORE_LIKE_THIS_BPM_RANGE,
+        minYear:year - MORE_LIKE_THIS_YEAR_RANGE,
+        maxYear:year + MORE_LIKE_THIS_YEAR_RANGE
+    };
+
+    // More Like This is a fresh song-similarity view, but quick filters such
+    // as Favourites stay active. Birthday and client/event filtering also
+    // remain untouched elsewhere in the filtering pipeline.
+    artistFilter = "";
+    genreFilter = "";
+    countryFilter = "";
+    yearFilter = "";
+    bpmFilter = null;
+    currentQuery = "";
+
+    const search =
+        document.getElementById("search");
+
+    if(search){
+        search.value = "";
+        search.blur();
+    }
+
+    activeDecades.clear();
+    getMoreLikeThisDecades(
+        moreLikeThisState.minYear,
+        moreLikeThisState.maxYear
+    ).forEach(decade =>
+        activeDecades.add(decade)
+    );
+
+    buildChips();
+    syncGenreDropdown();
+    render();
 }
 
 const countryOptions = [
@@ -7281,6 +7551,10 @@ if(
         return false;
     }
 
+    if(!passesMoreLikeThis(song)){
+        return false;
+    }
+
     return true;
 }
 function songMatchesDecadeAvailability(song){
@@ -7371,6 +7645,10 @@ function songMatchesDecadeAvailability(song){
         ){
             return false;
         }
+    }
+
+    if(!passesMoreLikeThis(song)){
+        return false;
     }
 
     const map = {};
@@ -7640,14 +7918,32 @@ render();
         c.appendChild(d);
     });
 
-    // Clear button: one tap clears one filter layer; a quick double tap clears all
+    // Back restores the filter state from before the last More Like This
+    // triple-tap. It is deliberately separate from the clear control.
+    const back = document.createElement("div");
+
+    back.id = "filterBackChip";
+    back.className = "chip filterBackChip";
+    back.innerText = "←";
+    back.setAttribute("role", "button");
+    back.setAttribute("aria-label", "Back to previous filters");
+
+    back.onclick = e => {
+        e.stopPropagation();
+        goBackOneFilterStep();
+    };
+
+    c.appendChild(back);
+    updateFilterBackChip();
+
+    // Clear button: one tap clears decades only; a quick double tap clears all
     // ordinary filters, while intentionally preserving Birthday and client/event filters.
 const clear = document.createElement("div");
 
 clear.id = "clearAllFiltersChip";
 clear.className = "chip";
 clear.innerText = "✕";
-clear.title = "Tap to clear one filter layer; double tap to clear all regular filters";
+clear.title = "Tap to clear decades; double tap to clear all regular filters";
 
 let clearFilterTapTimer = null;
 const clearFilterDoubleTapMs = 280;
@@ -7693,14 +7989,8 @@ function clearSecondaryFilterLayer(){
 
 function clearOneRegularFilterLayer(){
 
-    if(activeDecades.size > 0){
-        clearDecadeFilterLayer();
-    }else if(activeFilters.size > 0){
-        clearQuickFilterLayer();
-    }else{
-        clearSecondaryFilterLayer();
-    }
-
+    // A single X now has one predictable job: clear decade chips only.
+    clearDecadeFilterLayer();
     render();
 }
 
@@ -7709,6 +7999,10 @@ function clearAllRegularFilters(){
     clearDecadeFilterLayer();
     clearQuickFilterLayer();
     clearSecondaryFilterLayer();
+
+    moreLikeThisState = null;
+    moreLikeThisHistory.length = 0;
+    updateFilterBackChip();
 
     hidePlayed = false;
     updateHidePlayedButton();
@@ -9238,8 +9532,56 @@ div.addEventListener("pointerdown", () => {
 
 });
 
-div.addEventListener("pointerup", () => {
+let cardTapCount = 0;
+let lastCardTapTime = 0;
+const tripleTapGapMs = 360;
+
+div.addEventListener("pointerup", e => {
     clearTimeout(pressTimer);
+
+    // Buttons/links inside the card keep their normal behaviour and do not
+    // contribute to a More Like This triple-tap.
+    if(
+        e.target.closest(
+            "a, button, input, select, textarea, .plusBtn, .playedBtn, .artistLink, .genreLink, .countryLink, .yearLink, .tempoLink"
+        )
+    ){
+        return;
+    }
+
+    if(
+        e.pointerType === "mouse" &&
+        e.button !== 0
+    ){
+        return;
+    }
+
+    const now = performance.now();
+
+    if(now - lastCardTapTime <= tripleTapGapMs){
+        cardTapCount += 1;
+    }else{
+        cardTapCount = 1;
+    }
+
+    lastCardTapTime = now;
+
+    if(cardTapCount >= 3){
+        cardTapCount = 0;
+        lastCardTapTime = 0;
+        e.preventDefault();
+        applyMoreLikeThis(song);
+    }
+});
+
+div.addEventListener("dblclick", e => {
+    if(
+        !e.target.closest(
+            "a, button, input, select, textarea, .plusBtn, .playedBtn, .artistLink, .genreLink, .countryLink, .yearLink, .tempoLink"
+        )
+    ){
+        e.preventDefault();
+    }
 });
 
 div.addEventListener("pointerleave", () => {
