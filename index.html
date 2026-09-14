@@ -3075,6 +3075,174 @@ body.theme-day .decadeChip[data-decade="00s"]{
     }
 }
 
+
+/* =========================
+   SONGFINDER UX TWEAKS
+   ========================= */
+
+.utilityFilterGroup{
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
+    flex-wrap:nowrap;
+    flex:0 0 auto;
+}
+
+#hidePlayedBtn{
+    white-space:nowrap;
+    font-weight:700;
+    border:1px solid var(--theme-border);
+}
+
+#hidePlayedBtn.active{
+    background:var(--theme-accent);
+    color:#ffffff;
+    border-color:var(--theme-accent);
+    box-shadow:
+        0 6px 18px rgba(56,189,248,.22),
+        inset 0 1px 0 rgba(255,255,255,.28);
+}
+
+/* Make Birthday feel like a special-purpose, fun filter without adding bulk. */
+#birthdayBtn{
+    position:relative;
+    overflow:hidden;
+    white-space:nowrap;
+    font-weight:850;
+    color:#7a2f12;
+    border:1px solid #f0a13a;
+    background:
+        linear-gradient(135deg, #fff0a8 0%, #ffd36a 48%, #ff9d7c 100%);
+    box-shadow:
+        0 4px 12px rgba(219,111,45,.18),
+        inset 0 1px 0 rgba(255,255,255,.58);
+}
+
+#birthdayBtn::after{
+    content:"";
+    position:absolute;
+    inset:-50% auto -50% -45%;
+    width:35%;
+    transform:rotate(20deg);
+    background:rgba(255,255,255,.32);
+    pointer-events:none;
+}
+
+#birthdayBtn.active{
+    color:#ffffff !important;
+    background:linear-gradient(135deg, #f59e0b 0%, #f97316 55%, #ef5da8 100%) !important;
+    border-color:#f97316 !important;
+    box-shadow:
+        0 7px 18px rgba(249,115,22,.24),
+        inset 0 1px 0 rgba(255,255,255,.30) !important;
+}
+
+#statusActions{
+    width:100%;
+    display:flex;
+    justify-content:flex-end;
+    align-items:center;
+    gap:6px;
+}
+
+#quickAppDock{
+    display:flex;
+    gap:6px;
+    align-items:center;
+}
+
+.appLaunchBtn{
+    width:38px;
+    min-width:38px;
+    height:38px;
+    padding:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border-radius:50%;
+    font-size:12px;
+    font-weight:900;
+    letter-spacing:-.02em;
+    line-height:1;
+    border:1px solid var(--theme-border);
+    box-shadow:0 4px 12px rgba(0,0,0,.14);
+}
+
+.appLaunchBtn[data-app="forscore"]{
+    color:#f8fafc;
+    background:#1f2937;
+}
+
+.appLaunchBtn[data-app="onsong"]{
+    color:#ffffff;
+    background:#2563eb;
+}
+
+.appLaunchBtn[data-app="sheetmusicdirect"]{
+    color:#ffffff;
+    background:#b42318;
+    font-size:10px;
+}
+
+#settingsWrap{
+    display:flex;
+    align-items:center;
+    justify-content:flex-end;
+    gap:6px;
+}
+
+#tempoTools.tempoToolsHidden{
+    display:none !important;
+}
+
+#setlistAutoScrollBtn{
+    width:38px;
+    min-width:38px;
+    height:36px;
+    padding:0;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    font-size:18px;
+    font-weight:900;
+    border:1px solid var(--theme-border);
+}
+
+#setlistAutoScrollBtn.active{
+    background:var(--theme-accent);
+    color:#ffffff;
+    border-color:var(--theme-accent);
+}
+
+body.theme-day #hidePlayedBtn.active,
+body.theme-day #setlistAutoScrollBtn.active{
+    background:var(--theme-accent) !important;
+    color:#ffffff !important;
+    border-color:#2457d9 !important;
+}
+
+body.theme-day #birthdayBtn:not(.active){
+    color:#7a2f12 !important;
+    border-color:#eaa33a !important;
+    background:linear-gradient(135deg, #fff0a8 0%, #ffd36a 48%, #ff9d7c 100%) !important;
+}
+
+body.theme-day #birthdayBtn.active{
+    color:#ffffff !important;
+    background:linear-gradient(135deg, #f59e0b 0%, #f97316 55%, #ef5da8 100%) !important;
+    border-color:#f97316 !important;
+    box-shadow:
+        0 7px 18px rgba(249,115,22,.24),
+        inset 0 1px 0 rgba(255,255,255,.30) !important;
+}
+
+@media(min-width:701px) and (max-width:1180px){
+    /* Keep this trio together on iPad-sized layouts. */
+    .utilityFilterGroup{
+        flex-wrap:nowrap;
+    }
+}
+
 @media(max-width:520px){
     .gigSuiteBrandBar{
         grid-template-columns:44px minmax(0, 1fr) 96px;
@@ -3155,13 +3323,19 @@ body.theme-day .decadeChip[data-decade="00s"]{
     <option value="">All Genres</option>
 </select>
 
-<button id="autoScrollBtn" class="autoScrollBtn">
-    Auto Scroll
-</button>
+<div class="utilityFilterGroup" id="utilityFilterGroup">
+    <button id="autoScrollBtn" class="autoScrollBtn">
+        Auto Scroll
+    </button>
 
-<button id="birthdayBtn" class="birthdayBtn">
-    Birthday
-</button>
+    <button id="birthdayBtn" class="birthdayBtn">
+        🎂 Birthday
+    </button>
+
+    <button id="hidePlayedBtn" type="button" aria-pressed="false">
+        Hide Played
+    </button>
+</div>
         </div>
 
     </div>
@@ -3246,6 +3420,12 @@ body.theme-day .decadeChip[data-decade="00s"]{
         <span>+ Set List</span>
         <span id="setlistButtonCount">0</span>
     </button>
+<div id="statusActions">
+<div id="quickAppDock" aria-label="Open music apps">
+    <button class="appLaunchBtn" data-app="forscore" id="openForScore" type="button" title="Open forScore" aria-label="Open forScore">fS</button>
+    <button class="appLaunchBtn" data-app="onsong" id="openOnSong" type="button" title="Open OnSong" aria-label="Open OnSong">On</button>
+    <button class="appLaunchBtn" data-app="sheetmusicdirect" id="openSheetMusicDirect" type="button" title="Open Sheet Music Direct" aria-label="Open Sheet Music Direct">SMD</button>
+</div>
 <div id="settingsWrap">
 
     <button id="settingsBtn">•••</button>
@@ -3280,6 +3460,13 @@ body.theme-day .decadeChip[data-decade="00s"]{
 
         <button id="scrollSpeedPlus">+</button>
     </div>
+</div>
+        <div class="settingsSection">
+    <div class="settingsLabel">Main Screen Tempo Tools</div>
+
+    <button id="toggleTempoTools" type="button">
+        Hide Tap Tempo + BPM
+    </button>
 </div>
         <div class="settingsSection">
     <div class="settingsLabel">Colour Mode</div>
@@ -3357,6 +3544,7 @@ body.theme-day .decadeChip[data-decade="00s"]{
     </div>
 
 </div>
+</div>
         <input
     type="file"
     id="importFile"
@@ -3430,6 +3618,8 @@ body.theme-day .decadeChip[data-decade="00s"]{
     gap:8px;
     align-items:center;
 ">
+   <button id="setlistAutoScrollBtn" type="button" title="Auto scroll set list" aria-label="Auto scroll set list" aria-pressed="false">⇣</button>
+
    <button id="exportSetlist">
     Export
 </button>
@@ -3708,6 +3898,12 @@ let autoScrollActive = false;
 let autoScrollPaused = false;
 let autoScrollFrame = null;
 let lastAutoScrollTime = null;
+let hidePlayed = false;
+let setlistAutoScrollActive = false;
+let setlistAutoScrollFrame = null;
+let lastSetlistAutoScrollTime = null;
+let tempoToolsVisible =
+    localStorage.getItem("songFinderTempoToolsVisible") !== "false";
 let autoScrollSpeed =
     Number(
         localStorage.getItem("autoScrollSpeed") || 40
@@ -5595,8 +5791,8 @@ function updateBirthdayDisplay(){
 
         btn.innerText =
             birthdayBirthYear !== null
-            ? `${birthdayStartYear}-${birthdayEndYear}`
-            : "Birthday";
+            ? `🎂 ${birthdayStartYear}-${birthdayEndYear}`
+            : "🎂 Birthday";
     }
 
     if(label){
@@ -6490,6 +6686,179 @@ function updateAutoScrollButton(){
         : "Auto Scroll";
 }
 
+
+function updateHidePlayedButton(){
+
+    const btn =
+        document.getElementById("hidePlayedBtn");
+
+    if(!btn) return;
+
+    btn.classList.toggle(
+        "active",
+        hidePlayed
+    );
+
+    btn.setAttribute(
+        "aria-pressed",
+        hidePlayed ? "true" : "false"
+    );
+
+    btn.innerText =
+        hidePlayed
+        ? "Played Hidden"
+        : "Hide Played";
+}
+
+function applyTempoToolsVisibility(){
+
+    const tools =
+        document.getElementById("tempoTools");
+
+    const btn =
+        document.getElementById("toggleTempoTools");
+
+    if(tools){
+        tools.classList.toggle(
+            "tempoToolsHidden",
+            !tempoToolsVisible
+        );
+    }
+
+    if(btn){
+        btn.innerText =
+            tempoToolsVisible
+            ? "Hide Tap Tempo + BPM"
+            : "Show Tap Tempo + BPM";
+    }
+
+    localStorage.setItem(
+        "songFinderTempoToolsVisible",
+        tempoToolsVisible ? "true" : "false"
+    );
+
+    settleSongFinderLayout();
+}
+
+function updateSetlistAutoScrollButton(){
+
+    const btn =
+        document.getElementById(
+            "setlistAutoScrollBtn"
+        );
+
+    if(!btn) return;
+
+    btn.classList.toggle(
+        "active",
+        setlistAutoScrollActive
+    );
+
+    btn.setAttribute(
+        "aria-pressed",
+        setlistAutoScrollActive
+            ? "true"
+            : "false"
+    );
+
+    btn.innerText =
+        setlistAutoScrollActive
+        ? "⏸"
+        : "⇣";
+
+    btn.title =
+        setlistAutoScrollActive
+        ? "Stop set list auto scroll"
+        : "Auto scroll set list";
+}
+
+function setlistAutoScrollStep(timestamp){
+
+    if(!setlistAutoScrollActive){
+        return;
+    }
+
+    const panel =
+        document.getElementById("setlistPanel");
+
+    if(
+        !panel ||
+        !panel.classList.contains("open")
+    ){
+        stopSetlistAutoScroll();
+        return;
+    }
+
+    if(lastSetlistAutoScrollTime === null){
+        lastSetlistAutoScrollTime = timestamp;
+    }
+
+    const elapsed =
+        timestamp - lastSetlistAutoScrollTime;
+
+    lastSetlistAutoScrollTime = timestamp;
+
+    panel.scrollTop +=
+        autoScrollSpeed * elapsed / 1000;
+
+    const atBottom =
+        panel.scrollTop + panel.clientHeight >=
+        panel.scrollHeight - 2;
+
+    if(atBottom){
+        stopSetlistAutoScroll();
+        return;
+    }
+
+    setlistAutoScrollFrame =
+        requestAnimationFrame(
+            setlistAutoScrollStep
+        );
+}
+
+function startSetlistAutoScroll(){
+
+    const panel =
+        document.getElementById("setlistPanel");
+
+    if(!panel) return;
+
+    setlistAutoScrollActive = true;
+    lastSetlistAutoScrollTime = null;
+
+    updateSetlistAutoScrollButton();
+
+    setlistAutoScrollFrame =
+        requestAnimationFrame(
+            setlistAutoScrollStep
+        );
+}
+
+function stopSetlistAutoScroll(){
+
+    setlistAutoScrollActive = false;
+
+    if(setlistAutoScrollFrame){
+        cancelAnimationFrame(
+            setlistAutoScrollFrame
+        );
+    }
+
+    setlistAutoScrollFrame = null;
+    lastSetlistAutoScrollTime = null;
+
+    updateSetlistAutoScrollButton();
+}
+
+function toggleSetlistAutoScroll(){
+
+    if(setlistAutoScrollActive){
+        stopSetlistAutoScroll();
+    }else{
+        startSetlistAutoScroll();
+    }
+}
+
 function updateScrollSpeedDisplay(){
 
     const label =
@@ -7108,56 +7477,114 @@ render();
         c.appendChild(d);
     });
 
-    // Clear button
+    // Clear button: one tap clears one filter layer; a quick double tap clears all
+    // ordinary filters, while intentionally preserving Birthday and client/event filters.
 const clear = document.createElement("div");
 
 clear.id = "clearAllFiltersChip";
 clear.className = "chip";
 clear.innerText = "✕";
+clear.title = "Tap to clear one filter layer; double tap to clear all regular filters";
 
-    clear.onclick = () => {
+let clearFilterTapTimer = null;
+const clearFilterDoubleTapMs = 280;
 
-        activeFilters.clear();
-        activeDecades.clear();
+function clearDecadeFilterLayer(){
 
-        artistFilter = "";
-        genreFilter = "";
-        syncGenreDropdown();
-        countryFilter = "";
-        yearFilter = "";
-        bpmFilter = null;
+    activeDecades.clear();
 
-        clearBirthdayFilter(true);
+    document
+        .querySelectorAll(".decadeChip")
+        .forEach(chip => {
+            chip.classList.remove(
+                "decade-active"
+            );
+        });
 
-        currentQuery = "";
+    updateDecadeChipColours();
+}
 
-        const search =
-            document.getElementById("search");
+function clearQuickFilterLayer(){
 
-        if(search){
-            search.value = "";
-        }
+    activeFilters.clear();
 
-       document
-    .querySelectorAll(".chip")
-    .forEach(chip => {
+    document
+        .querySelectorAll(".filterChip")
+        .forEach(chip => {
+            chip.classList.remove("active");
+        });
 
-        chip.classList.remove("active");
-        chip.classList.remove("decade-active");
+    updateFilterChipColours();
+}
 
-        if(
-            !chip.classList.contains("decadeChip") &&
-            !chip.classList.contains("filterChip")
-        ){
-            chip.style.background = "";
-        }
-    });
+function clearSecondaryFilterLayer(){
 
-updateFilterChipColours();
-updateDecadeChipColours();
+    artistFilter = "";
+    genreFilter = "";
+    countryFilter = "";
+    yearFilter = "";
+    bpmFilter = null;
 
-render();
-    };
+    syncGenreDropdown();
+}
+
+function clearOneRegularFilterLayer(){
+
+    if(activeDecades.size > 0){
+        clearDecadeFilterLayer();
+    }else if(activeFilters.size > 0){
+        clearQuickFilterLayer();
+    }else{
+        clearSecondaryFilterLayer();
+    }
+
+    render();
+}
+
+function clearAllRegularFilters(){
+
+    clearDecadeFilterLayer();
+    clearQuickFilterLayer();
+    clearSecondaryFilterLayer();
+
+    hidePlayed = false;
+    updateHidePlayedButton();
+
+    currentQuery = "";
+
+    const search =
+        document.getElementById("search");
+
+    if(search){
+        search.value = "";
+        search.blur();
+    }
+
+    // Birthday and client/event filters are intentionally preserved here.
+    render();
+}
+
+clear.onclick = e => {
+
+    e.stopPropagation();
+
+    if(clearFilterTapTimer){
+
+        clearTimeout(clearFilterTapTimer);
+        clearFilterTapTimer = null;
+
+        clearAllRegularFilters();
+        return;
+    }
+
+    clearFilterTapTimer =
+        setTimeout(() => {
+
+            clearFilterTapTimer = null;
+            clearOneRegularFilterLayer();
+
+        }, clearFilterDoubleTapMs);
+};
 
     c.appendChild(clear);
 }
@@ -8178,6 +8605,8 @@ div.addEventListener(
 }
 function closeSetlist(){
 
+    stopSetlistAutoScroll();
+
     document
         .getElementById("setlistPanel")
         .classList.remove("open");
@@ -8195,7 +8624,13 @@ function closeSetlist(){
 
     let filtered =
         sourceSongs.filter(
-            s => songMatches(s, currentQuery) && passesFilters(s)
+            s =>
+                songMatches(s, currentQuery) &&
+                passesFilters(s) &&
+                (
+                    !hidePlayed ||
+                    !playedSongs.has(getSongId(s))
+                )
         );
 
     if(
@@ -8800,6 +9235,10 @@ if(playedSongs.has(songId)){
     playedBtn.classList.add("active");
     playedBtn.innerText = "✓";
 }
+
+if(hidePlayed){
+    render();
+}
 };
 const artistLink =
     div.querySelector(".artistLink");
@@ -9172,15 +9611,43 @@ document.getElementById("sortRandom").onclick = () => {
 
     toggleAutoScroll();
 };
+
+document
+.getElementById("hidePlayedBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+
+    hidePlayed = !hidePlayed;
+
+    updateHidePlayedButton();
+    render();
+};
+
+document
+.getElementById("setlistAutoScrollBtn")
+.onclick = e => {
+
+    e.stopPropagation();
+    toggleSetlistAutoScroll();
+};
 document.getElementById("resetPlayed").onclick = () => {
 
-    if(playedSongs.size === 0){
+    if(
+        playedSongs.size === 0 &&
+        !hidePlayed
+    ){
         return;
     }
 
-    pushUndo("Reset Played");
+    if(playedSongs.size > 0){
+        pushUndo("Reset Played");
+    }
 
     playedSongs.clear();
+    hidePlayed = false;
+
+    updateHidePlayedButton();
 
     render();
     renderSetlist();
@@ -9453,6 +9920,7 @@ document.addEventListener("visibilitychange", () => {
 
     if(document.hidden){
         pauseAutoScroll();
+        stopSetlistAutoScroll();
     }else{
         resumeAutoScroll();
         settleSongFinderLayout();
@@ -10584,6 +11052,66 @@ settingsBtn.onclick = e => {
 
     settingsMenu.classList.toggle("open");
 };
+
+const toggleTempoToolsBtn =
+    document.getElementById("toggleTempoTools");
+
+if(toggleTempoToolsBtn){
+
+    toggleTempoToolsBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        tempoToolsVisible =
+            !tempoToolsVisible;
+
+        if(
+            !tempoToolsVisible &&
+            typeof stopVisualMetronome === "function"
+        ){
+            stopVisualMetronome();
+        }
+
+        applyTempoToolsVisibility();
+    };
+}
+
+function launchSongFinderExternalApp(url){
+
+    window.location.href = url;
+}
+
+const forScoreBtn =
+    document.getElementById("openForScore");
+
+if(forScoreBtn){
+    forScoreBtn.onclick = e => {
+        e.stopPropagation();
+        launchSongFinderExternalApp("forscore://");
+    };
+}
+
+const onSongBtn =
+    document.getElementById("openOnSong");
+
+if(onSongBtn){
+    onSongBtn.onclick = e => {
+        e.stopPropagation();
+        launchSongFinderExternalApp("onsong://");
+    };
+}
+
+const sheetMusicDirectBtn =
+    document.getElementById("openSheetMusicDirect");
+
+if(sheetMusicDirectBtn){
+    sheetMusicDirectBtn.onclick = e => {
+        e.stopPropagation();
+        launchSongFinderExternalApp(
+            "https://www.sheetmusicdirect.com/"
+        );
+    };
+}
     settingsMenu.addEventListener("click", e => {
     e.stopPropagation();
 });
@@ -11602,6 +12130,7 @@ function clearAllSongFiltersFromFoot(){
     }
 
     clearFiltersChip.click();
+    clearFiltersChip.click();
 
     showFootControlToast(
         "All filters cleared"
@@ -12233,6 +12762,9 @@ updateClock();
 settleSongFinderLayout();
 updateScrollSpeedDisplay();
 updateAutoScrollButton();
+updateSetlistAutoScrollButton();
+updateHidePlayedButton();
+applyTempoToolsVisibility();
 updateBirthdayDisplay();
 updateSortOrderButton();
 if ("serviceWorker" in navigator) {
