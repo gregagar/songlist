@@ -3159,29 +3159,38 @@ body.theme-day .decadeChip[data-decade="00s"]{
     display:flex;
     align-items:center;
     justify-content:center;
-    border-radius:50%;
-    font-size:12px;
-    font-weight:900;
-    letter-spacing:-.02em;
+    border-radius:10px;
     line-height:1;
+    overflow:hidden;
     border:1px solid var(--theme-border);
-    box-shadow:0 4px 12px rgba(0,0,0,.14);
+    background:var(--theme-button);
+    box-shadow:0 4px 12px rgba(0,0,0,.18);
 }
 
-.appLaunchBtn[data-app="forscore"]{
-    color:#f8fafc;
-    background:#1f2937;
+.appLaunchBtn img{
+    width:100%;
+    height:100%;
+    display:block;
+    object-fit:cover;
+    border-radius:9px;
 }
 
-.appLaunchBtn[data-app="onsong"]{
-    color:#ffffff;
-    background:#2563eb;
-}
-
-.appLaunchBtn[data-app="sheetmusicdirect"]{
-    color:#ffffff;
-    background:#b42318;
+.appLaunchFallback{
+    width:100%;
+    height:100%;
+    display:flex;
+    align-items:center;
+    justify-content:center;
     font-size:10px;
+    font-weight:900;
+    color:var(--theme-button-text);
+}
+
+#simplifyGenresBtn.active{
+    background:var(--theme-accent) !important;
+    color:#03131d !important;
+    border-color:var(--theme-accent) !important;
+    font-weight:800;
 }
 
 #settingsWrap{
@@ -3422,9 +3431,18 @@ body.theme-day #birthdayBtn.active{
     </button>
 <div id="statusActions">
 <div id="quickAppDock" aria-label="Open music apps">
-    <button class="appLaunchBtn" data-app="forscore" id="openForScore" type="button" title="Open forScore" aria-label="Open forScore">fS</button>
-    <button class="appLaunchBtn" data-app="onsong" id="openOnSong" type="button" title="Open OnSong" aria-label="Open OnSong">On</button>
-    <button class="appLaunchBtn" data-app="sheetmusicdirect" id="openSheetMusicDirect" type="button" title="Open Sheet Music Direct" aria-label="Open Sheet Music Direct">SMD</button>
+    <button class="appLaunchBtn" data-app="forscore" id="openForScore" type="button" title="Open forScore" aria-label="Open forScore">
+        <img src="https://forscore.co/images/press/icon_rounded.png" alt="" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
+        <span class="appLaunchFallback" hidden>fS</span>
+    </button>
+    <button class="appLaunchBtn" data-app="onsong" id="openOnSong" type="button" title="Open OnSong" aria-label="Open OnSong">
+        <img src="https://d2c0db5b8fb27c1c9887-9b32efc83a6b298bb22e7a1df0837426.ssl.cf2.rackcdn.com/24265671-onsong-o-icon-1020x1024.png" alt="" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
+        <span class="appLaunchFallback" hidden>On</span>
+    </button>
+    <button class="appLaunchBtn" data-app="sheetmusicdirect" id="openSheetMusicDirect" type="button" title="Open Sheet Music Direct" aria-label="Open Sheet Music Direct">
+        <img src="https://fastly.mwm-storage.mwmcdn.com/raw_files/afc27bec-643b-4dc2-a515-23670339c10a" alt="" referrerpolicy="no-referrer" onerror="this.hidden=true;this.nextElementSibling.hidden=false;">
+        <span class="appLaunchFallback" hidden>SMD</span>
+    </button>
 </div>
 <div id="settingsWrap">
 
@@ -3466,6 +3484,13 @@ body.theme-day #birthdayBtn.active{
 
     <button id="toggleTempoTools" type="button">
         Hide Tap Tempo + BPM
+    </button>
+</div>
+        <div class="settingsSection">
+    <div class="settingsLabel">Genres</div>
+
+    <button id="simplifyGenresBtn" type="button" aria-pressed="false">
+        Simplify Genres: Off
     </button>
 </div>
         <div class="settingsSection">
@@ -3904,6 +3929,8 @@ let setlistAutoScrollFrame = null;
 let lastSetlistAutoScrollTime = null;
 let tempoToolsVisible =
     localStorage.getItem("songFinderTempoToolsVisible") !== "false";
+let simplifyGenres =
+    localStorage.getItem("songFinderSimplifyGenres") === "true";
 let autoScrollSpeed =
     Number(
         localStorage.getItem("autoScrollSpeed") || 40
@@ -3936,6 +3963,136 @@ const genreOptions = [
     "Disco",
     "R&B"
 ];
+
+const simplifiedGenreOrder = [
+    "Rock",
+    "Pop",
+    "Country",
+    "Soul & R&B",
+    "Funk",
+    "Jazz",
+    "Blues",
+    "Folk",
+    "Reggae",
+    "Dance & Disco",
+    "Hip-Hop",
+    "Musical Theatre",
+    "Other"
+];
+
+function simplifyGenreName(rawGenre){
+
+    const raw =
+        String(rawGenre || "").trim();
+
+    if(!raw) return "";
+
+    const g = raw
+        .toLowerCase()
+        .replace(/&/g, " and ")
+        .replace(/[–—]/g, "-")
+        .replace(/[_/]/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+
+    // If a style explicitly says rock, rock wins. This makes
+    // things like "Funk Rock" and "Folk Rock" simply "Rock".
+    if(
+        /\brock\b/.test(g) ||
+        /\bpunk\b/.test(g) ||
+        /\bmetal\b/.test(g) ||
+        /\bgrunge\b/.test(g) ||
+        /\bemo\b/.test(g) ||
+        /rockabilly/.test(g)
+    ) return "Rock";
+
+    // Explicit pop wins over broad modifiers such as acoustic or indie.
+    if(
+        /\bpop\b/.test(g) ||
+        /synthpop|electropop|adult contemporary|easy listening/.test(g)
+    ) return "Pop";
+
+    if(
+        /\bcountry\b/.test(g) ||
+        /americana|bluegrass|western/.test(g)
+    ) return "Country";
+
+    if(
+        /\bsoul\b/.test(g) ||
+        /\br\s*(?:and|&)\s*b\b/.test(g) ||
+        /rhythm\s*(?:and|&)\s*blues|motown|neo soul|gospel/.test(g)
+    ) return "Soul & R&B";
+
+    if(/\bfunk\b/.test(g)) return "Funk";
+
+    if(
+        /\bjazz\b/.test(g) ||
+        /\bswing\b|big band|bossa nova/.test(g)
+    ) return "Jazz";
+
+    if(/\bblues\b/.test(g)) return "Blues";
+
+    if(
+        /\bfolk\b/.test(g) ||
+        /\bacoustic\b|singer[- ]?songwriter|celtic/.test(g)
+    ) return "Folk";
+
+    if(
+        /\breggae\b/.test(g) ||
+        /\bska\b|\bdub\b|dancehall/.test(g)
+    ) return "Reggae";
+
+    if(
+        /\bdance\b/.test(g) ||
+        /\bdisco\b|\bedm\b|electronic|electronica|\bhouse\b|techno|trance|club/.test(g)
+    ) return "Dance & Disco";
+
+    if(
+        /hip[- ]?hop/.test(g) ||
+        /\brap\b/.test(g)
+    ) return "Hip-Hop";
+
+    if(
+        /musical theatre|musical theater|broadway|show tune|showtune/.test(g)
+    ) return "Musical Theatre";
+
+    if(/\bindie\b|alternative|new wave/.test(g)) return "Rock";
+
+    return "Other";
+}
+
+function getSongGenreForView(song){
+
+    const raw =
+        String((song && song.Genre) || "").trim();
+
+    return simplifyGenres
+        ? simplifyGenreName(raw)
+        : raw;
+}
+
+function updateSimplifyGenresButton(){
+
+    const btn =
+        document.getElementById("simplifyGenresBtn");
+
+    if(!btn) return;
+
+    btn.classList.toggle(
+        "active",
+        simplifyGenres
+    );
+
+    btn.setAttribute(
+        "aria-pressed",
+        simplifyGenres ? "true" : "false"
+    );
+
+    btn.innerText =
+        simplifyGenres
+        ? "Simplify Genres: On"
+        : "Simplify Genres: Off";
+}
 
 const countryOptions = [
     "UK",
@@ -7049,7 +7206,10 @@ function songMatches(song,q){
 
         const text =
             normalize(
-                Object.values(song).join(" ")
+                [
+                    ...Object.values(song),
+                    getSongGenreForView(song)
+                ].join(" ")
             );
 
         if(/^\d+$/.test(q)){
@@ -7081,7 +7241,7 @@ function songMatches(song,q){
 
     if(
         genreFilter &&
-        song.Genre !== genreFilter
+        getSongGenreForView(song) !== genreFilter
     ){
         return false;
     }
@@ -7132,7 +7292,10 @@ function songMatchesDecadeAvailability(song){
 
         const text =
             normalize(
-                Object.values(song).join(" ")
+                [
+                    ...Object.values(song),
+                    getSongGenreForView(song)
+                ].join(" ")
             );
 
         if(/^\d+$/.test(q)){
@@ -7167,7 +7330,7 @@ function songMatchesDecadeAvailability(song){
 
     if(
         genreFilter &&
-        song.Genre !== genreFilter
+        getSongGenreForView(song) !== genreFilter
     ){
         return false;
     }
@@ -7601,10 +7764,20 @@ function buildGenreDropdown(){
 const genres =
     [...new Set(
         sourceSongs
-            .map(song => String(song.Genre || "").trim())
+            .map(song => getSongGenreForView(song))
             .filter(Boolean)
     )]
-    .sort((a,b) => a.localeCompare(b));
+    .sort((a,b) => {
+
+        if(simplifyGenres){
+            return (
+                simplifiedGenreOrder.indexOf(a) -
+                simplifiedGenreOrder.indexOf(b)
+            );
+        }
+
+        return a.localeCompare(b);
+    });
 
     select.innerHTML =
         `<option value="">All Genres</option>`;
@@ -9091,9 +9264,12 @@ div.addEventListener("pointercancel", () => {
             ? `<a href="${wiki}" target="_blank">Wiki</a>`
             : "<span></span>";
 
+        const displayGenre =
+            getSongGenreForView(song);
+
         const meta=[];
         if(song.Year) meta.push(song.Year);
-        if(song.Genre) meta.push(song.Genre);
+        if(displayGenre) meta.push(displayGenre);
         if(song.Tempo) meta.push(`${song.Tempo} bpm`);
 
         const flag=getFlag(song["Country of Origin"]);
@@ -9163,14 +9339,14 @@ align-items:flex-start;
 }
 
     ${
-        song.Genre
+        displayGenre
         ? ` •
         <span
             class="genreLink"
-            data-genre="${song.Genre}"
+            data-genre="${displayGenre}"
             style="cursor:pointer;color:#e2e8f0;"
         >
-            ${song.Genre}
+            ${displayGenre}
         </span>`
         : ""
     }
@@ -11076,6 +11252,33 @@ if(toggleTempoToolsBtn){
     };
 }
 
+const simplifyGenresBtn =
+    document.getElementById("simplifyGenresBtn");
+
+if(simplifyGenresBtn){
+
+    simplifyGenresBtn.onclick = e => {
+
+        e.stopPropagation();
+
+        simplifyGenres =
+            !simplifyGenres;
+
+        localStorage.setItem(
+            "songFinderSimplifyGenres",
+            simplifyGenres ? "true" : "false"
+        );
+
+        // A selected raw genre and a simplified parent genre are not
+        // interchangeable, so clear only the genre filter when changing mode.
+        genreFilter = "";
+
+        updateSimplifyGenresButton();
+        buildGenreDropdown();
+        render();
+    };
+}
+
 function launchSongFinderExternalApp(url){
 
     window.location.href = url;
@@ -12765,6 +12968,7 @@ updateAutoScrollButton();
 updateSetlistAutoScrollButton();
 updateHidePlayedButton();
 applyTempoToolsVisibility();
+updateSimplifyGenresButton();
 updateBirthdayDisplay();
 updateSortOrderButton();
 if ("serviceWorker" in navigator) {
