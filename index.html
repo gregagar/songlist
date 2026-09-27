@@ -523,11 +523,6 @@ flex:0 0 145px;
     font-weight:900;
     opacity:.28;
     pointer-events:none;
-
-    display:inline-flex;
-    align-items:center;
-    justify-content:center;
-    line-height:1;
 }
 
 #filterBackChip.available{
@@ -535,22 +530,25 @@ flex:0 0 145px;
     pointer-events:auto;
     color:var(--theme-accent);
 }
-.chip.decadeChip{
-    color:#fff;
-    font-weight:700;
 
-    border:1px solid rgba(255,255,255,.18);
-    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
-
-    /* Keep every decade bubble the same size */
-    box-sizing:border-box;
-
-    /* Properly centre the text vertically and horizontally */
+#filterBackChip,
+#clearAllFiltersChip{
     display:inline-flex;
     align-items:center;
     justify-content:center;
     line-height:1;
-
+    box-sizing:border-box;
+}
+.chip.decadeChip{
+    color:#fff;
+    font-weight:700;
+    border:1px solid rgba(255,255,255,.18);
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,.08);
+    box-sizing:border-box;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
     min-height:30px;
 }
 
@@ -3341,20 +3339,14 @@ body.theme-day #birthdayBtn.active{
     box-shadow:inset 0 0 0 1px #34d399;
 }
 
-/* Selected decade highlight.
-   Uses outline/shadow only so the chip never changes size or position. */
+/* Selected decade highlight: outline/shadow only, so chips never move or resize. */
 .chip.decadeChip.decade-active{
     color:#fff !important;
-
-    /* Keep identical dimensions to unselected chips */
     font-weight:700;
     transform:none !important;
     border:1px solid #ffffff !important;
-
-    /* Strong selection indicator without affecting layout */
     outline:3px solid #2563eb;
     outline-offset:2px;
-
     box-shadow:
         0 0 0 2px rgba(0,0,0,.9),
         0 0 16px rgba(37,99,235,.68),
@@ -3364,7 +3356,6 @@ body.theme-day #birthdayBtn.active{
 body.theme-day .chip.decadeChip.decade-active{
     border-color:#ffffff !important;
     outline-color:#0f172a;
-
     box-shadow:
         0 0 0 2px rgba(255,255,255,.95),
         0 0 0 5px rgba(15,23,42,.9),
@@ -3519,6 +3510,72 @@ body.theme-day #anniversaryBtn.active{
     color:#ffffff !important;
     border-color:#6b21a8 !important;
 }
+
+/* =========================
+   COMPACT CONTROLS MODE
+   ========================= */
+
+body.compactControls #sortByLabel{
+    display:none;
+}
+
+body.compactControls #sortArtist,
+body.compactControls #sortTitle,
+body.compactControls #sortBpm,
+body.compactControls #sortYear,
+body.compactControls #sortOrder,
+body.compactControls #sortRandom,
+body.compactControls #autoScrollBtn,
+body.compactControls #birthdayBtn,
+body.compactControls #anniversaryBtn,
+body.compactControls #hidePlayedBtn{
+    min-width:40px;
+    min-height:36px;
+    padding:6px 9px;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+    font-size:18px;
+}
+
+body.compactControls #sortOrder{
+    min-width:42px;
+    font-weight:900;
+}
+
+body.compactControls #genreSelect{
+    width:104px;
+    min-width:104px;
+    max-width:104px;
+    flex:0 0 104px;
+}
+
+body.compactControls #countrySelect{
+    width:112px;
+    min-width:112px;
+    max-width:112px;
+    flex:0 0 112px;
+}
+
+body.compactControls .chip.filterChip{
+    min-width:38px;
+    min-height:30px;
+    padding:6px 9px;
+    box-sizing:border-box;
+    display:inline-flex;
+    align-items:center;
+    justify-content:center;
+    line-height:1;
+    text-align:center;
+    font-size:17px;
+}
+
+#compactControlsBtn.active{
+    background:var(--theme-accent) !important;
+    color:#03131d !important;
+    font-weight:800;
+}
 </style>
 </head>
 
@@ -3552,7 +3609,7 @@ body.theme-day #anniversaryBtn.active{
         <div id="chipContainer"></div>
         <div id="controls">
             
-            <span style="color:#94a3b8;font-size:13px;margin-left:0;">Sort by</span>
+            <span id="sortByLabel" style="color:#94a3b8;font-size:13px;margin-left:0;">Sort by</span>
 
 <button id="sortArtist">Artist</button>
 <button id="sortTitle">Title</button>
@@ -3736,6 +3793,13 @@ body.theme-day #anniversaryBtn.active{
 
     <button id="simplifyGenresBtn" type="button" aria-pressed="false">
         Simplify Genres: Off
+    </button>
+</div>
+        <div class="settingsSection">
+    <div class="settingsLabel">Layout</div>
+
+    <button id="compactControlsBtn" type="button" aria-pressed="false">
+        Compact Controls: Off
     </button>
 </div>
         <div class="settingsSection">
@@ -4226,6 +4290,8 @@ let tempoToolsVisible =
     localStorage.getItem("songFinderTempoToolsVisible") !== "false";
 let simplifyGenres =
     localStorage.getItem("songFinderSimplifyGenres") === "true";
+let compactControls =
+    localStorage.getItem("songFinderCompactControls") === "true";
 
 // Temporary “More Like This” drill-down. Each triple-tap saves the
 // current filter state so the Back chip can restore it exactly.
@@ -4397,6 +4463,61 @@ function updateSimplifyGenresButton(){
         simplifyGenres
         ? "Simplify Genres: On"
         : "Simplify Genres: Off";
+}
+
+const compactFilterLabels = {
+    "Favourites":"⭐",
+    "Upbeat":"⚡",
+    "Dancefloor":"💃",
+    "Sing-a-Long":"🎤",
+    "Happy":"😊",
+    "Easy To Sing":"👌",
+    "Easy to Sing":"👌",
+    "Romantic":"❤️",
+    "Showcase":"🌟"
+};
+
+function updateCompactControlsButton(){
+    const btn = document.getElementById("compactControlsBtn");
+    if(!btn) return;
+
+    btn.classList.toggle("active", compactControls);
+    btn.setAttribute("aria-pressed", compactControls ? "true" : "false");
+    btn.innerText = compactControls
+        ? "Compact Controls: On"
+        : "Compact Controls: Off";
+}
+
+function setCompactButtonLabel(id, fullLabel, compactLabel, title = fullLabel){
+    const btn = document.getElementById(id);
+    if(!btn) return;
+
+    btn.innerText = compactControls ? compactLabel : fullLabel;
+    btn.title = title;
+    btn.setAttribute("aria-label", title);
+}
+
+function applyCompactControls(){
+    document.body.classList.toggle("compactControls", compactControls);
+
+    setCompactButtonLabel("sortArtist", "Artist", "👤", "Sort by artist");
+    setCompactButtonLabel("sortTitle", "Title", "🎵", "Sort by title");
+    setCompactButtonLabel("sortBpm", "BPM", "♩", "Sort by BPM");
+    setCompactButtonLabel("sortYear", "Year", "📅", "Sort by year");
+    setCompactButtonLabel("sortRandom", "Random", "🎲", "Random order");
+
+    updateSortOrderButton();
+    updateAutoScrollButton();
+    updateHidePlayedButton();
+    updateBirthdayDisplay();
+    updateAnniversaryDisplay();
+
+    buildGenreDropdown();
+    buildChips();
+    render();
+
+    updateCompactControlsButton();
+    settleSongFinderLayout();
 }
 
 
@@ -4683,6 +4804,13 @@ let randomOrder = [];
         document.getElementById("sortOrder");
 
     if(!btn) return;
+
+    if(compactControls){
+        btn.innerText = sortDirection === 1 ? "↑" : "↓";
+        btn.title = sortDirection === 1 ? "Ascending order" : "Descending order";
+        btn.setAttribute("aria-label", btn.title);
+        return;
+    }
 
     if(sortKey === "year"){
         btn.innerText =
@@ -6562,7 +6690,13 @@ function updateAnniversaryDisplay(){
     if(btn){
         btn.classList.toggle("active", active);
         btn.setAttribute("aria-pressed", active ? "true" : "false");
-        btn.innerText = active ? `💍 ${anniversaryYears} yrs` : "💍 Anniversary";
+        btn.innerText = compactControls
+            ? (active ? `💍${anniversaryYears}` : "💍")
+            : (active ? `💍 ${anniversaryYears} yrs` : "💍 Anniversary");
+        btn.title = active
+            ? `${anniversaryYears} year anniversary • wedding year ${anniversaryWeddingYear}`
+            : "Anniversary filter";
+        btn.setAttribute("aria-label", btn.title);
     }
 
     if(label){
@@ -6652,10 +6786,18 @@ function updateBirthdayDisplay(){
             birthdayBirthYear !== null
         );
 
-        btn.innerText =
-            birthdayBirthYear !== null
-            ? `🎂 ${birthdayStartYear}-${birthdayEndYear}`
-            : "🎂 Birthday";
+        btn.innerText = compactControls
+            ? "🎂"
+            : (
+                birthdayBirthYear !== null
+                ? `🎂 ${birthdayStartYear}-${birthdayEndYear}`
+                : "🎂 Birthday"
+            );
+
+        btn.title = birthdayBirthYear !== null
+            ? `Birthday filter • songs from ${birthdayStartYear}-${birthdayEndYear}`
+            : "Birthday filter";
+        btn.setAttribute("aria-label", btn.title);
     }
 
     if(label){
@@ -7539,14 +7681,23 @@ function updateAutoScrollButton(){
         autoScrollActive
     );
 
-    btn.innerText =
+    if(compactControls){
+        btn.innerText =
+            autoScrollActive
+            ? (autoScrollPaused ? "⏸" : "⬇️")
+            : "▶️";
+    }else{
+        btn.innerText =
+            autoScrollActive
+            ? (autoScrollPaused ? "Paused" : "Scrolling")
+            : "Auto Scroll";
+    }
+
+    btn.title =
         autoScrollActive
-        ? (
-            autoScrollPaused
-            ? "Paused"
-            : "Scrolling"
-        )
+        ? (autoScrollPaused ? "Auto scroll paused" : "Auto scrolling")
         : "Auto Scroll";
+    btn.setAttribute("aria-label", btn.title);
 }
 
 
@@ -7567,10 +7718,12 @@ function updateHidePlayedButton(){
         hidePlayed ? "true" : "false"
     );
 
-    btn.innerText =
-        hidePlayed
-        ? "Played Hidden"
-        : "Hide Played";
+    btn.innerText = compactControls
+        ? (hidePlayed ? "🙈" : "👁️")
+        : (hidePlayed ? "Played Hidden" : "Hide Played");
+
+    btn.title = hidePlayed ? "Played songs hidden" : "Hide played songs";
+    btn.setAttribute("aria-label", btn.title);
 }
 
 function applyTempoToolsVisibility(){
@@ -8339,7 +8492,12 @@ function buildChips(){
         const d = document.createElement("div");
 d.className = "chip filterChip";
 d.dataset.filter = f;
-d.innerText = f;
+d.innerText = compactControls
+    ? (compactFilterLabels[f] || f)
+    : f;
+d.title = f;
+d.setAttribute("role", "button");
+d.setAttribute("aria-label", f);
 
 applyFilterChipStyle(d, f);
 
@@ -8556,7 +8714,9 @@ const genres =
     });
 
     select.innerHTML =
-        `<option value="">All Genres</option>`;
+        `<option value="">${compactControls ? "🎵 Genre" : "All Genres"}</option>`;
+    select.title = "Genre filter";
+    select.setAttribute("aria-label", "Genre filter");
 
     genres.forEach(genre => {
 
@@ -8599,7 +8759,9 @@ function buildCountryDropdown(){
             .filter(Boolean)
     )].sort((a,b) => a.localeCompare(b));
 
-    select.innerHTML = `<option value="">All Countries</option>`;
+    select.innerHTML = `<option value="">${compactControls ? "🌍 Country" : "All Countries"}</option>`;
+    select.title = "Country of origin filter";
+    select.setAttribute("aria-label", "Country of origin filter");
 
     countries.forEach(country => {
         const option = document.createElement("option");
@@ -12300,6 +12462,24 @@ if(simplifyGenresBtn){
     };
 }
 
+const compactControlsBtn =
+    document.getElementById("compactControlsBtn");
+
+if(compactControlsBtn){
+    compactControlsBtn.onclick = e => {
+        e.stopPropagation();
+
+        compactControls = !compactControls;
+
+        localStorage.setItem(
+            "songFinderCompactControls",
+            compactControls ? "true" : "false"
+        );
+
+        applyCompactControls();
+    };
+}
+
 function launchSongFinderExternalApp(url, fallbackUrl = ""){
 
     let appOpened = false;
@@ -14012,10 +14192,8 @@ updateSetlistAutoScrollButton();
 updateHidePlayedButton();
 applyTempoToolsVisibility();
 updateSimplifyGenresButton();
-updateBirthdayDisplay();
-updateAnniversaryDisplay();
 updateSetlistSortControls();
-updateSortOrderButton();
+applyCompactControls();
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
         navigator.serviceWorker
