@@ -3303,6 +3303,204 @@ body.theme-day #birthdayBtn.active{
     }
 }
 
+
+
+/* =========================
+   27 SEP 2026 UPDATES
+   ========================= */
+
+.countrySelect{
+    width:155px;
+    min-width:155px;
+    max-width:155px;
+    flex:0 0 155px;
+    color:#a7f3d0;
+}
+
+.countrySelect.active{
+    background:#334155;
+    color:#a7f3d0;
+    border-color:#34d399;
+    box-shadow:inset 0 0 0 1px #34d399;
+}
+
+/* Make a selected decade unmistakable without replacing its chosen colour. */
+.chip.decadeChip.decade-active{
+    position:relative;
+    transform:scale(1.07);
+    color:#fff !important;
+    font-weight:950;
+    border:3px solid #fff !important;
+    outline:3px solid #2563eb;
+    outline-offset:2px;
+    box-shadow:
+        0 0 0 2px rgba(0,0,0,.9),
+        0 0 18px rgba(37,99,235,.72),
+        inset 0 0 0 1px rgba(0,0,0,.45) !important;
+}
+
+.chip.decadeChip.decade-active::after{
+    content:" ✓";
+    font-weight:950;
+}
+
+body.theme-day .chip.decadeChip.decade-active{
+    border-color:#ffffff !important;
+    outline-color:#0f172a;
+    box-shadow:
+        0 0 0 2px rgba(255,255,255,.95),
+        0 0 0 5px rgba(15,23,42,.9),
+        0 7px 18px rgba(15,23,42,.28) !important;
+}
+
+#anniversaryBtn{
+    background:#1e293b;
+    color:#f5d0fe;
+    font-weight:700;
+    border:1px solid #334155;
+}
+
+#anniversaryBtn.active{
+    background:#4a294f;
+    color:#ffffff;
+    border-color:#e879f9;
+    box-shadow:inset 0 0 0 1px #e879f9;
+}
+
+#anniversaryOverlay{
+    position:fixed;
+    inset:0;
+    background:rgba(2,6,23,.52);
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease;
+    z-index:95000;
+    backdrop-filter:blur(5px);
+    -webkit-backdrop-filter:blur(5px);
+}
+
+#anniversaryOverlay.open{
+    opacity:1;
+    pointer-events:auto;
+}
+
+#anniversaryPanel{
+    position:fixed;
+    left:50%;
+    top:50%;
+    transform:translate(-50%, -50%);
+    width:min(90%, 380px);
+    background:var(--theme-panel);
+    color:var(--theme-text);
+    border-radius:var(--radius-panel);
+    padding:18px;
+    box-sizing:border-box;
+    display:none;
+    z-index:95001;
+    box-shadow:0 12px 32px rgba(0,0,0,.45);
+}
+
+#anniversaryPanel.open{ display:block; }
+
+#anniversaryHeader{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    margin-bottom:16px;
+}
+
+.anniversaryRow{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:12px;
+}
+
+.anniversaryRow label{
+    color:var(--theme-muted);
+    font-size:13px;
+}
+
+.anniversaryRow input{
+    width:100%;
+    box-sizing:border-box;
+    padding:12px;
+    border:1px solid var(--theme-border);
+    border-radius:var(--radius-input);
+    background:var(--theme-input);
+    color:var(--theme-input-text);
+    font-size:20px;
+    font-family:inherit;
+    outline:none;
+}
+
+#anniversaryYearLabel{
+    color:#e879f9;
+    font-size:14px;
+    font-weight:700;
+    margin:8px 0 12px;
+}
+
+#anniversaryGiftBox{
+    display:none;
+    padding:12px;
+    margin:0 0 14px;
+    border:1px solid rgba(232,121,249,.45);
+    border-radius:12px;
+    background:rgba(232,121,249,.08);
+    line-height:1.5;
+}
+
+#anniversaryGiftBox.visible{ display:block; }
+#anniversaryGiftTitle{ font-weight:900; margin-bottom:5px; }
+.anniversaryGiftLabel{ color:var(--theme-muted); font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.4px; }
+#anniversaryGiftNote{ color:var(--theme-muted); font-size:11px; margin-top:7px; }
+#anniversaryClear{ width:100%; color:#fca5a5; }
+
+#setlistHeader{ flex-wrap:wrap; }
+
+#setlistSortBar{
+    width:100%;
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding-top:10px;
+    margin-top:2px;
+    border-top:1px solid rgba(148,163,184,.18);
+}
+
+#setlistSortLabel{
+    color:var(--theme-muted);
+    font-size:12px;
+    font-weight:800;
+}
+
+#setlistSortSelect{
+    flex:1;
+    min-width:0;
+    padding:8px 10px;
+    border:1px solid var(--theme-border);
+    border-radius:var(--radius-control);
+    background:var(--theme-button);
+    color:var(--theme-button-text);
+    font:inherit;
+    font-size:14px;
+    font-weight:700;
+}
+
+#setlistSortOrder{
+    min-width:62px;
+    font-size:14px;
+    font-weight:900;
+}
+
+.setlistItem.sortLocked{ cursor:default; }
+
+body.theme-day #anniversaryBtn.active{
+    background:#7e22ce !important;
+    color:#ffffff !important;
+    border-color:#6b21a8 !important;
+}
 </style>
 </head>
 
@@ -3349,6 +3547,10 @@ body.theme-day #birthdayBtn.active{
     <option value="">All Genres</option>
 </select>
 
+<select id="countrySelect" class="genreSelect countrySelect">
+    <option value="">All Countries</option>
+</select>
+
 <div class="utilityFilterGroup" id="utilityFilterGroup">
     <button id="autoScrollBtn" class="autoScrollBtn">
         Auto Scroll
@@ -3356,6 +3558,10 @@ body.theme-day #birthdayBtn.active{
 
     <button id="birthdayBtn" class="birthdayBtn">
         🎂 Birthday
+    </button>
+
+    <button id="anniversaryBtn" type="button" aria-pressed="false">
+        💍 Anniversary
     </button>
 
     <button id="hidePlayedBtn" type="button" aria-pressed="false">
@@ -3651,6 +3857,42 @@ body.theme-day #birthdayBtn.active{
         Clear Birthday Filter
     </button>
 </div>
+
+    <div id="anniversaryOverlay"></div>
+
+<div id="anniversaryPanel">
+    <div id="anniversaryHeader">
+        <strong>Anniversary Filter</strong>
+        <button id="anniversaryClose">✕</button>
+    </div>
+
+    <div class="anniversaryRow">
+        <label>Years married</label>
+        <input
+            id="anniversaryYears"
+            type="number"
+            inputmode="numeric"
+            min="1"
+            max="100"
+            placeholder="e.g. 10"
+        >
+    </div>
+
+    <div id="anniversaryYearLabel">
+        Enter how many years they’ve been married.
+    </div>
+
+    <div id="anniversaryGiftBox">
+        <div id="anniversaryGiftTitle"></div>
+        <div><span class="anniversaryGiftLabel">Traditional UK:</span> <span id="anniversaryTraditionalGift"></span></div>
+        <div><span class="anniversaryGiftLabel">Modern:</span> <span id="anniversaryModernGift"></span></div>
+        <div id="anniversaryGiftNote">UK traditional list used where UK and US traditions differ; gift lists can vary slightly by source.</div>
+    </div>
+
+    <button id="anniversaryClear">
+        Clear Anniversary Filter
+    </button>
+</div>
     <div id="setlistPanel">
 
    <div id="setlistHeader">
@@ -3689,6 +3931,18 @@ body.theme-day #birthdayBtn.active{
     <button id="closeSetlist">
         ✕
     </button>
+</div>
+
+<div id="setlistSortBar">
+    <span id="setlistSortLabel">Sort</span>
+    <select id="setlistSortSelect" aria-label="Sort set list by">
+        <option value="added">Order Added</option>
+        <option value="artist">Artist</option>
+        <option value="title">Title</option>
+        <option value="year">Year</option>
+        <option value="bpm">BPM</option>
+    </select>
+    <button id="setlistSortOrder" type="button" aria-label="Reverse set list sort direction">A-Z</button>
 </div>
 </div>
 
@@ -3904,6 +4158,8 @@ let birthdayBirthYear = null;
 let birthdayStartYear = null;
 let birthdayEndYear = null;
 let birthdayInputLock = false;
+let anniversaryYears = null;
+let anniversaryWeddingYear = null;
 let currentTheme =
     localStorage.getItem("songFinderTheme") || "day";
 
@@ -5762,6 +6018,7 @@ doNotPlayOnlyActive = false;
     bpmFilter = null;
 
     clearBirthdayFilter(true);
+    clearAnniversaryFilter(true);
 
     currentQuery = "";
 
@@ -6197,6 +6454,12 @@ let setlist =
 JSON.parse(
     localStorage.getItem("setlist") || "[]"
 );
+let setlistSortKey =
+    localStorage.getItem("songFinderSetlistSortKey") || "added";
+let setlistSortDirection =
+    localStorage.getItem("songFinderSetlistSortDirection") === "-1"
+        ? -1
+        : 1;
     function isPlaceMarker(item){
 
     return String(item || "")
@@ -6205,6 +6468,155 @@ JSON.parse(
 function getCurrentYear(){
 
     return new Date().getFullYear();
+}
+
+
+const ukAnniversaryGifts = {
+    1:{traditional:"Paper", modern:"Clock"},
+    2:{traditional:"Cotton", modern:"China"},
+    3:{traditional:"Leather", modern:"Crystal / Glass"},
+    4:{traditional:"Linen / Silk", modern:"Electrical Appliances"},
+    5:{traditional:"Wood", modern:"Silverware"},
+    6:{traditional:"Sugar", modern:"Wooden Objects"},
+    7:{traditional:"Wool", modern:"Desktop Sets"},
+    8:{traditional:"Salt", modern:"Linen / Lace"},
+    9:{traditional:"Copper", modern:"Leather Goods"},
+    10:{traditional:"Tin", modern:"Diamond Jewellery"},
+    11:{traditional:"Steel", modern:"Fashion Jewellery"},
+    12:{traditional:"Silk / Fine Linen", modern:"Pearls / Coloured Gems"},
+    13:{traditional:"Lace", modern:"Textiles / Furs"},
+    14:{traditional:"Ivory (traditional theme — choose an ethical ivory-coloured alternative)", modern:"Gold Jewellery"},
+    15:{traditional:"Crystal", modern:"Watches"},
+    16:{traditional:"Wax", modern:"Silver Holloware"},
+    17:{traditional:"No widely used UK traditional theme", modern:"Furniture"},
+    18:{traditional:"No widely used UK traditional theme", modern:"Porcelain"},
+    19:{traditional:"No widely used UK traditional theme", modern:"Bronze"},
+    20:{traditional:"Porcelain / China", modern:"Platinum"},
+    21:{traditional:"No widely used UK traditional theme", modern:"Brass / Nickel"},
+    22:{traditional:"No widely used UK traditional theme", modern:"Copper"},
+    23:{traditional:"No widely used UK traditional theme", modern:"Silver Plate"},
+    24:{traditional:"No widely used UK traditional theme", modern:"Musical Instruments"},
+    25:{traditional:"Silver", modern:"Silver"},
+    30:{traditional:"Pearl", modern:"Diamond"},
+    35:{traditional:"Coral", modern:"Jade"},
+    40:{traditional:"Ruby", modern:"Ruby"},
+    45:{traditional:"Sapphire", modern:"Sapphire"},
+    50:{traditional:"Gold", modern:"Gold"},
+    55:{traditional:"Emerald", modern:"Emerald"},
+    60:{traditional:"Diamond", modern:"Diamond"},
+    65:{traditional:"Blue Sapphire", modern:"Blue Sapphire"},
+    70:{traditional:"Platinum", modern:"Platinum"},
+    75:{traditional:"Diamond", modern:"Diamond / Gold"},
+    80:{traditional:"Oak", modern:"Diamond / Pearl"},
+    85:{traditional:"Wine", modern:"Birthstone"},
+    90:{traditional:"Stone", modern:"Diamond / Emerald"}
+};
+
+function getOrdinal(number){
+    const n = Number(number);
+    const mod100 = n % 100;
+    if(mod100 >= 11 && mod100 <= 13) return `${n}th`;
+    switch(n % 10){
+        case 1:return `${n}st`;
+        case 2:return `${n}nd`;
+        case 3:return `${n}rd`;
+        default:return `${n}th`;
+    }
+}
+
+function getUkAnniversaryGift(years){
+    return ukAnniversaryGifts[years] || {
+        traditional:"No widely used UK traditional theme",
+        modern:"No widely used modern theme"
+    };
+}
+
+function updateAnniversaryDisplay(){
+    const btn = document.getElementById("anniversaryBtn");
+    const label = document.getElementById("anniversaryYearLabel");
+    const box = document.getElementById("anniversaryGiftBox");
+    const giftTitle = document.getElementById("anniversaryGiftTitle");
+    const traditional = document.getElementById("anniversaryTraditionalGift");
+    const modern = document.getElementById("anniversaryModernGift");
+
+    const active = anniversaryYears !== null && anniversaryWeddingYear !== null;
+
+    if(btn){
+        btn.classList.toggle("active", active);
+        btn.setAttribute("aria-pressed", active ? "true" : "false");
+        btn.innerText = active ? `💍 ${anniversaryYears} yrs` : "💍 Anniversary";
+    }
+
+    if(label){
+        label.innerText = active
+            ? `Wedding year: ${anniversaryWeddingYear} • Showing songs from ${anniversaryWeddingYear}`
+            : "Enter how many years they’ve been married.";
+    }
+
+    if(box){
+        box.classList.toggle("visible", active);
+    }
+
+    if(active){
+        const gift = getUkAnniversaryGift(anniversaryYears);
+        if(giftTitle) giftTitle.innerText = `${getOrdinal(anniversaryYears)} anniversary gifts`;
+        if(traditional) traditional.innerText = gift.traditional;
+        if(modern) modern.innerText = gift.modern;
+    }
+}
+
+function applyAnniversaryYears(years, skipRender = false){
+    years = Number(years);
+    const currentYear = getCurrentYear();
+    const weddingYear = currentYear - years;
+
+    if(
+        !Number.isInteger(years) ||
+        years < 1 ||
+        years > 100 ||
+        weddingYear < 1900
+    ){
+        clearAnniversaryFilter(skipRender);
+        return;
+    }
+
+    anniversaryYears = years;
+    anniversaryWeddingYear = weddingYear;
+
+    const input = document.getElementById("anniversaryYears");
+    if(input && String(input.value) !== String(years)){
+        input.value = years;
+    }
+
+    updateAnniversaryDisplay();
+
+    if(!skipRender){
+        render();
+    }
+}
+
+function clearAnniversaryFilter(skipRender = false){
+    anniversaryYears = null;
+    anniversaryWeddingYear = null;
+
+    const input = document.getElementById("anniversaryYears");
+    if(input) input.value = "";
+
+    updateAnniversaryDisplay();
+
+    if(!skipRender){
+        render();
+    }
+}
+
+function openAnniversaryPanel(){
+    document.getElementById("anniversaryPanel").classList.add("open");
+    document.getElementById("anniversaryOverlay").classList.add("open");
+}
+
+function closeAnniversaryPanel(){
+    document.getElementById("anniversaryPanel").classList.remove("open");
+    document.getElementById("anniversaryOverlay").classList.remove("open");
 }
 
 function updateBirthdayDisplay(){
@@ -7474,6 +7886,26 @@ function updateCount(count){
 
 function normalize(t){return (t||"").toLowerCase();}
 
+
+function getSongCountryParts(song){
+    return String(song?.["Country of Origin"] || "")
+        .split(/[\/,;]/)
+        .map(value => value.trim())
+        .filter(Boolean);
+}
+
+function countryMatchesFilter(song, filter){
+    if(!filter) return true;
+
+    const raw = String(song?.["Country of Origin"] || "").trim();
+    if(raw === filter) return true;
+
+    const wanted = normalize(String(filter));
+
+    return getSongCountryParts(song)
+        .some(country => normalize(country) === wanted);
+}
+
 function songMatches(song,q){
 
     q = normalize(q.trim());
@@ -7524,7 +7956,7 @@ function songMatches(song,q){
 
     if(
         countryFilter &&
-        song["Country of Origin"] !== countryFilter
+        !countryMatchesFilter(song, countryFilter)
     ){
         return false;
     }
@@ -7555,6 +7987,19 @@ if(
         ) > 10
     ){
         return false;
+    }
+
+    if(anniversaryWeddingYear !== null){
+
+        const songYear =
+            Number(song.Year);
+
+        if(
+            !songYear ||
+            songYear !== anniversaryWeddingYear
+        ){
+            return false;
+        }
     }
 
     if(!passesMoreLikeThis(song)){
@@ -7617,7 +8062,7 @@ function songMatchesDecadeAvailability(song){
 
     if(
         countryFilter &&
-        song["Country of Origin"] !== countryFilter
+        !countryMatchesFilter(song, countryFilter)
     ){
         return false;
     }
@@ -7648,6 +8093,19 @@ function songMatchesDecadeAvailability(song){
             !songYear ||
             songYear < birthdayStartYear ||
             songYear > birthdayEndYear
+        ){
+            return false;
+        }
+    }
+
+    if(anniversaryWeddingYear !== null){
+
+        const songYear =
+            Number(song.Year);
+
+        if(
+            !songYear ||
+            songYear !== anniversaryWeddingYear
         ){
             return false;
         }
@@ -8023,7 +8481,7 @@ function clearAllRegularFilters(){
         search.blur();
     }
 
-    // Birthday and client/event filters are intentionally preserved here.
+    // Birthday, Anniversary and client/event filters are intentionally preserved here.
     render();
 }
 
@@ -8096,6 +8554,7 @@ const genres =
         select.appendChild(option);
     });
 
+    buildCountryDropdown();
     syncGenreDropdown();
 }
 
@@ -8104,15 +8563,52 @@ function syncGenreDropdown(){
     const select =
         document.getElementById("genreSelect");
 
+    if(select){
+        select.value = genreFilter || "";
+        select.classList.toggle("active", !!genreFilter);
+    }
+
+    syncCountryDropdown();
+}
+
+function buildCountryDropdown(){
+    const select = document.getElementById("countrySelect");
     if(!select) return;
 
-    select.value =
-        genreFilter || "";
+    const countries = [...new Set(
+        getBaseSongsForView()
+            .flatMap(getSongCountryParts)
+            .filter(Boolean)
+    )].sort((a,b) => a.localeCompare(b));
 
-    select.classList.toggle(
-        "active",
-        !!genreFilter
-    );
+    select.innerHTML = `<option value="">All Countries</option>`;
+
+    countries.forEach(country => {
+        const option = document.createElement("option");
+        option.value = country;
+        option.innerText = country;
+        select.appendChild(option);
+    });
+
+    syncCountryDropdown();
+}
+
+function syncCountryDropdown(){
+    const select = document.getElementById("countrySelect");
+    if(!select) return;
+
+    if(
+        countryFilter &&
+        ![...select.options].some(option => option.value === countryFilter)
+    ){
+        const option = document.createElement("option");
+        option.value = countryFilter;
+        option.innerText = countryFilter;
+        select.appendChild(option);
+    }
+
+    select.value = countryFilter || "";
+    select.classList.toggle("active", !!countryFilter);
 }
        
 const defaultDecadeColours = {
@@ -8660,6 +9156,82 @@ d.innerText =
         );
     }
 }
+
+function saveSetlistSortSettings(){
+    localStorage.setItem("songFinderSetlistSortKey", setlistSortKey);
+    localStorage.setItem("songFinderSetlistSortDirection", String(setlistSortDirection));
+}
+
+function updateSetlistSortControls(){
+    const select = document.getElementById("setlistSortSelect");
+    const order = document.getElementById("setlistSortOrder");
+
+    if(select) select.value = setlistSortKey;
+    if(order) order.innerText = setlistSortDirection === 1 ? "A-Z" : "Z-A";
+}
+
+function compareSetlistSongIds(aId, bId){
+    const a = songs.find(song => songMatchesStoredId(song, aId));
+    const b = songs.find(song => songMatchesStoredId(song, bId));
+
+    if(!a && !b) return 0;
+    if(!a) return 1;
+    if(!b) return -1;
+
+    let result = 0;
+
+    if(setlistSortKey === "artist"){
+        result = getSongArtist(a).localeCompare(getSongArtist(b), undefined, {sensitivity:"base"});
+    }else if(setlistSortKey === "title"){
+        result = getSongTitle(a).localeCompare(getSongTitle(b), undefined, {sensitivity:"base"});
+    }else if(setlistSortKey === "year"){
+        result = (Number(a.Year) || 9999) - (Number(b.Year) || 9999);
+    }else if(setlistSortKey === "bpm"){
+        result = (Number(a.Tempo) || 9999) - (Number(b.Tempo) || 9999);
+    }
+
+    if(result === 0){
+        result = getSongTitle(a).localeCompare(getSongTitle(b), undefined, {sensitivity:"base"});
+    }
+
+    return result * setlistSortDirection;
+}
+
+function getSetlistDisplayItems(){
+    const items = [...setlist];
+
+    if(setlistSortKey === "added"){
+        return setlistSortDirection === 1
+            ? items
+            : items.reverse();
+    }
+
+    // Keep place markers as section boundaries. Songs inside each section
+    // are sorted, but a marker never gets separated from its section.
+    const output = [];
+    let section = [];
+
+    const flushSection = () => {
+        if(section.length){
+            section.sort(compareSetlistSongIds);
+            output.push(...section);
+            section = [];
+        }
+    };
+
+    items.forEach(item => {
+        if(isPlaceMarker(item)){
+            flushSection();
+            output.push(item);
+        }else{
+            section.push(item);
+        }
+    });
+
+    flushSection();
+    return output;
+}
+
     function renderSetlist(){
 
     const container =
@@ -8668,9 +9240,12 @@ d.innerText =
     if(!container) return;
 
     container.innerHTML="";
-      updateSetlistCounts();
+    updateSetlistCounts();
+    updateSetlistSortControls();
 
-setlist.forEach(songId=>{
+    const displaySetlist = getSetlistDisplayItems();
+
+    displaySetlist.forEach(songId=>{
 
     if(isPlaceMarker(songId)){
 
@@ -8683,7 +9258,8 @@ setlist.forEach(songId=>{
         div.className =
             "setlistItem placeMarkerItem";
 
-        div.draggable = true;
+        div.draggable = setlistSortKey === "added";
+        div.classList.toggle("sortLocked", setlistSortKey !== "added");
         div.dataset.songid = markerId;
 
         div.innerHTML = `
@@ -8826,7 +9402,12 @@ setlist.forEach(songId=>{
             div.style.transform = "";
         });
 
-        div.addEventListener("dragstart",()=>{
+        div.addEventListener("dragstart", e=>{
+
+            if(setlistSortKey !== "added"){
+                e.preventDefault();
+                return;
+            }
 
             div.classList.add("dragging");
 
@@ -8874,7 +9455,8 @@ if(playedSongs.has(songId)){
     div.classList.add("played");
 }
 
-div.draggable = true;
+div.draggable = setlistSortKey === "added";
+div.classList.toggle("sortLocked", setlistSortKey !== "added");
 div.dataset.songid = songId;
 
         const link = song.Link || song.link || "";
@@ -9043,9 +9625,14 @@ div.addEventListener("pointercancel", () => {
     div.classList.remove("swiping");
     div.style.transform = "";
 });
-div.addEventListener("dragstart",()=>{
+div.addEventListener("dragstart", e=>{
 
-    div.classList.add("dragging");
+            if(setlistSortKey !== "added"){
+                e.preventDefault();
+                return;
+            }
+
+            div.classList.add("dragging");
 
     draggedSongId = songId;
 });
@@ -9816,6 +10403,7 @@ if(countryLink){
             ? ""
             : countryLink.dataset.country;
 
+        syncCountryDropdown();
         render();
     };
 }
@@ -10032,6 +10620,50 @@ document.getElementById("sortOrder").onclick = () => {
 
     openBirthdayPanel();
 };
+
+document
+.getElementById("anniversaryBtn")
+.onclick = e => {
+    e.stopPropagation();
+    openAnniversaryPanel();
+};
+
+document
+.getElementById("anniversaryClose")
+.onclick = e => {
+    e.stopPropagation();
+    closeAnniversaryPanel();
+};
+
+document
+.getElementById("anniversaryOverlay")
+.onclick = closeAnniversaryPanel;
+
+document
+.getElementById("anniversaryClear")
+.onclick = e => {
+    e.stopPropagation();
+    clearAnniversaryFilter();
+    closeAnniversaryPanel();
+};
+
+document
+.getElementById("anniversaryYears")
+.addEventListener("input", e => {
+    const value = e.target.value.trim();
+
+    if(value === ""){
+        clearAnniversaryFilter();
+        return;
+    }
+
+    const years = Number(value);
+    if(!Number.isInteger(years) || years < 1 || years > 100){
+        return;
+    }
+
+    applyAnniversaryYears(years);
+});
 document
 .getElementById("genreSelect")
 .onchange = e => {
@@ -10041,6 +10673,15 @@ document
 
     syncGenreDropdown();
 
+    render();
+};
+
+document
+.getElementById("countrySelect")
+.onchange = e => {
+
+    countryFilter = e.target.value;
+    syncCountryDropdown();
     render();
 };
 document
@@ -10100,6 +10741,20 @@ document
 
     applyBirthdayYear(birthYear);
 });
+
+document.getElementById("setlistSortSelect").onchange = e => {
+    setlistSortKey = e.target.value;
+    saveSetlistSortSettings();
+    renderSetlist();
+};
+
+document.getElementById("setlistSortOrder").onclick = e => {
+    e.stopPropagation();
+    setlistSortDirection *= -1;
+    saveSetlistSortSettings();
+    renderSetlist();
+};
+
 document.getElementById("sortRandom").onclick = () => {
 
     randomMode = true;
@@ -11103,7 +11758,7 @@ const fileStamp =
     }
 
    const rawLines =
-    setlist.map((songId, index) => {
+    getSetlistDisplayItems().map((songId, index) => {
 
         if(isPlaceMarker(songId)){
 
@@ -11627,9 +12282,28 @@ if(simplifyGenresBtn){
     };
 }
 
-function launchSongFinderExternalApp(url){
+function launchSongFinderExternalApp(url, fallbackUrl = ""){
+
+    let appOpened = false;
+
+    const markOpened = () => {
+        if(document.hidden){
+            appOpened = true;
+        }
+    };
+
+    document.addEventListener("visibilitychange", markOpened, {once:true});
+    window.addEventListener("pagehide", () => { appOpened = true; }, {once:true});
 
     window.location.href = url;
+
+    if(fallbackUrl){
+        setTimeout(() => {
+            if(!appOpened && !document.hidden){
+                window.location.href = fallbackUrl;
+            }
+        }, 1100);
+    }
 }
 
 const forScoreBtn =
@@ -11658,8 +12332,11 @@ const sheetMusicDirectBtn =
 if(sheetMusicDirectBtn){
     sheetMusicDirectBtn.onclick = e => {
         e.stopPropagation();
+        // Sheet Music Direct does not publish a documented universal web-to-app
+        // link, so try the app scheme first and fall back to its UK App Store page.
         launchSongFinderExternalApp(
-            "https://www.sheetmusicdirect.com/"
+            "sheetmusicdirect://",
+            "https://apps.apple.com/gb/app/sheet-music-direct/id499069309"
         );
     };
 }
@@ -13318,6 +13995,8 @@ updateHidePlayedButton();
 applyTempoToolsVisibility();
 updateSimplifyGenresButton();
 updateBirthdayDisplay();
+updateAnniversaryDisplay();
+updateSetlistSortControls();
 updateSortOrderButton();
 if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
