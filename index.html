@@ -675,7 +675,25 @@ flex:0 0 145px;
 
 .card:active{
     transform:scale(.99);
-}.plusBtn{
+}
+
+/* iPad/touch scrolling: let WebKit prioritise vertical panning and avoid
+   compositing a scaled card while a finger is dragging the page. */
+#results,
+.card{
+    touch-action:pan-y;
+}
+
+@media (hover:none) and (pointer:coarse){
+    .card{
+        transition:none;
+    }
+
+    .card:active{
+        transform:none;
+    }
+}
+.plusBtn{
     font-size:26px;
     font-weight:800;
 
@@ -3560,6 +3578,16 @@ body.compactControls #countrySelect{
     flex:0 0 58px;
     text-align:center;
     text-align-last:center;
+}
+
+/* iPad native select arrows take a little more room than Safari on phone. */
+@media (min-width:700px) and (max-width:1400px){
+    body.compactControls #countrySelect{
+        width:64px;
+        min-width:64px;
+        max-width:64px;
+        flex-basis:64px;
+    }
 }
 
 body.compactControls .chip.filterChip{
@@ -8149,7 +8177,10 @@ function applyScale(){
         setTimeout(() => {
             updateHeaderOffset();
             positionAlphabet();
+            refreshAlphabetScrollCache();
         }, 800);
+
+        refreshAlphabetScrollCache();
     });
 }
 function updateCount(count){
@@ -11332,46 +11363,98 @@ if(typeof buildFilterColourPanel === "function"){
 
 render();
 }
-window.addEventListener("scroll",()=>{
+let alphabetScrollCache = [];
+let alphabetScrollFrame = null;
+let alphabetCacheFrame = null;
 
-    if(
-        sortKey !== "artist" &&
-        sortKey !== "title" &&
-        sortKey !== "bpm" &&
-        sortKey !== "year"
-    ){
+function alphabetSortIsActive(){
+    return (
+        sortKey === "artist" ||
+        sortKey === "title" ||
+        sortKey === "bpm" ||
+        sortKey === "year"
+    );
+}
+
+function refreshAlphabetScrollCache(){
+    if(alphabetCacheFrame){
+        cancelAnimationFrame(alphabetCacheFrame);
+    }
+
+    alphabetCacheFrame = requestAnimationFrame(() => {
+        alphabetCacheFrame = null;
+
+        if(!alphabetSortIsActive()){
+            alphabetScrollCache = [];
+            return;
+        }
+
+        const scrollY = window.scrollY;
+
+        alphabetScrollCache =
+            [...document.querySelectorAll(".card")]
+                .map(card => ({
+                    top: card.getBoundingClientRect().top + scrollY,
+                    key: card.dataset.letter || ""
+                }))
+                .filter(item => item.key);
+
+        updateAlphabetForScroll();
+    });
+}
+
+function updateAlphabetForScroll(){
+    if(!alphabetSortIsActive() || alphabetScrollCache.length === 0){
         return;
     }
 
-    const cards =
-        [...document.querySelectorAll(".card")];
+    const threshold = window.scrollY + 150;
+    let low = 0;
+    let high = alphabetScrollCache.length - 1;
+    let found = -1;
 
-    let currentKey =
-        "";
+    while(low <= high){
+        const mid = (low + high) >> 1;
 
-    for(const card of cards){
-
-        const rect =
-            card.getBoundingClientRect();
-
-        if(rect.top <= 150){
-            currentKey =
-                card.dataset.letter || currentKey;
+        if(alphabetScrollCache[mid].top <= threshold){
+            found = mid;
+            low = mid + 1;
         }else{
-            break;
+            high = mid - 1;
         }
     }
+
+    const currentKey =
+        found >= 0
+        ? alphabetScrollCache[found].key
+        : "";
 
     document
         .querySelectorAll(".alphaLetter")
         .forEach(el => {
-
             el.classList.toggle(
                 "active",
                 (el.dataset.key || el.innerText) === currentKey
             );
         });
-});
+}
+
+function scheduleAlphabetScrollUpdate(){
+    if(alphabetScrollFrame || !alphabetSortIsActive()){
+        return;
+    }
+
+    alphabetScrollFrame = requestAnimationFrame(() => {
+        alphabetScrollFrame = null;
+        updateAlphabetForScroll();
+    });
+}
+
+window.addEventListener(
+    "scroll",
+    scheduleAlphabetScrollUpdate,
+    { passive:true }
+);
 window.addEventListener("resize", settleSongFinderLayout);
 window.addEventListener("orientationchange", settleSongFinderLayout);
 window.addEventListener("pageshow", settleSongFinderLayout);
@@ -11395,7 +11478,7 @@ window.addEventListener("focus", () => {
     resumeAutoScroll();
     settleSongFinderLayout();
 });
-window.addEventListener("scroll", positionAlphabet);
+
     /* =========================
    VISUAL METRONOME
    ========================= */
@@ -12631,12 +12714,19 @@ const sheetMusicDirectBtn =
 if(sheetMusicDirectBtn){
     sheetMusicDirectBtn.onclick = e => {
         e.stopPropagation();
-        // Sheet Music Direct does not publish a documented universal web-to-app
-        // link, so try the app scheme first and fall back to its UK App Store page.
-        launchSongFinderExternalApp(
-            "sheetmusicdirect://",
-            "https://apps.apple.com/gb/app/sheet-music-direct/id499069309"
-        );
+
+        /*
+         * Sheet Music Direct's current iOS bundle identifier is
+         * com.musicsales.sheetmusicdirect.  The app does not publish a
+         * documented Universal Link/URL scheme, so do NOT auto-fallback to
+         * the App Store (that was the behaviour opening the store on iPad).
+         *
+         * Try the bundle-style native scheme directly.  If Sheet Music
+         * Direct changes/exposes an official scheme later, replace only this
+         * string.
+         */
+        window.location.href =
+            "com.musicsales.sheetmusicdirect://";
     };
 }
     settingsMenu.addEventListener("click", e => {
@@ -14265,13 +14355,21 @@ clearNotesBtn.onclick = e => {
 
 if(backToTopBtn){
 
+    let backToTopFrame = null;
+
     window.addEventListener("scroll", () => {
 
-        backToTopBtn.classList.toggle(
-            "show",
-            window.scrollY > 350
-        );
-    });
+        if(backToTopFrame) return;
+
+        backToTopFrame = requestAnimationFrame(() => {
+            backToTopFrame = null;
+
+            backToTopBtn.classList.toggle(
+                "show",
+                window.scrollY > 350
+            );
+        });
+    }, { passive:true });
 
     backToTopBtn.onclick = () => {
 
